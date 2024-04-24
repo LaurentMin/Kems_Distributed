@@ -59,7 +59,7 @@ func main() {
 
     for {
         fmt.Scanln(&rcvmsg)
-        fmt.Printf("message controler : %s \n", rcvmsg)
+        //fmt.Printf("message controler : %s \n", rcvmsg)
 
 		tab_keyval = parse_keyval(rcvmsg)
 

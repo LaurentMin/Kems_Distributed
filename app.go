@@ -33,10 +33,12 @@ func receive() {
 		fmt.Scanln(&rcvmsg)
 		mutex.Lock()
 		l.Println("reception <", rcvmsg, ">")
+		/*
 		for i := 1; i < 6; i++ {
 			l.Println("traitement message", i)
 			time.Sleep(time.Duration(1) * time.Second)
 		}
+		*/
 		mutex.Unlock()
 		rcvmsg = ""
 	}
