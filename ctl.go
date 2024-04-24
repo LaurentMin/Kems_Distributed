@@ -82,9 +82,9 @@ func main() {
 	
 		// traitement du message 
 		if  s_hrcv != "" {
-			fmt.Printf(findval(tab_keyval, "msg"))
+			fmt.Printf(findval(tab_keyval, "msg") + "\n")
 		} else {
-			fmt.Printf(msg_format("msg", rcvmsg) + msg_format("hlg", strconv.Itoa(h)))
+			fmt.Printf(msg_format("msg", rcvmsg) + msg_format("hlg", strconv.Itoa(h)) + "\n")
 		}
     }
 }
