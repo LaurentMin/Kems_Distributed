@@ -48,7 +48,7 @@ var mutex = &sync.Mutex{}
 
 func main() {
 
-	go sendperiodic()
+	//go sendperiodic()
 	go receive()
 	for {
 		time.Sleep(time.Duration(60) * time.Second)
