@@ -38,10 +38,10 @@ func findval(tab_keyval []string, key string) string {
 
         tab_key_val := strings.Split(keyval[1:], keyval[0:1])
         if tab_key_val[0] == key {
-            val = tab_key_val[1]
+            val = return val
         }
     }
-    return val
+	return val
 }
 
 // fonction pour recaler l'horloge
@@ -74,7 +74,11 @@ func main() {
 		// traitement de l'horloge
 		s_hrcv := findval(tab_keyval, "hlg")
 		if s_hrcv != "" {
-			hrcv, _ := strconv.Atoi(s_hrcv)
+			hrcv, err := strconv.Atoi(s_hrcv)
+			if err != nil {
+				fmt.Println("Error converting string to int: ", err)
+				continue
+			}
 			h = recaler(h, hrcv)
 		} else {
 			h = h + 1
