@@ -60,6 +60,17 @@ func addCardTo(pack *[]Card, card Card) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+//#region Affichage
+func sendToCtl(msg string, nom string) {
+	fmt.Println(msg, nom)
+}
+
+func sendToTerm(msg string, nom string) {
+	l := log.New(os.Stderr, "", 0)
+	l.Println(msg, nom)
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 //#region Func Comm
 func sendperiodic() {
 	var sndmsg string
@@ -95,6 +106,18 @@ var mutex = &sync.Mutex{}
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //#region Main
 func main() {
+
+	stderr := log.New(os.Stderr, "", 0)
+
+	// require flag
+	p_nom := flag.String("n", "", "nom")
+    flag.Parse()
+	if *p_nom == "" {
+		stderr.Println("Le nom est obligatoire")
+		os.Exit(1)
+	}
+
+    nom := *p_nom + "-" + strconv.Itoa(os.Getpid())
 
 	deck := newDeck()
 	deck = shuffleDeck(deck)
