@@ -10,6 +10,7 @@ import (
 	"math/rand"
 )
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
 //#region Struct Appli
 type Card struct {
 	Value string
@@ -21,7 +22,7 @@ type Player struct {
 	Hand []Card
 }
 
-
+////////////////////////////////////////////////////////////////////////////////////////////////////
 //#region Func Appli
 func newDeck() []Card {
 	values := []string{"2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"}
@@ -54,10 +55,11 @@ func pickCard(deck *[]Card) Card {
 	return card
 }
 
-func addCard(pack *[]Card, card *Card) {
-	*pack = append(*pack, *card)
+func addCardTo(pack *[]Card, card Card) {
+	*pack = append(*pack, card)
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
 //#region Func Comm
 func sendperiodic() {
 	var sndmsg string
@@ -90,6 +92,7 @@ func receive() {
 
 var mutex = &sync.Mutex{}
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
 //#region Main
 func main() {
 
@@ -110,10 +113,10 @@ func main() {
 	player4 := Player{id: 4}
 
 	for i := 0; i < 4; i++ {
-		player1.Hand = append(player1.Hand, pickCard(&deck))
-		player2.Hand = append(player2.Hand, pickCard(&deck))
-		player3.Hand = append(player3.Hand, pickCard(&deck))
-		player4.Hand = append(player4.Hand, pickCard(&deck))
+		addCardTo(&(player1.Hand), pickCard(&deck))
+		addCardTo(&(player2.Hand), pickCard(&deck))
+		addCardTo(&(player3.Hand), pickCard(&deck))
+		addCardTo(&(player4.Hand), pickCard(&deck))
 	}
 
 	fmt.Println(player1.Hand)
