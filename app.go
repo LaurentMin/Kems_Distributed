@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"flag"
 	"strconv"
 	"sync"
 	"time"
@@ -110,7 +111,7 @@ func main() {
 	stderr := log.New(os.Stderr, "", 0)
 
 	// require flag
-	p_nom := flag.String("n", "", "nom")
+	p_nom := flag.String("n", "default", "nom")
     flag.Parse()
 	if *p_nom == "" {
 		stderr.Println("Le nom est obligatoire")
@@ -118,6 +119,7 @@ func main() {
 	}
 
     nom := *p_nom + "-" + strconv.Itoa(os.Getpid())
+	fmt.Println("Joueur "+ nom)
 
 	deck := newDeck()
 	deck = shuffleDeck(deck)
