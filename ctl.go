@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -20,7 +22,7 @@ func determineSep(msg string) string {
 
 	// Error returns ""
 	if len(beginRangeASCII) != len(endRangeASCII) {
-		//fmt.Println("Impossible to find seperation caracter (incorrect ASCII range).")
+		stderr.Printf("Incorrect ASCII range (correct function code).\n")
 		return ""
 	}
 
@@ -36,7 +38,7 @@ func determineSep(msg string) string {
 	}
 
 	// Error returns ""
-	//fmt.Println("Seperation caracter not found.")
+	stderr.Printf("Seperation caracter not found for %s\n", msg)
 	return ""
 }
 
@@ -50,7 +52,7 @@ func determineSep(msg string) string {
 func encodeMessage(keyTab []string, valTab []string) string {
 	// Error returns ""
 	if len(keyTab) != len(valTab) {
-		//fmt.Println("Wrong parity for formatting.")
+		stderr.Printf("Wrong parity for formatting.\n")
 		return ""
 	}
 
@@ -97,7 +99,7 @@ func encodeMessage(keyTab []string, valTab []string) string {
 func decodeMessage(msg string) []string {
 	// Error returns empty table
 	if len(msg) < 4 {
-		//fmt.Println("Ivalid message for parsing.")
+		stderr.Printf("Ivalid message for parsing %s\n", msg)
 		return []string{}
 	}
 
@@ -115,7 +117,7 @@ func decodeMessage(msg string) []string {
 func findValue(table []string, key string) string {
 	// Error returns ""
 	if len(table) == 0 {
-		//fmt.Println("No value to find in empty table.")
+		stderr.Printf("No value to find in empty table, key %s\n", key)
 		return ""
 	}
 
@@ -134,7 +136,7 @@ func findValue(table []string, key string) string {
 	}
 
 	// Error returns ""
-	//fmt.Println("No value found.")
+	stderr.Printf("No value found for key %s\n", key)
 	return ""
 }
 
@@ -151,15 +153,20 @@ func recaler(x, y int) int {
 	return x + 1
 }
 
+/*
+	Message logging
+*/
+var stderr = log.New(os.Stderr, "", 0)
+
 func main() {
 	/*
-		//////////////// TEST
-		// //fmt.Println(encodeMessage([]string{"key1", "key2", "key3"}, []string{"val1", "val2", "val3"}))
+		//////////////// FUNCTION TESTING
+		fmt.Printf(encodeMessage([]string{"key1", "key2", "key3"}, []string{"val1", "val2", "val3"}) + "\n")
 		test := encodeMessage([]string{"snd", "hlg", "msg"}, []string{"elouan", "23", "coucou"})
-		//fmt.Println(test)
+		fmt.Printf(test + "\n")
 		decodedTest := decodeMessage(test)
-		//fmt.Println(decodedTest)
-		//fmt.Println(findValue(decodedTest,"snd"))
+		fmt.Println(decodedTest)
+		fmt.Printf(findValue(decodedTest,"snd") + "\n")
 		////////////////
 	*/
 
@@ -174,25 +181,25 @@ func main() {
 		keyValTable = decodeMessage(messageReceived)
 
 		// Defining local clock depending on received message
-		hrcvString := findValue(keyValTable, "hlg")
+		clockReceivedStr := findValue(keyValTable, "hlg")
 		// Adjustment if message received from other controller
-		if hrcvString != "" {
-			hrcv, err := strconv.Atoi(hrcvString)
+		if clockReceivedStr != "" {
+			clockReceived, err := strconv.Atoi(clockReceivedStr)
 			if err != nil {
-				//fmt.Println("Error converting string to int: ", err)
+				stderr.Printf("Error converting string to int: ", err)
 				continue
 			}
-			clock = recaler(clock, hrcv)
+			clock = recaler(clock, clockReceived)
 			// Incremented if message received from base app
 		} else {
 			clock = clock + 1
 		}
 
 		// Message emission
-		// Base app message
-		if hrcvString != "" {
+		// Sending to base app
+		if clockReceivedStr != "" {
 			fmt.Printf(findValue(keyValTable, "msg") + "\n")
-			// Other controller message
+		// Sending to other controller
 		} else {
 			fmt.Printf(encodeMessage([]string{"msg", "hlg"}, []string{messageReceived, strconv.Itoa(clock)}) + "\n")
 		}
