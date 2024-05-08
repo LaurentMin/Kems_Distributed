@@ -9,7 +9,6 @@ import (
 ///////////////////////
 // ENCODING MESSAGES //
 ///////////////////////
-
 /*
 	Returns the first ASCII "seperator" character non present in the string received as a parameter
 	Letters are not included (lookup order can be modified with beginRangeASCII and endRangeASCII)
@@ -42,13 +41,13 @@ func determineSep(msg string) string {
 }
 
 /*
-	Formats a message before sending it to other ctls
+	Formats a message (before sending to other controlers)
 	Works in 3 steps :
 	1. Determining a key val sep for each pair
 	2. Determining a global field seperator
 	3. Building the global message
 */
-func formatMessage(keyTab []string, valTab []string) string {
+func encodeMessage(keyTab []string, valTab []string) string {
 	// Error returns ""
 	if len(keyTab) != len(valTab) {
 		fmt.Println("Wrong parity for formatting.")
@@ -89,33 +88,54 @@ func formatMessage(keyTab []string, valTab []string) string {
 	return msg
 }
 
-// fonctions pour parser un message reçu avec les différentes valeurs d'une autre application
-func parse_keyval(msg string) []string {
+///////////////////////
+// DECODING MESSAGES //
+///////////////////////
+/*
+	Parses a message (received from another controller)
+*/
+	func decodeMessage(msg string) []string {
+	// Error returns empty table
 	if len(msg) < 4 {
-		return []string{msg}
+		fmt.Println("Ivalid message for parsing.")
+		return []string{}
 	}
 
+	// Getting seperator and returning splitted string
 	sep := msg[0:1]
-
-	return strings.Split(msg, sep)
+	// msg[1:] is to avoid that split returns an first empty element
+	return strings.Split(msg[1:], sep)
 }
 
-// fonction pour trouver une valeur dans un tableau de clefvaleur
-func findval(tab_keyval []string, key string) string {
+/*
+	Finds the FIRST value that matches a specific key in []string
+	This function can be used only with message parsed with decodeMessage()
+	Returns "" if value is "" or if error (no value found or other)
+*/
+func findValue(table []string, key string) string {
+	// Error returns ""
+	if len(table) == 0 {
+		fmt.Println("No value to find in empty table.")
+		return ""
+	}
 
-	var val string = ""
-
-	for _, keyval := range tab_keyval {
-		if len(keyval) < 4 {
+	// Loop on the table to find key
+	for i := 0; i < len(table); i++ {
+		pair := decodeMessage(table[i])
+		// Invalid pair, goes to next pair
+		if len(pair) == 0 {
 			continue
 		}
 
-		tab_key_val := strings.Split(keyval[1:], keyval[0:1])
-		if tab_key_val[0] == key {
-			//val = return val
+		// Trying to match key
+		if pair[0] == key {
+			return pair[1]
 		}
 	}
-	return val
+
+	// Error returns ""
+	fmt.Println("No value found.")
+	return ""
 }
 
 // fonction pour recaler l'horloge
@@ -129,8 +149,12 @@ func recaler(x, y int) int {
 func main() {
 
 	//////////////// TEST
-	fmt.Println(formatMessage([]string{"snd", "hlg", "msg"}, []string{"elouan", "23", "coucou"}))
-
+	// fmt.Println(encodeMessage([]string{"key1", "key2", "key3"}, []string{"val1", "val2", "val3"}))
+	test := encodeMessage([]string{"snd", "hlg", "msg"}, []string{"elouan", "23", "coucou"})
+	fmt.Println(test)
+	decodedTest := decodeMessage(test)
+	fmt.Println(decodedTest)
+	fmt.Println(findValue(decodedTest,"snd"))
 	////////////////
 
 	var rcvmsg string
@@ -141,7 +165,7 @@ func main() {
 		fmt.Scanln(&rcvmsg)
 		//fmt.Printf("message controler : %s \n", rcvmsg)
 
-		tab_keyval = parse_keyval(rcvmsg)
+		tab_keyval = decodeMessage(rcvmsg)
 
 		/*
 			for _, keyval := range tab_keyval {
@@ -151,7 +175,7 @@ func main() {
 			}
 		*/
 		// traitement de l'horloge
-		s_hrcv := findval(tab_keyval, "hlg")
+		s_hrcv := findValue(tab_keyval, "hlg")
 		if s_hrcv != "" {
 			hrcv, err := strconv.Atoi(s_hrcv)
 			if err != nil {
@@ -165,9 +189,9 @@ func main() {
 
 		// traitement du message
 		if s_hrcv != "" {
-			fmt.Printf(findval(tab_keyval, "msg") + "\n")
+			fmt.Printf(findValue(tab_keyval, "msg") + "\n")
 		} else {
-			fmt.Printf(formatMessage([]string{"msg", "hlg"}, []string{rcvmsg, strconv.Itoa(h)}) + "\n")
+			fmt.Printf(encodeMessage([]string{"msg", "hlg"}, []string{rcvmsg, strconv.Itoa(h)}) + "\n")
 		}
 	}
 }
