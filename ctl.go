@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -156,20 +157,36 @@ func recaler(x, y int) int {
 /*
 	Message logging
 */
+var pid = os.Getpid()
+var name = "default"
 var stderr = log.New(os.Stderr, "", 0)
 
 func main() {
+	//////////////// TESTING
 	/*
-		//////////////// FUNCTION TESTING
+		
 		fmt.Println(encodeMessage([]string{"key1", "key2", "key3"}, []string{"val1", "val2", "val3"}))
 		test := encodeMessage([]string{"snd", "hlg", "msg"}, []string{"elouan", "23", "coucou"})
 		fmt.Println(test)
 		decodedTest := decodeMessage(test)
 		fmt.Println(decodedTest)
 		fmt.Println(findValue(decodedTest,"snd"))
-		////////////////
 	*/
+	
+	logMessage("hello", "world")
+	logSuccess("hello", "world")
+	logInfo("hello", "world")
+	logWarning("hello", "world")
+	logError("hello", "world")
+	//////////////// BEGINNING OF PROGRAM
+	
 
+	// Getting name from commandline (usefull for logging)
+	pName := flag.String("n", "ecrivain", "nom")
+    flag.Parse()
+	name = *pName
+
+	// Initialising key variables for controller
 	var messageReceived string
 	var keyValTable []string
 	var clock int = 0
