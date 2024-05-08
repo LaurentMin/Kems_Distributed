@@ -41,7 +41,7 @@ func determineSep(msg string) string {
 }
 
 /*
-	Formats a message (before sending to other controlers)
+	Formats a message (before sending to other controllers)
 	Works in 3 steps :
 	1. Determining a key val sep for each pair
 	2. Determining a global field seperator
@@ -167,7 +167,7 @@ func main() {
 	var keyValTable []string
 	var clock int = 0
 
-	// Main loop of the controler, manages message reception and emission
+	// Main loop of the controller, manages message reception and emission
 	for {
 		// Message reception
 		fmt.Scanln(&messageReceived)
@@ -175,7 +175,7 @@ func main() {
 
 		// Defining local clock depending on received message
 		hrcvString := findValue(keyValTable, "hlg")
-		// Adjustment if message received from other controler
+		// Adjustment if message received from other controller
 		if hrcvString != "" {
 			hrcv, err := strconv.Atoi(hrcvString)
 			if err != nil {
@@ -192,7 +192,7 @@ func main() {
 		// Base app message
 		if hrcvString != "" {
 			fmt.Printf(findValue(keyValTable, "msg") + "\n")
-			// Other controler message
+			// Other controller message
 		} else {
 			fmt.Printf(encodeMessage([]string{"msg", "hlg"}, []string{messageReceived, strconv.Itoa(clock)}) + "\n")
 		}
