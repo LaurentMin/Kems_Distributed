@@ -94,7 +94,7 @@ func encodeMessage(keyTab []string, valTab []string) string {
 /*
 	Parses a message (received from another controller)
 */
-	func decodeMessage(msg string) []string {
+func decodeMessage(msg string) []string {
 	// Error returns empty table
 	if len(msg) < 4 {
 		fmt.Println("Ivalid message for parsing.")
@@ -103,7 +103,7 @@ func encodeMessage(keyTab []string, valTab []string) string {
 
 	// Getting seperator and returning splitted string
 	sep := msg[0:1]
-	// msg[1:] is to avoid that split returns an first empty element
+	// msg[1:] is to avoid that split returns a first empty element
 	return strings.Split(msg[1:], sep)
 }
 
@@ -138,7 +138,12 @@ func findValue(table []string, key string) string {
 	return ""
 }
 
-// fonction pour recaler l'horloge
+///////////
+// OTHER //
+///////////
+/*
+	Clock adjustment
+*/
 func recaler(x, y int) int {
 	if x < y {
 		return y + 1
@@ -147,51 +152,49 @@ func recaler(x, y int) int {
 }
 
 func main() {
+	/*
+		//////////////// TEST
+		// fmt.Println(encodeMessage([]string{"key1", "key2", "key3"}, []string{"val1", "val2", "val3"}))
+		test := encodeMessage([]string{"snd", "hlg", "msg"}, []string{"elouan", "23", "coucou"})
+		fmt.Println(test)
+		decodedTest := decodeMessage(test)
+		fmt.Println(decodedTest)
+		fmt.Println(findValue(decodedTest,"snd"))
+		////////////////
+	*/
 
-	//////////////// TEST
-	// fmt.Println(encodeMessage([]string{"key1", "key2", "key3"}, []string{"val1", "val2", "val3"}))
-	test := encodeMessage([]string{"snd", "hlg", "msg"}, []string{"elouan", "23", "coucou"})
-	fmt.Println(test)
-	decodedTest := decodeMessage(test)
-	fmt.Println(decodedTest)
-	fmt.Println(findValue(decodedTest,"snd"))
-	////////////////
+	var messageReceived string
+	var keyValTable []string
+	var clock int = 0
 
-	var rcvmsg string
-	var tab_keyval []string // tableau de clefvaleur
-	var h int = 0           // horloge entière
-
+	// Main loop of the controler, manages message reception and emission
 	for {
-		fmt.Scanln(&rcvmsg)
-		//fmt.Printf("message controler : %s \n", rcvmsg)
+		// Message reception
+		fmt.Scanln(&messageReceived)
+		keyValTable = decodeMessage(messageReceived)
 
-		tab_keyval = decodeMessage(rcvmsg)
-
-		/*
-			for _, keyval := range tab_keyval {
-				tab_key_val := strings.Split(keyval[1:], keyval[0:1])
-				   fmt.Printf("  %q\n", tab_key_val)
-				   fmt.Printf("  key : %s  val : %s\n", tab_key_val[0], tab_key_val[1])
-			}
-		*/
-		// traitement de l'horloge
-		s_hrcv := findValue(tab_keyval, "hlg")
-		if s_hrcv != "" {
-			hrcv, err := strconv.Atoi(s_hrcv)
+		// Defining local clock depending on received message
+		hrcvString := findValue(keyValTable, "hlg")
+		// Adjustment if message received from other controler
+		if hrcvString != "" {
+			hrcv, err := strconv.Atoi(hrcvString)
 			if err != nil {
 				fmt.Println("Error converting string to int: ", err)
 				continue
 			}
-			h = recaler(h, hrcv)
+			clock = recaler(clock, hrcv)
+			// Incremented if message received from base app
 		} else {
-			h = h + 1
+			clock = clock + 1
 		}
 
-		// traitement du message
-		if s_hrcv != "" {
-			fmt.Printf(findValue(tab_keyval, "msg") + "\n")
+		// Message emission
+		// Base app message
+		if hrcvString != "" {
+			fmt.Printf(findValue(keyValTable, "msg") + "\n")
+			// Other controler message
 		} else {
-			fmt.Printf(encodeMessage([]string{"msg", "hlg"}, []string{rcvmsg, strconv.Itoa(h)}) + "\n")
+			fmt.Printf(encodeMessage([]string{"msg", "hlg"}, []string{messageReceived, strconv.Itoa(clock)}) + "\n")
 		}
 	}
 }
