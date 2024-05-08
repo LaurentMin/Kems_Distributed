@@ -23,7 +23,7 @@ func determineSep(msg string) string {
 
 	// Error returns ""
 	if len(beginRangeASCII) != len(endRangeASCII) {
-		stderr.Printf("Incorrect ASCII range (correct function code).\n")
+		logError("determineSep", "Incorrect ASCII range (correct function code).")
 		return ""
 	}
 
@@ -39,7 +39,7 @@ func determineSep(msg string) string {
 	}
 
 	// Error returns ""
-	stderr.Printf("Seperation caracter not found for %s\n", msg)
+	logError("determineSep", "Seperation caracter not found for " + msg)
 	return ""
 }
 
@@ -53,7 +53,7 @@ func determineSep(msg string) string {
 func encodeMessage(keyTab []string, valTab []string) string {
 	// Error returns ""
 	if len(keyTab) != len(valTab) {
-		stderr.Printf("Wrong parity for formatting.\n")
+		logError("encodeMessage", "Wrong parity for formatting.")
 		return ""
 	}
 
@@ -100,7 +100,7 @@ func encodeMessage(keyTab []string, valTab []string) string {
 func decodeMessage(msg string) []string {
 	// Error returns empty table
 	if len(msg) < 4 {
-		stderr.Printf("Ivalid message for parsing %s\n", msg)
+		logWarning("decodeMessage", "Message too short for parsing : " + msg)
 		return []string{}
 	}
 
@@ -118,7 +118,7 @@ func decodeMessage(msg string) []string {
 func findValue(table []string, key string) string {
 	// Error returns ""
 	if len(table) == 0 {
-		stderr.Printf("No value to find in empty table, key %s\n", key)
+		logWarning("findValue", "No value to find in empty table, key : " + key)
 		return ""
 	}
 
@@ -137,7 +137,7 @@ func findValue(table []string, key string) string {
 	}
 
 	// Error returns ""
-	stderr.Printf("No value found for key %s\n", key)
+	logMessage("findValue", "No value found for key : " + key)
 	return ""
 }
 
@@ -158,7 +158,7 @@ func recaler(x, y int) int {
 	Message logging
 */
 var pid = os.Getpid()
-var name = "default"
+var name = "defaultCtl"
 var stderr = log.New(os.Stderr, "", 0)
 
 func main() {
@@ -172,17 +172,18 @@ func main() {
 		fmt.Println(decodedTest)
 		fmt.Println(findValue(decodedTest,"snd"))
 	*/
-	
+	/*
 	logMessage("hello", "world")
 	logSuccess("hello", "world")
 	logInfo("hello", "world")
 	logWarning("hello", "world")
 	logError("hello", "world")
+	*/
 	//////////////// BEGINNING OF PROGRAM
 	
 
 	// Getting name from commandline (usefull for logging)
-	pName := flag.String("n", "ecrivain", "nom")
+	pName := flag.String("n", "controller", "name")
     flag.Parse()
 	name = *pName
 
@@ -203,7 +204,7 @@ func main() {
 		if clockReceivedStr != "" {
 			clockReceived, err := strconv.Atoi(clockReceivedStr)
 			if err != nil {
-				stderr.Printf("Error converting string to int: ", err)
+				logError("main", "Error converting string to int : " + err.Error())
 				continue
 			}
 			clock = recaler(clock, clockReceived)
