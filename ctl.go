@@ -2,49 +2,150 @@ package main
 
 import (
 	"fmt"
-	"strings"
+	"log"
+	"os"
 	"strconv"
+	"strings"
 )
 
+///////////////////////
+// ENCODING MESSAGES //
+///////////////////////
+/*
+	Returns the first ASCII "seperator" character non present in the string received as a parameter
+	Letters are not included (lookup order can be modified with beginRangeASCII and endRangeASCII)
+*/
+func determineSep(msg string) string {
+	// ASCII ranges in which to look for seperators (includes numbers)
+	beginRangeASCII := [5]int{58, 33, 91, 123, 48}
+	endRangeASCII := [5]int{64, 47, 96, 126, 57}
 
-var fieldsep = "/"
-var keyvalsep = "="
-
-// fonction pour formater un message destiné à une autre application
-func msg_format(key string, val string) string {
-    return fieldsep + keyvalsep + key + keyvalsep + val
-}
-
-// fonctions pour parser un message reçu avec les différentes valeurs d'une autre application
-func parse_keyval(msg string) []string {
-	if len(msg) < 4 {
-		return []string{msg}
+	// Error returns ""
+	if len(beginRangeASCII) != len(endRangeASCII) {
+		stderr.Printf("Incorrect ASCII range (correct function code).\n")
+		return ""
 	}
 
-    sep := msg[0:1]
+	// lookup loop (looks in the ascii ranges one by one if msg contains character)
+	for i := 0; i < len(beginRangeASCII); i++ {
+		for asciiCode := beginRangeASCII[i]; asciiCode <= endRangeASCII[i]; asciiCode++ {
+			asciiVal := string(rune(asciiCode))
+			if strings.Contains(msg, asciiVal) {
+				continue
+			}
+			return asciiVal
+		}
+	}
 
-	return strings.Split(msg, sep)
+	// Error returns ""
+	stderr.Printf("Seperation caracter not found for %s\n", msg)
+	return ""
 }
 
-// fonction pour trouver une valeur dans un tableau de clefvaleur
-func findval(tab_keyval []string, key string) string { 
+/*
+	Formats a message (before sending to other controllers)
+	Works in 3 steps :
+	1. Determining a key val sep for each pair
+	2. Determining a global field seperator
+	3. Building the global message
+*/
+func encodeMessage(keyTab []string, valTab []string) string {
+	// Error returns ""
+	if len(keyTab) != len(valTab) {
+		stderr.Printf("Wrong parity for formatting.\n")
+		return ""
+	}
 
-	var val string = ""
+	// 1.
+	// Formatting each key value pair in the tables
+	for i := 0; i < len(keyTab); i++ {
+		pairSep := determineSep(keyTab[i] + valTab[i])
+		// Error occurs returns ""
+		if pairSep == "" {
+			return ""
+		}
+		// Updating values with seperator
+		keyTab[i] = pairSep + keyTab[i]
+		valTab[i] = pairSep + valTab[i]
+	}
 
-    for _, keyval := range tab_keyval {
-		if len(keyval) < 4 {
+	// 2.
+	// Getting the field sep
+	tmp := ""
+	for i := 0; i < len(keyTab); i++ {
+		tmp += keyTab[i] + valTab[i]
+	}
+	fieldSep := determineSep(tmp)
+	// Error occurs returns ""
+	if fieldSep == "" {
+		return ""
+	}
+
+	// 3.
+	// Formatting the full message with all key val pairs and field sep
+	msg := ""
+	for i := 0; i < len(keyTab); i++ {
+		msg += fieldSep + keyTab[i] + valTab[i]
+	}
+	return msg
+}
+
+///////////////////////
+// DECODING MESSAGES //
+///////////////////////
+/*
+	Parses a message (received from another controller)
+*/
+func decodeMessage(msg string) []string {
+	// Error returns empty table
+	if len(msg) < 4 {
+		stderr.Printf("Ivalid message for parsing %s\n", msg)
+		return []string{}
+	}
+
+	// Getting seperator and returning splitted string
+	sep := msg[0:1]
+	// msg[1:] is to avoid that split returns a first empty element
+	return strings.Split(msg[1:], sep)
+}
+
+/*
+	Finds the FIRST value that matches a specific key in []string
+	This function can be used only with message parsed with decodeMessage()
+	Returns "" if value is "" or if error (no value found or other)
+*/
+func findValue(table []string, key string) string {
+	// Error returns ""
+	if len(table) == 0 {
+		stderr.Printf("No value to find in empty table, key %s\n", key)
+		return ""
+	}
+
+	// Loop on the table to find key
+	for i := 0; i < len(table); i++ {
+		pair := decodeMessage(table[i])
+		// Invalid pair, goes to next pair
+		if len(pair) == 0 {
 			continue
 		}
 
-        tab_key_val := strings.Split(keyval[1:], keyval[0:1])
-        if tab_key_val[0] == key {
-            val = return val
-        }
-    }
-	return val
+		// Trying to match key
+		if pair[0] == key {
+			return pair[1]
+		}
+	}
+
+	// Error returns ""
+	stderr.Printf("No value found for key %s\n", key)
+	return ""
 }
 
-// fonction pour recaler l'horloge
+///////////
+// OTHER //
+///////////
+/*
+	Clock adjustment
+*/
 func recaler(x, y int) int {
 	if x < y {
 		return y + 1
@@ -52,43 +153,55 @@ func recaler(x, y int) int {
 	return x + 1
 }
 
+/*
+	Message logging
+*/
+var stderr = log.New(os.Stderr, "", 0)
+
 func main() {
-	var rcvmsg string
-	var tab_keyval []string // tableau de clefvaleur
-	var h int = 0 // horloge entière
+	/*
+		//////////////// FUNCTION TESTING
+		fmt.Printf(encodeMessage([]string{"key1", "key2", "key3"}, []string{"val1", "val2", "val3"}) + "\n")
+		test := encodeMessage([]string{"snd", "hlg", "msg"}, []string{"elouan", "23", "coucou"})
+		fmt.Printf(test + "\n")
+		decodedTest := decodeMessage(test)
+		fmt.Println(decodedTest)
+		fmt.Printf(findValue(decodedTest,"snd") + "\n")
+		////////////////
+	*/
 
-    for {
-        fmt.Scanln(&rcvmsg)
-        //fmt.Printf("message controler : %s \n", rcvmsg)
+	var messageReceived string
+	var keyValTable []string
+	var clock int = 0
 
-		tab_keyval = parse_keyval(rcvmsg)
+	// Main loop of the controller, manages message reception and emission
+	for {
+		// Message reception
+		fmt.Scanln(&messageReceived)
+		keyValTable = decodeMessage(messageReceived)
 
-		/*
-		for _, keyval := range tab_keyval {
-			tab_key_val := strings.Split(keyval[1:], keyval[0:1])
-			   fmt.Printf("  %q\n", tab_key_val)
-			   fmt.Printf("  key : %s  val : %s\n", tab_key_val[0], tab_key_val[1])
-		}
-		*/
-
-		// traitement de l'horloge
-		s_hrcv := findval(tab_keyval, "hlg")
-		if s_hrcv != "" {
-			hrcv, err := strconv.Atoi(s_hrcv)
+		// Defining local clock depending on received message
+		clockReceivedStr := findValue(keyValTable, "hlg")
+		// Adjustment if message received from other controller
+		if clockReceivedStr != "" {
+			clockReceived, err := strconv.Atoi(clockReceivedStr)
 			if err != nil {
-				fmt.Println("Error converting string to int: ", err)
+				stderr.Printf("Error converting string to int: ", err)
 				continue
 			}
-			h = recaler(h, hrcv)
+			clock = recaler(clock, clockReceived)
+			// Incremented if message received from base app
 		} else {
-			h = h + 1
+			clock = clock + 1
 		}
-	
-		// traitement du message 
-		if  s_hrcv != "" {
-			fmt.Printf(findval(tab_keyval, "msg") + "\n")
+
+		// Message emission
+		// Sending to base app
+		if clockReceivedStr != "" {
+			fmt.Printf(findValue(keyValTable, "msg") + "\n")
+		// Sending to other controller
 		} else {
-			fmt.Printf(msg_format("msg", rcvmsg) + msg_format("hlg", strconv.Itoa(h)) + "\n")
+			fmt.Printf(encodeMessage([]string{"msg", "hlg"}, []string{messageReceived, strconv.Itoa(clock)}) + "\n")
 		}
-    }
+	}
 }
