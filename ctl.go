@@ -161,12 +161,12 @@ var stderr = log.New(os.Stderr, "", 0)
 func main() {
 	/*
 		//////////////// FUNCTION TESTING
-		fmt.Printf(encodeMessage([]string{"key1", "key2", "key3"}, []string{"val1", "val2", "val3"}) + "\n")
+		fmt.Println(encodeMessage([]string{"key1", "key2", "key3"}, []string{"val1", "val2", "val3"}))
 		test := encodeMessage([]string{"snd", "hlg", "msg"}, []string{"elouan", "23", "coucou"})
-		fmt.Printf(test + "\n")
+		fmt.Println(test)
 		decodedTest := decodeMessage(test)
 		fmt.Println(decodedTest)
-		fmt.Printf(findValue(decodedTest,"snd") + "\n")
+		fmt.Println(findValue(decodedTest,"snd"))
 		////////////////
 	*/
 
