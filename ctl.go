@@ -20,7 +20,7 @@ func determineSep(msg string) string {
 
 	// Error returns ""
 	if len(beginRangeASCII) != len(endRangeASCII) {
-		fmt.Println("Impossible to find seperation caracter (incorrect ASCII range).")
+		//fmt.Println("Impossible to find seperation caracter (incorrect ASCII range).")
 		return ""
 	}
 
@@ -36,7 +36,7 @@ func determineSep(msg string) string {
 	}
 
 	// Error returns ""
-	fmt.Println("Seperation caracter not found.")
+	//fmt.Println("Seperation caracter not found.")
 	return ""
 }
 
@@ -50,7 +50,7 @@ func determineSep(msg string) string {
 func encodeMessage(keyTab []string, valTab []string) string {
 	// Error returns ""
 	if len(keyTab) != len(valTab) {
-		fmt.Println("Wrong parity for formatting.")
+		//fmt.Println("Wrong parity for formatting.")
 		return ""
 	}
 
@@ -97,7 +97,7 @@ func encodeMessage(keyTab []string, valTab []string) string {
 func decodeMessage(msg string) []string {
 	// Error returns empty table
 	if len(msg) < 4 {
-		fmt.Println("Ivalid message for parsing.")
+		//fmt.Println("Ivalid message for parsing.")
 		return []string{}
 	}
 
@@ -115,7 +115,7 @@ func decodeMessage(msg string) []string {
 func findValue(table []string, key string) string {
 	// Error returns ""
 	if len(table) == 0 {
-		fmt.Println("No value to find in empty table.")
+		//fmt.Println("No value to find in empty table.")
 		return ""
 	}
 
@@ -134,7 +134,7 @@ func findValue(table []string, key string) string {
 	}
 
 	// Error returns ""
-	fmt.Println("No value found.")
+	//fmt.Println("No value found.")
 	return ""
 }
 
@@ -154,12 +154,12 @@ func recaler(x, y int) int {
 func main() {
 	/*
 		//////////////// TEST
-		// fmt.Println(encodeMessage([]string{"key1", "key2", "key3"}, []string{"val1", "val2", "val3"}))
+		// //fmt.Println(encodeMessage([]string{"key1", "key2", "key3"}, []string{"val1", "val2", "val3"}))
 		test := encodeMessage([]string{"snd", "hlg", "msg"}, []string{"elouan", "23", "coucou"})
-		fmt.Println(test)
+		//fmt.Println(test)
 		decodedTest := decodeMessage(test)
-		fmt.Println(decodedTest)
-		fmt.Println(findValue(decodedTest,"snd"))
+		//fmt.Println(decodedTest)
+		//fmt.Println(findValue(decodedTest,"snd"))
 		////////////////
 	*/
 
@@ -179,7 +179,7 @@ func main() {
 		if hrcvString != "" {
 			hrcv, err := strconv.Atoi(hrcvString)
 			if err != nil {
-				fmt.Println("Error converting string to int: ", err)
+				//fmt.Println("Error converting string to int: ", err)
 				continue
 			}
 			clock = recaler(clock, hrcv)
