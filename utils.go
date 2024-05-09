@@ -1,7 +1,6 @@
 package main
 
 import (
-	"strconv"
 	"strings"
 )
 
@@ -13,7 +12,7 @@ import (
 	Letters are not included (lookup order can be modified with beginRangeASCII and endRangeASCII)
 */
 func determineSep(msg string) string {
-	logMessage("determineSep", "Determining seperator for "+msg)
+	// logMessage("determineSep", "Determining seperator for "+msg)
 	// ASCII ranges in which to look for seperators (includes numbers)
 	beginRangeASCII := [5]int{58, 33, 91, 123, 48}
 	endRangeASCII := [5]int{64, 47, 96, 126, 57}
@@ -49,7 +48,7 @@ func determineSep(msg string) string {
 	3. Building the global message
 */
 func encodeMessage(keyTab []string, valTab []string) string {
-	logMessage("encodeMessage", "Encoding message with "+strconv.Itoa(len(keyTab))+" key value pairs.")
+	// logMessage("encodeMessage", "Encoding message with "+strconv.Itoa(len(keyTab))+" key value pairs.")
 	// Error returns ""
 	if len(keyTab) != len(valTab) {
 		logError("encodeMessage", "Wrong parity for formatting.")
@@ -98,7 +97,7 @@ func encodeMessage(keyTab []string, valTab []string) string {
 	Parses a message (received from another controller)
 */
 func decodeMessage(msg string) []string {
-	logMessage("decodeMessage", "Parsing : "+msg)
+	// logMessage("decodeMessage", "Parsing : "+msg)
 	// Error returns empty table
 	if len(msg) < 4 {
 		logWarning("decodeMessage", "Message too short for parsing : "+msg)
@@ -118,7 +117,7 @@ func decodeMessage(msg string) []string {
 	Returns "" if value is "" or if error (no value found or other)
 */
 func findValue(table []string, key string) string {
-	logMessage("findValue", "Finding value of key "+key)
+	// logMessage("findValue", "Finding value of key "+key)
 	// Error returns ""
 	if len(table) == 0 {
 		logWarning("findValue", "No value to find in empty table, key : "+key)
@@ -141,6 +140,6 @@ func findValue(table []string, key string) string {
 	}
 
 	// Error returns ""
-	logMessage("findValue", "No value found for key : "+key)
+	// logMessage("findValue", "No value found for key : "+key)
 	return ""
 }
