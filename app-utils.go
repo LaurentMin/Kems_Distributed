@@ -1,5 +1,10 @@
 package main
 
+import (
+	"bytes"
+	"encoding/gob"
+)
+
 /*
 	toString functions (for printing structures)
 */
@@ -22,18 +27,48 @@ func toStringCards(cards []Card) string {
 /*
 	type1ToType2 functions (for changing the type of a data)
 	Used for transforming struc into string before sending and oppisit when received
+	Uses binary data
 */
 func gameStateToString(game GameState) string {
 	gameString := "[GAMESTATE]"
+	// Cast game state into binary data
+	var buffer bytes.Buffer
+	encoder := gob.NewEncoder(&buffer)
+	err := encoder.Encode(game)
+	// ERROR returns ""
+	if err != nil {
+		logError("gameStateToString", "Error encoding: "+err.Error())
+		return ""
+	}
+
+	// Convert binary data to string
+	gameString += buffer.String()
 
 	return gameString
 }
 
 func stringToGameState(gameString string) GameState {
-	game := GameState{}
-	for i := 0; i < len(gameString); i++ {
-
+	// ERROR returns empty game state
+	if gameString[:11] != "[GAMESTATE]" {
+		logError("main", "String is not a game state "+gameString+" (can be fatal for program).")
+		return GameState{}
 	}
+
+	// Remove game state header
+	gameString = gameString[11:]
+	// Decode the string to binary data
+	decodedBuffer := bytes.NewBufferString(gameString)
+
+	// Decode binary data back to the original struct
+	decoder := gob.NewDecoder(decodedBuffer)
+	var game GameState
+	err := decoder.Decode(&game)
+	// ERROR returns empty game state
+	if err != nil {
+		logError("stringToGameState", "Error decoding "+err.Error()+" (can be fatal for program).")
+		return GameState{}
+	}
+
 	return game
 }
 
