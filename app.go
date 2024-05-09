@@ -286,14 +286,14 @@ func main() {
 	game := getInitState()
 	game = renewDrawPile(game)
 	game = renewPlayerHands(game)
+	newGame := GameState{}
 
 	// Main loop of the app, manages message reception and emission and processing
 	for {
 		if name == "A1" {
 			// One of the apps plays the game (for testing)
 			fmt.Println(game)
-			time.Sleep(time.Duration(5) * time.Second)
-			game = renewDrawPile(game)
+			break
 		} else {
 			// Standard app behaviour
 			logInfo("main", "Waiting for message.")
@@ -302,7 +302,7 @@ func main() {
 			logInfo("main", "Message received. "+messageReceived)
 
 			// Message is not a game state (ignore)
-			if messageReceived[:2] != "{{" {
+			if messageReceived[:11] != "[GAMESTATE]" {
 				logInfo("main", "Wrong message type for app received "+messageReceived+" (ignoring).")
 				messageReceived = ""
 				continue
@@ -310,18 +310,19 @@ func main() {
 
 			// Message is a game state (process)
 			logInfo("main", "Processing game state... "+messageReceived)
-			// Remove \n from message received
+			// Removing \n from message received and setting it as a new game state
 			messageReceived = strings.ReplaceAll(messageReceived, "\n", "")
-			// Send replace game state if an update was received
-			if gameStateToString(game) == messageReceived {
-				game = stringToGameState(messageReceived)
+			newGame = stringToGameState(messageReceived)
+			// Replace game state if an update was received
+			if gameStateToString(game) == gameStateToString(newGame) {
+				game = newGame
 				// Sending update to next app (through controller)
 				fmt.Printf(gameStateToString(game) + "\n")
-				logInfo("main", "Sent game state to next app through controller. ")
+				logInfo("main", "Sent updated game state to next app through controller.")
 			} else {
-				logSuccess("main", "Game state is already up to date, all apps updated.")
+				logSuccess("main", "Game state is already up to date, all apps up to date.")
 			}
-
+			newGame = GameState{}
 			messageReceived = ""
 		}
 	}

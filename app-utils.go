@@ -24,14 +24,16 @@ func toStringCards(cards []Card) string {
 	Used for transforming struc into string before sending and oppisit when received
 */
 func gameStateToString(game GameState) string {
-	gameString := ""
+	gameString := "[GAMESTATE]"
 
 	return gameString
 }
 
 func stringToGameState(gameString string) GameState {
 	game := GameState{}
+	for i := 0; i < len(gameString); i++ {
 
+	}
 	return game
 }
 
