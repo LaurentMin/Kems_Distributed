@@ -3,8 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
-	"os"
 	"strconv"
 	"strings"
 )
@@ -162,13 +160,6 @@ func clockAdjustment(x, y int) int {
 	}
 	return x + 1
 }
-
-/*
-	Message logging
-*/
-var pid = os.Getpid()
-var name = "defaultCtl"
-var stderr = log.New(os.Stderr, "", 0)
 
 func main() {
 	//////////////// TESTING

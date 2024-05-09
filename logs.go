@@ -1,5 +1,17 @@
 package main
 
+import (
+	"log"
+	"os"
+)
+
+/*
+	Message logging
+*/
+var stderr = log.New(os.Stderr, "", 0)
+var pid = os.Getpid()
+var name = "defaultCtl"
+
 /*
 	Terminal color codes
 */
