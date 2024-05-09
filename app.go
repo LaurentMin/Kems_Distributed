@@ -69,7 +69,7 @@ func getInitSettings() GameSettings {
 */
 func getInitDeck() []Card {
 	logMessage("getInitDeck", "Initialising deck")
-	var deck []Card
+	deck := []Card{}
 
 	// Setting the deck building parameters
 	//values := []string{"2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"}
@@ -109,6 +109,8 @@ func getInitPlayers() []Player {
 
 /*
 	Returns an initialised Game state (used when there is none)
+	It has initialised settings, deck (shuffled) and players
+	Draw pile and discard pile are empty as well as player hands
 */
 func getInitState() GameState {
 	logMessage("getInitState", "Initialising game state")
@@ -279,15 +281,23 @@ func main() {
 	// Starting App
 	logInfo("main", "Launching app...")
 	// Initialising key variables for app
-	var messageReceived string
+	messageReceived := ""
 
 	// Main loop of the app, manages message reception and emission as well as treatment
 	for {
-		logInfo("main", "Waiting for message.")
-		// Message reception
-		fmt.Scanln(&messageReceived)
-		logInfo("main", "Message received. "+messageReceived)
+		if name == "A1" {
+			// One of the apps plays the game (for testing)
+			game = getInitState()
+		} else {
+			// Standard app behaviour
+			logInfo("main", "Waiting for message.")
+			// Message reception
+			fmt.Scanln(&messageReceived)
+			logInfo("main", "Message received. "+messageReceived)
 
-		messageReceived = ""
+			// treatment ...
+
+			messageReceived = ""
+		}
 	}
 }

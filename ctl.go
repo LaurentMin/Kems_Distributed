@@ -173,9 +173,9 @@ func main() {
 	// Starting Controller
 	logInfo("main", "Launching controller...")
 	// Initialising key variables for controller
-	var messageReceived string
-	var keyValTable []string
-	var clock int = 0
+	messageReceived := ""
+	keyValTable := []string{}
+	clock := 0
 
 	// Main loop of the controller, manages message reception and emission as well as treatment
 	for {
