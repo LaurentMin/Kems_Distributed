@@ -39,7 +39,7 @@ func determineSep(msg string) string {
 	}
 
 	// Error returns ""
-	logError("determineSep", "Seperation caracter not found for " + msg)
+	logError("determineSep", "Seperation caracter not found for "+msg)
 	return ""
 }
 
@@ -100,7 +100,7 @@ func encodeMessage(keyTab []string, valTab []string) string {
 func decodeMessage(msg string) []string {
 	// Error returns empty table
 	if len(msg) < 4 {
-		logWarning("decodeMessage", "Message too short for parsing : " + msg)
+		logWarning("decodeMessage", "Message too short for parsing : "+msg)
 		return []string{}
 	}
 
@@ -118,7 +118,7 @@ func decodeMessage(msg string) []string {
 func findValue(table []string, key string) string {
 	// Error returns ""
 	if len(table) == 0 {
-		logWarning("findValue", "No value to find in empty table, key : " + key)
+		logWarning("findValue", "No value to find in empty table, key : "+key)
 		return ""
 	}
 
@@ -137,7 +137,7 @@ func findValue(table []string, key string) string {
 	}
 
 	// Error returns ""
-	logMessage("findValue", "No value found for key : " + key)
+	logMessage("findValue", "No value found for key : "+key)
 	return ""
 }
 
@@ -147,7 +147,7 @@ func findValue(table []string, key string) string {
 /*
 	Clock adjustment
 */
-func recaler(x, y int) int {
+func clockAdjustment(x, y int) int {
 	if x < y {
 		return y + 1
 	}
@@ -164,7 +164,7 @@ var stderr = log.New(os.Stderr, "", 0)
 func main() {
 	//////////////// TESTING
 	/*
-		
+
 		fmt.Println(encodeMessage([]string{"key1", "key2", "key3"}, []string{"val1", "val2", "val3"}))
 		test := encodeMessage([]string{"snd", "hlg", "msg"}, []string{"elouan", "23", "coucou"})
 		fmt.Println(test)
@@ -173,18 +173,17 @@ func main() {
 		fmt.Println(findValue(decodedTest,"snd"))
 	*/
 	/*
-	logMessage("hello", "world")
-	logSuccess("hello", "world")
-	logInfo("hello", "world")
-	logWarning("hello", "world")
-	logError("hello", "world")
+		logMessage("hello", "world")
+		logSuccess("hello", "world")
+		logInfo("hello", "world")
+		logWarning("hello", "world")
+		logError("hello", "world")
 	*/
 	//////////////// BEGINNING OF PROGRAM
-	
 
 	// Getting name from commandline (usefull for logging)
 	pName := flag.String("n", "controller", "name")
-    flag.Parse()
+	flag.Parse()
 	name = *pName
 
 	// Initialising key variables for controller
@@ -200,25 +199,25 @@ func main() {
 
 		// Defining local clock depending on received message
 		clockReceivedStr := findValue(keyValTable, "hlg")
-		// Adjustment if message received from other controller
 		if clockReceivedStr != "" {
+			// Clock adjustment if message received from other controller
 			clockReceived, err := strconv.Atoi(clockReceivedStr)
 			if err != nil {
-				logError("main", "Error converting string to int : " + err.Error())
+				logError("main", "Error converting string to int : "+err.Error())
 				continue
 			}
-			clock = recaler(clock, clockReceived)
-			// Incremented if message received from base app
+			clock = clockAdjustment(clock, clockReceived)
 		} else {
+			// Incremented if message received from base app
 			clock = clock + 1
 		}
 
 		// Message emission
-		// Sending to base app
 		if clockReceivedStr != "" {
+			// Sending to base app
 			fmt.Printf(findValue(keyValTable, "msg") + "\n")
-		// Sending to other controller
 		} else {
+			// Sending to other controller
 			fmt.Printf(encodeMessage([]string{"msg", "hlg"}, []string{messageReceived, strconv.Itoa(clock)}) + "\n")
 		}
 	}
