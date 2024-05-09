@@ -167,6 +167,9 @@ func clockAdjustment(x, y int) int {
 */
 var mutex = &sync.Mutex{}
 
+//////////
+// MAIN //
+//////////
 func main() {
 	//////////////// TESTS
 	logInfo("main", "Begin tests...")

@@ -1,14 +1,14 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
+	"math/rand"
 	"os"
-	"flag"
 	"strconv"
 	"sync"
 	"time"
-	"math/rand"
 )
 
 var stderr = log.New(os.Stderr, "", 0)
