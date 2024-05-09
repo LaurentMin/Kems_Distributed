@@ -302,7 +302,7 @@ func main() {
 
 			// Message is not a game state (ignore)
 			if messageReceived[:2] != "{{" {
-				logInfo("main","Wrong message type for app received " + messageReceived + " (ignoring).")
+				logInfo("main", "Wrong message type for app received "+messageReceived+" (ignoring).")
 				messageReceived = ""
 				continue
 			}
