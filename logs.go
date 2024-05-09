@@ -13,11 +13,11 @@ var reset string = "\033[0;00m"
 	Logging functions (they all print to stderr with program details)
 */
 func logMessage(where string, what string) {
-    stderr.Printf(" - [%-10.10s %d] %-16.16s : %s\n", name, pid, where, what)
+    stderr.Printf(" + [%-10.10s %d] %-16.16s : %s\n", name, pid, where, what)
 }
 
 func logSuccess(where string, what string) {
-    stderr.Printf("%s + [%-10.10s %d] %-16.16s : %s\n%s", green, name, pid, where, what, reset)
+    stderr.Printf("%s # [%-10.10s %d] %-16.16s : %s\n%s", green, name, pid, where, what, reset)
 }
 
 func logInfo(where string, what string) {
