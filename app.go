@@ -292,6 +292,7 @@ func main() {
 	for {
 		if name == "A1" {
 			// One of the apps plays the game (for testing)
+			logInfo("main", "A1 swapping cards.")
 			game = swapCard(game.Players[0].Hand[0], game.DrawPile[0], game.Players[0], game)
 			fmt.Printf(gameStateToString(game) + "\n")
 			time.Sleep(time.Duration(10) * time.Second)
@@ -303,7 +304,7 @@ func main() {
 			logInfo("main", "Message received. "+messageReceived)
 
 			// Message is not a game state (ignore)
-			if messageReceived[:11] != "[GAMESTATE]" {
+			if len(messageReceived) <= 11 || messageReceived[:11] != "[GAMESTATE]" {
 				logInfo("main", "Wrong message type for app received "+messageReceived+" (ignoring).")
 				messageReceived = ""
 				continue
