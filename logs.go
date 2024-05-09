@@ -10,7 +10,7 @@ import (
 */
 var stderr = log.New(os.Stderr, "", 0)
 var pid = os.Getpid()
-var name = "defaultCtl"
+var name = "default"
 
 /*
 	Terminal color codes

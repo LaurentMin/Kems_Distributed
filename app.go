@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"math/rand"
 	"time"
@@ -269,18 +270,24 @@ func swapCard(playerCard Card, drawPileCard Card, player Player, game GameState)
 //////////
 // GAME //
 //////////
-func app() {
-	// APP TESTS
-	gameState := getInitState()
-	fmt.Println(gameState)
-	gameState = renewDrawPile(gameState)
-	fmt.Println(gameState.DrawPile)
-	gameState = renewPlayerHands(gameState)
-	fmt.Println(gameState.Players)
-	fmt.Println("//////")
-	fmt.Println(gameState.DrawPile)
-	fmt.Println(gameState.Players[0])
-	gameState = swapCard(gameState.Players[0].Hand[0], gameState.DrawPile[0], gameState.Players[0], gameState)
-	fmt.Println(gameState.DrawPile)
-	fmt.Println(gameState.Players[0])
+func main() {
+	// Getting name from commandline (usefull for logging)
+	pName := flag.String("n", "app", "name")
+	flag.Parse()
+	name = *pName
+
+	// Starting App
+	logInfo("main", "Launching app...")
+	// Initialising key variables for app
+	var messageReceived string
+
+	// Main loop of the app, manages message reception and emission as well as treatment
+	for {
+		logInfo("main", "Waiting for message.")
+		// Message reception
+		fmt.Scanln(&messageReceived)
+		logInfo("main", "Message received.")
+
+		messageReceived = ""
+	}
 }

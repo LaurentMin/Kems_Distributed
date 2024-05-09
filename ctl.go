@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"sync"
 )
 
 ///////////////////////
@@ -162,45 +161,14 @@ func clockAdjustment(x, y int) int {
 	return x + 1
 }
 
-/*
-	mutex for app and controller reading, treatment and writing
-*/
-var mutex = &sync.Mutex{}
-
 //////////
 // MAIN //
 //////////
 func main() {
-	//////////////// TESTS
-	logInfo("main", "Begin tests...")
-	/*
-
-		fmt.Println(encodeMessage([]string{"key1", "key2", "key3"}, []string{"val1", "val2", "val3"}))
-		test := encodeMessage([]string{"snd", "hlg", "msg"}, []string{"elouan", "23", "coucou"})
-		fmt.Println(test)
-		decodedTest := decodeMessage(test)
-		fmt.Println(decodedTest)
-		fmt.Println(findValue(decodedTest,"snd"))
-	*/
-	/*
-		logMessage("hello", "world")
-		logSuccess("hello", "world")
-		logInfo("hello", "world")
-		logWarning("hello", "world")
-		logError("hello", "world")
-	*/
-	logInfo("main", "End tests.")
-
-	//////////////// MAIN PROGRAM
 	// Getting name from commandline (usefull for logging)
 	pName := flag.String("n", "controller", "name")
 	flag.Parse()
 	name = *pName
-
-	// Starting base App
-	logInfo("main", "Launching app...")
-	go app()
-	logInfo("main", "App started.")
 
 	// Starting Controller
 	logInfo("main", "Launching controller...")
@@ -209,12 +177,11 @@ func main() {
 	var keyValTable []string
 	var clock int = 0
 
-	// Main loop of the controller, manages message reception and emission
+	// Main loop of the controller, manages message reception and emission as well as treatment
 	for {
 		logInfo("main", "Waiting for message.")
 		// Message reception
 		fmt.Scanln(&messageReceived)
-		mutex.Lock()
 		logInfo("main", "Message received.")
 
 		// Defining local clock depending on received message
@@ -248,7 +215,7 @@ func main() {
 			fmt.Printf(encodeMessage([]string{"msg", "hlg"}, []string{messageReceived, strconv.Itoa(clock)}) + "\n")
 			logInfo("main", "Message sent to other controller.")
 		}
-		mutex.Unlock()
+
 		messageReceived = ""
 	}
 }
