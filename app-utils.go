@@ -1,8 +1,8 @@
 package main
 
 import (
-	"bytes"
-	"encoding/gob"
+	"strconv"
+	"strings"
 )
 
 /*
@@ -18,55 +18,107 @@ func toStringPlayer(player Player) string {
 
 func toStringCards(cards []Card) string {
 	cardsString := ""
-	for i := 0; i < len(cardsString); i++ {
-		cardsString += toStringCard(cards[i])
+	for i := 0; i < len(cards); i++ {
+		cardsString += "," + toStringCard(cards[i])
 	}
 	return cardsString
 }
 
 /*
 	type1ToType2 functions (for changing the type of a data)
-	Used for transforming struc into string before sending and oppisit when received
-	Uses binary data
+	Used for transforming struc into string before sending and opposit when received
 */
 func gameStateToString(game GameState) string {
-	gameString := "[GAMESTATE]"
-	// Cast game state into binary data
-	var buffer bytes.Buffer
-	encoder := gob.NewEncoder(&buffer)
-	err := encoder.Encode(game)
 	// ERROR returns ""
-	if err != nil {
-		logError("gameStateToString", "Error encoding: "+err.Error())
+	if game.Settings == (GameSettings{}) {
+		logError("main", "Game state is empty (can be fatal for program).")
 		return ""
 	}
 
-	// Convert binary data to string
-	gameString += buffer.String()
+	// Prepare Players
+	playersString := ""
+	for i := 0; i < len(game.Players); i++ {
+		playersString +=
+			encodeMessage(
+				[]string{"Player" + strconv.Itoa(i)},
+				[]string{
+					encodeMessage(
+						[]string{"Name", "Score", "Hand"},
+						[]string{game.Players[i].Name, strconv.Itoa(game.Players[i].Score), toStringCards(game.Players[i].Hand)})})
+	}
+
+	gameString := "[GAMESTATE]"
+	// Encode all at once (or can generate problems)
+	gameString += encodeMessage(
+		[]string{
+			"DrawPileSize",
+			"HandSize",
+			"Deck",
+			"DrawPile",
+			"DiscardPile",
+			"numPlayers",
+			"Players"},
+		[]string{
+			strconv.Itoa(game.Settings.DrawPileSize),
+			strconv.Itoa(game.Settings.HandSize),
+			toStringCards(game.Deck),
+			toStringCards(game.DrawPile),
+			toStringCards(game.DiscardPile),
+			strconv.Itoa(len(game.Players)),
+			playersString})
 
 	return gameString
 }
 
+// Helper func to retrieve cards for Deck, DrawPile, DiscardPile and player Hand
+func getCardsFromString(cardsString string) []Card {
+	cards := []Card{}
+	// Table contains all cards as "value suit"
+	cardsTab := decodeMessage(cardsString)
+	for i := 0; i < len(cardsTab); i++ {
+		// cardsTab[i] format "value suit" splitted in {value,suit}
+		card := strings.Split(cardsTab[i], " ")
+		// Add card to cards list
+		cards = append(cards, Card{card[0], card[1]})
+	}
+
+	return cards
+}
 func stringToGameState(gameString string) GameState {
 	// ERROR returns empty game state
 	if gameString[:11] != "[GAMESTATE]" {
 		logError("main", "String is not a game state "+gameString+" (can be fatal for program).")
 		return GameState{}
 	}
-
 	// Remove game state header
 	gameString = gameString[11:]
-	// Decode the string to binary data
-	decodedBuffer := bytes.NewBufferString(gameString)
+	// Decode game state string
+	tabString := decodeMessage(gameString)
+	game := GameState{}
+	//game.Players = []Player{}
 
-	// Decode binary data back to the original struct
-	decoder := gob.NewDecoder(decodedBuffer)
-	var game GameState
-	err := decoder.Decode(&game)
-	// ERROR returns empty game state
-	if err != nil {
-		logError("stringToGameState", "Error decoding "+err.Error()+" (can be fatal for program).")
-		return GameState{}
+	// Retrieve Settings
+	game.Settings.DrawPileSize, _ = strconv.Atoi(findValue(tabString, "DrawPileSize"))
+	game.Settings.HandSize, _ = strconv.Atoi(findValue(tabString, "HandSize"))
+	// Retrieve Deck
+	game.Deck = getCardsFromString(findValue(tabString, "Deck"))
+	// Retrieve DrawPile
+	game.DrawPile = getCardsFromString(findValue(tabString, "DrawPile"))
+	// Retrieve DiscardPile
+	game.DiscardPile = getCardsFromString(findValue(tabString, "DiscardPile"))
+	// Retrieve number of players (used to decode players)
+	numPlayers, _ := strconv.Atoi(findValue(tabString, "numPlayers"))
+	// Retrieve Players
+	players := findValue(tabString, "Players")
+	playersTab := decodeMessage(players)
+	for i := 0; i < numPlayers; i++ {
+		// Gett player string
+		player := findValue(playersTab, "Player"+strconv.Itoa(i))
+		// Split the player in a tab for each value
+		playerTab := decodeMessage(player)
+		// Set each field of the player
+		score, _ := strconv.Atoi(findValue(playerTab, "Score"))
+		game.Players = append(game.Players, Player{findValue(playerTab, "Name"), score, getCardsFromString(findValue(playerTab, "Hand"))})
 	}
 
 	return game

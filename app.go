@@ -294,7 +294,11 @@ func main() {
 			// One of the apps plays the game (for testing)
 			logInfo("main", "A1 swapping cards.")
 			game = swapCard(game.Players[0].Hand[0], game.DrawPile[0], game.Players[0], game)
-			fmt.Printf(gameStateToString(game) + "\n")
+			// game = renewDrawPile(game)
+			// game = renewPlayerHands(game)
+			// fmt.Printf(gameStateToString(game) + "\n")
+			fmt.Println(stringToGameState(gameStateToString(game)))
+			fmt.Println(game)
 			time.Sleep(time.Duration(10) * time.Second)
 		} else {
 			// Standard app behaviour
