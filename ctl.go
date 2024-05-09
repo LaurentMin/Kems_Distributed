@@ -17,6 +17,7 @@ import (
 	Letters are not included (lookup order can be modified with beginRangeASCII and endRangeASCII)
 */
 func determineSep(msg string) string {
+	logMessage("determineSep", "Determining seperator for "+msg)
 	// ASCII ranges in which to look for seperators (includes numbers)
 	beginRangeASCII := [5]int{58, 33, 91, 123, 48}
 	endRangeASCII := [5]int{64, 47, 96, 126, 57}
@@ -34,6 +35,7 @@ func determineSep(msg string) string {
 			if strings.Contains(msg, asciiVal) {
 				continue
 			}
+			logSuccess("determineSep", asciiVal+" found as a seperator for "+msg)
 			return asciiVal
 		}
 	}
@@ -51,6 +53,7 @@ func determineSep(msg string) string {
 	3. Building the global message
 */
 func encodeMessage(keyTab []string, valTab []string) string {
+	logMessage("encodeMessage", "Encoding message with "+strconv.Itoa(len(keyTab))+" key value pairs.")
 	// Error returns ""
 	if len(keyTab) != len(valTab) {
 		logError("encodeMessage", "Wrong parity for formatting.")
@@ -88,6 +91,7 @@ func encodeMessage(keyTab []string, valTab []string) string {
 	for i := 0; i < len(keyTab); i++ {
 		msg += fieldSep + keyTab[i] + valTab[i]
 	}
+	logSuccess("encodeMessage", "Message formatted correctly : "+msg)
 	return msg
 }
 
@@ -98,6 +102,7 @@ func encodeMessage(keyTab []string, valTab []string) string {
 	Parses a message (received from another controller)
 */
 func decodeMessage(msg string) []string {
+	logMessage("decodeMessage", "Parsing : "+msg)
 	// Error returns empty table
 	if len(msg) < 4 {
 		logWarning("decodeMessage", "Message too short for parsing : "+msg)
@@ -107,6 +112,7 @@ func decodeMessage(msg string) []string {
 	// Getting seperator and returning splitted string
 	sep := msg[0:1]
 	// msg[1:] is to avoid that split returns a first empty element
+	logSuccess("decodeMessage", msg+" parsed with seperator "+sep)
 	return strings.Split(msg[1:], sep)
 }
 
@@ -116,6 +122,7 @@ func decodeMessage(msg string) []string {
 	Returns "" if value is "" or if error (no value found or other)
 */
 func findValue(table []string, key string) string {
+	logMessage("findValue", "Finding value of key "+key)
 	// Error returns ""
 	if len(table) == 0 {
 		logWarning("findValue", "No value to find in empty table, key : "+key)
@@ -132,6 +139,7 @@ func findValue(table []string, key string) string {
 
 		// Trying to match key
 		if pair[0] == key {
+			logSuccess("findValue", pair[1]+" value found for key "+key)
 			return pair[1]
 		}
 	}
@@ -148,6 +156,7 @@ func findValue(table []string, key string) string {
 	Clock adjustment
 */
 func clockAdjustment(x, y int) int {
+	logMessage("clockAdjustment", "Adjusting clock to max(local,received) + 1.")
 	if x < y {
 		return y + 1
 	}
@@ -163,6 +172,7 @@ var stderr = log.New(os.Stderr, "", 0)
 
 func main() {
 	//////////////// TESTING
+	logInfo("main", "Begin tests...")
 	/*
 
 		fmt.Println(encodeMessage([]string{"key1", "key2", "key3"}, []string{"val1", "val2", "val3"}))
@@ -179,12 +189,14 @@ func main() {
 		logWarning("hello", "world")
 		logError("hello", "world")
 	*/
+	logInfo("main", "End of tests.")
 	//////////////// BEGINNING OF PROGRAM
 
 	// Getting name from commandline (usefull for logging)
 	pName := flag.String("n", "controller", "name")
 	flag.Parse()
 	name = *pName
+	logInfo("main", "Controller program launched.")
 
 	// Initialising key variables for controller
 	var messageReceived string
@@ -193,11 +205,14 @@ func main() {
 
 	// Main loop of the controller, manages message reception and emission
 	for {
+		logInfo("main", "Waiting for message.")
 		// Message reception
 		fmt.Scanln(&messageReceived)
-		keyValTable = decodeMessage(messageReceived)
+		logInfo("main", "Message received.")
 
 		// Defining local clock depending on received message
+		logInfo("main", "Clock updating...")
+		keyValTable = decodeMessage(messageReceived)
 		clockReceivedStr := findValue(keyValTable, "hlg")
 		if clockReceivedStr != "" {
 			// Clock adjustment if message received from other controller
@@ -207,18 +222,24 @@ func main() {
 				continue
 			}
 			clock = clockAdjustment(clock, clockReceived)
+			logInfo("main", "Clock updated, message recived from other controller.")
 		} else {
 			// Incremented if message received from base app
 			clock = clock + 1
+			logInfo("main", "Clock updated, message recived from local app.")
+
 		}
 
 		// Message emission
+		logInfo("main", "Sending message...")
 		if clockReceivedStr != "" {
 			// Sending to base app
 			fmt.Printf(findValue(keyValTable, "msg") + "\n")
+			logInfo("main", "Message sent to local app.")
 		} else {
 			// Sending to other controller
 			fmt.Printf(encodeMessage([]string{"msg", "hlg"}, []string{messageReceived, strconv.Itoa(clock)}) + "\n")
+			logInfo("main", "Message sent to other controller.")
 		}
 	}
 }
