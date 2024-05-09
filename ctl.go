@@ -182,7 +182,7 @@ func main() {
 		logInfo("main", "Waiting for message.")
 		// Message reception
 		fmt.Scanln(&messageReceived)
-		logInfo("main", "Message received.")
+		logInfo("main", "Message received. "+messageReceived)
 
 		// Defining local clock depending on received message
 		logInfo("main", "Clock updating...")
