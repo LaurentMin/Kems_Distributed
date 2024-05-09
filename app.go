@@ -282,12 +282,17 @@ func main() {
 	logInfo("main", "Launching app...")
 	// Initialising key variables for app
 	messageReceived := ""
+	game := getInitState()
+	game = renewDrawPile(game)
+	game = renewPlayerHands(game)
 
-	// Main loop of the app, manages message reception and emission as well as treatment
+	// Main loop of the app, manages message reception and emission and processing
 	for {
 		if name == "A1" {
 			// One of the apps plays the game (for testing)
-			game = getInitState()
+			fmt.Println(game)
+			time.Sleep(time.Duration(5) * time.Second)
+			game = renewDrawPile(game)
 		} else {
 			// Standard app behaviour
 			logInfo("main", "Waiting for message.")
@@ -295,7 +300,14 @@ func main() {
 			fmt.Scanln(&messageReceived)
 			logInfo("main", "Message received. "+messageReceived)
 
-			// treatment ...
+			// Message is not a game state (ignore)
+			if messageReceived[:2] != "{{" {
+				logInfo("main","Wrong message type for app received " + messageReceived + " (ignoring).")
+				messageReceived = ""
+				continue
+			}
+
+			// Message is a game state (process)
 
 			messageReceived = ""
 		}

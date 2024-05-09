@@ -177,7 +177,7 @@ func main() {
 	keyValTable := []string{}
 	clock := 0
 
-	// Main loop of the controller, manages message reception and emission as well as treatment
+	// Main loop of the controller, manages message reception and emission and processing
 	for {
 		logInfo("main", "Waiting for message.")
 		// Message reception
