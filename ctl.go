@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 ///////////////////////
@@ -161,8 +162,13 @@ func clockAdjustment(x, y int) int {
 	return x + 1
 }
 
+/*
+	mutex for app and controller reading, treatment and writing
+*/
+var mutex = &sync.Mutex{}
+
 func main() {
-	//////////////// TESTING
+	//////////////// TESTS
 	logInfo("main", "Begin tests...")
 	/*
 
@@ -180,15 +186,21 @@ func main() {
 		logWarning("hello", "world")
 		logError("hello", "world")
 	*/
-	logInfo("main", "End of tests.")
-	//////////////// BEGINNING OF PROGRAM
+	logInfo("main", "End tests.")
 
+	//////////////// MAIN PROGRAM
 	// Getting name from commandline (usefull for logging)
 	pName := flag.String("n", "controller", "name")
 	flag.Parse()
 	name = *pName
-	logInfo("main", "Controller program launched.")
 
+	// Starting base App
+	logInfo("main", "Launching app...")
+	go app()
+	logInfo("main", "App started.")
+
+	// Starting Controller
+	logInfo("main", "Launching controller...")
 	// Initialising key variables for controller
 	var messageReceived string
 	var keyValTable []string
@@ -199,6 +211,7 @@ func main() {
 		logInfo("main", "Waiting for message.")
 		// Message reception
 		fmt.Scanln(&messageReceived)
+		mutex.Lock()
 		logInfo("main", "Message received.")
 
 		// Defining local clock depending on received message
@@ -232,5 +245,7 @@ func main() {
 			fmt.Printf(encodeMessage([]string{"msg", "hlg"}, []string{messageReceived, strconv.Itoa(clock)}) + "\n")
 			logInfo("main", "Message sent to other controller.")
 		}
+		mutex.Unlock()
+		messageReceived = ""
 	}
 }
