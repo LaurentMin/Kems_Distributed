@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"math/rand"
+	"strings"
 	"time"
 )
 
@@ -308,6 +309,18 @@ func main() {
 			}
 
 			// Message is a game state (process)
+			logInfo("main", "Processing game state... "+messageReceived)
+			// Remove \n from message received
+			messageReceived = strings.ReplaceAll(messageReceived, "\n", "")
+			// Send replace game state if an update was received
+			if gameStateToString(game) == messageReceived {
+				game = stringToGameState(messageReceived)
+				// Sending update to next app (through controller)
+				fmt.Printf(gameStateToString(game) + "\n")
+				logInfo("main", "Sent game state to next app through controller. ")
+			} else {
+				logSuccess("main", "Game state is already up to date, all apps updated.")
+			}
 
 			messageReceived = ""
 		}

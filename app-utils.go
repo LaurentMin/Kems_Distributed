@@ -20,6 +20,22 @@ func toStringCards(cards []Card) string {
 }
 
 /*
+	type1ToType2 functions (for changing the type of a data)
+	Used for transforming struc into string before sending and oppisit when received
+*/
+func gameStateToString(game GameState) string {
+	gameString := ""
+
+	return gameString
+}
+
+func stringToGameState(gameString string) GameState {
+	game := GameState{}
+
+	return game
+}
+
+/*
 	contains functions (to find a given element in an array)
 */
 func contains(card Card, cards []Card) bool {
