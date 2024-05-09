@@ -4,53 +4,11 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"math/rand"
 	"os"
 	"strconv"
 	"sync"
 	"time"
 )
-
-var stderr = log.New(os.Stderr, "", 0)
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-//#region Struct Appli
-type Card struct {
-	Value string
-	Suit  string
-}
-
-type Player struct {
-	id  int
-	Hand []Card
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-//#region Func Appli
-func newDeck() []Card {
-	auth := requestCtl("[newDeck]")
-	if auth == false {
-		return nil
-	}
-
-	values := []string{"2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"}
-	suits := []string{"Clubs", "Diamonds", "Hearts", "Spades"}
-	var deck []Card
-	for _, suit := range suits {
-		for _, value := range values {
-			deck = append(deck, Card{Value: value, Suit: suit})
-		}
-	}
-	return deck
-}
-
-func shuffleDeck(deck []Card) []Card {
-	rand.Seed(time.Now().UnixNano())
-	rand.Shuffle(len(deck), func(i, j int) {
-		deck[i], deck[j] = deck[j], deck[i]
-	})
-	return deck
-}
 
 // Pour échanger les cartes sur le plateau (hand) et les cartes de la main (board)
 func dealCards(hand *[]Card, board *[]Card, card_hand int, card_board int) {
