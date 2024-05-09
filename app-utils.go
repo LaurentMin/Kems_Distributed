@@ -3,17 +3,17 @@ package main
 /*
 	toString functions (for printing structures)
 */
-func toStringCard(card Card) string{
+func toStringCard(card Card) string {
 	return card.Value + " " + card.Suit
 }
 
-func toStringPlayer(player Player) string{
+func toStringPlayer(player Player) string {
 	return player.Name
 }
 
-func toStringCards(cards []Card) string{
+func toStringCards(cards []Card) string {
 	cardsString := ""
-	for i:=0; i<len(cardsString); i++{
+	for i := 0; i < len(cardsString); i++ {
 		cardsString += toStringCard(cards[i])
 	}
 	return cardsString
@@ -22,9 +22,9 @@ func toStringCards(cards []Card) string{
 /*
 	contains functions (to find a given element in an array)
 */
-func contains(card Card, cards []Card) bool{
-	for i:=0; i<len(cards); i++ {
-		if card.Suit == cards[i].Suit && card.Value == cards[i].Value{
+func contains(card Card, cards []Card) bool {
+	for i := 0; i < len(cards); i++ {
+		if card.Suit == cards[i].Suit && card.Value == cards[i].Value {
 			return true
 		}
 	}
@@ -36,9 +36,9 @@ func contains(card Card, cards []Card) bool{
 	Returns -1 if none found => dangerous to use directly in []
 */
 // Finds a player index by name only
-func findIndexPlayer(player Player, players []Player) int{
-	for i:=0; i<len(players); i++ {
-		if player.Name == players[i].Name{
+func findIndexPlayer(player Player, players []Player) int {
+	for i := 0; i < len(players); i++ {
+		if player.Name == players[i].Name {
 			return i
 		}
 	}
@@ -46,9 +46,9 @@ func findIndexPlayer(player Player, players []Player) int{
 }
 
 // Finds a card index
-func findIndexCard(card Card, cards []Card) int{
-	for i:=0; i<len(cards); i++ {
-		if card.Suit == cards[i].Suit && card.Value == cards[i].Value{
+func findIndexCard(card Card, cards []Card) int {
+	for i := 0; i < len(cards); i++ {
+		if card.Suit == cards[i].Suit && card.Value == cards[i].Value {
 			return i
 		}
 	}

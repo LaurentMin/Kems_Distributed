@@ -130,7 +130,7 @@ func getInitState() GameState {
 */
 func reshuffleDiscard(game GameState) GameState {
 	logMessage("reshuffleDiscard", "Putting cards back from discard pile to deck and shuffling.")
-	
+
 	// Putting cards of the discard pile back in the deck
 	for i := 0; i < len(game.DiscardPile); i++ {
 		// Putting discard pile cards back in the deck
@@ -151,7 +151,7 @@ func reshuffleDiscard(game GameState) GameState {
 
 /*
 	Returns a game state with a new draw pile
-	Works both with a renewing and a first draw of the draw pile 
+	Works both with a renewing and a first draw of the draw pile
 */
 func renewDrawPile(game GameState) GameState {
 	// Bool allows to differentiate the first draw from the renewing of the pile
@@ -189,7 +189,7 @@ func renewDrawPile(game GameState) GameState {
 
 /*
 	Returns a game state with a new player hands
-	Works both with a renewing and a first draw of the player hands 
+	Works both with a renewing and a first draw of the player hands
 */
 func renewPlayerHands(game GameState) GameState {
 	// Bool allows to differentiate the first draw from the renewing of the pile
@@ -201,13 +201,13 @@ func renewPlayerHands(game GameState) GameState {
 	}
 
 	// Error returns same game state
-	if len(game.Players) == 0{
+	if len(game.Players) == 0 {
 		logError("renewPlayerHands", "Game does not have players.")
 		return game
 	}
 
 	// Drawing cards from the deck until player hands are filled
-	for i:= 0; i<game.Settings.HandSize; i++{
+	for i := 0; i < game.Settings.HandSize; i++ {
 		for playerIndex := 0; playerIndex < len(game.Players); playerIndex++ {
 			// Reshuffling deck if it is empty
 			if len(game.Deck) == 0 {
@@ -240,26 +240,26 @@ func swapCard(playerCard Card, drawPileCard Card, player Player, game GameState)
 	logMessage("swapCard", "Swapping player card "+toStringCard(playerCard)+" with draw pile card "+toStringCard(drawPileCard))
 	// Getting usefull variables and checking params
 	indexPlayer := findIndexPlayer(player, game.Players)
-	if indexPlayer == -1{
-		logError("swapCard", "Player " + toStringPlayer(player) + " does not exist.")
+	if indexPlayer == -1 {
+		logError("swapCard", "Player "+toStringPlayer(player)+" does not exist.")
 		return game
 	}
 
 	playerHand := game.Players[indexPlayer].Hand
-	if contains(playerCard, playerHand) == false{
-		logError("swapCard", "Player " + toStringPlayer(player) + " does not have card " + toStringCard(playerCard))
+	if contains(playerCard, playerHand) == false {
+		logError("swapCard", "Player "+toStringPlayer(player)+" does not have card "+toStringCard(playerCard))
 		return game
 	}
 
-	if (contains(drawPileCard,game.DrawPile) == false){
-		logError("swapCard", "Can't find card " + toStringCard(drawPileCard) + " in draw pile.")
+	if contains(drawPileCard, game.DrawPile) == false {
+		logError("swapCard", "Can't find card "+toStringCard(drawPileCard)+" in draw pile.")
 		return game
 	}
 
 	// The player hand and the drawpile both have the corresponding cards
-	// Changing players card 
+	// Changing players card
 	game.Players[indexPlayer].Hand[findIndexCard(playerCard, playerHand)] = drawPileCard
-	// Changing draw pile card 
+	// Changing draw pile card
 	game.DrawPile[findIndexCard(drawPileCard, game.DrawPile)] = playerCard
 
 	logSuccess("swapCard", "Cards exchanged "+toStringCard(drawPileCard)+" with "+toStringCard(playerCard))
