@@ -292,8 +292,9 @@ func main() {
 	for {
 		if name == "A1" {
 			// One of the apps plays the game (for testing)
-			fmt.Println(game)
-			break
+			game = swapCard(game.Players[0].Hand[0], game.DrawPile[0], game.Players[0], game)
+			fmt.Printf(gameStateToString(game) + "\n")
+			time.Sleep(time.Duration(10) * time.Second)
 		} else {
 			// Standard app behaviour
 			logInfo("main", "Waiting for message.")
