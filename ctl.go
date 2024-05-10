@@ -13,7 +13,7 @@ import (
 	Clock adjustment
 */
 func clockAdjustment(x, y int) int {
-	logMessage("clockAdjustment", "Adjusting clock to max(local,received) + 1.")
+	// logMessage("clockAdjustment", "Adjusting clock to max(local,received) + 1.")
 	if x < y {
 		return y + 1
 	}
@@ -30,7 +30,7 @@ func main() {
 	name = *pName
 
 	// Starting Controller
-	logInfo("main", "Launching controller...")
+	// logInfo("main", "Launching controller...")
 	// Initialising key variables for controller
 	messageReceived := ""
 	keyValTable := []string{}
@@ -38,7 +38,7 @@ func main() {
 
 	// Main loop of the controller, manages message reception and emission and processing
 	for {
-		logInfo("main", "Waiting for message.")
+		// logInfo("main", "Waiting for message.")
 		// Message reception
 		// fmt.Scanln(&messageReceived)
 		// ReadString until '\n' delimiter (instead of Scanln)
@@ -47,7 +47,7 @@ func main() {
 		logInfo("main", "Message received. "+messageReceived)
 
 		// Defining local clock depending on received message
-		logInfo("main", "Clock updating...")
+		// logInfo("main", "Clock updating...")
 		keyValTable = decodeMessage(messageReceived)
 		clockReceivedStr := findValue(keyValTable, "hlg")
 		if clockReceivedStr != "" {
@@ -58,16 +58,16 @@ func main() {
 				continue
 			}
 			clock = clockAdjustment(clock, clockReceived)
-			logInfo("main", "Clock updated, message received from other controller.")
+			// logInfo("main", "Clock updated, message received from other controller.")
 		} else {
 			// Incremented if message received from base app
 			clock = clock + 1
-			logInfo("main", "Clock updated, message received from local app.")
+			// logInfo("main", "Clock updated, message received from local app.")
 
 		}
 
 		// Message emission
-		logInfo("main", "Sending message...")
+		// logInfo("main", "Sending message...")
 		if clockReceivedStr != "" {
 			// Sending to base app
 			fmt.Printf(findValue(keyValTable, "msg") + "\n")

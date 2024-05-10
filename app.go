@@ -265,7 +265,7 @@ func swapCard(playerCard Card, drawPileCard Card, player Player, game GameState)
 	// Changing draw pile card
 	game.DrawPile[findIndexCard(drawPileCard, game.DrawPile)] = playerCard
 
-	logSuccess("swapCard", "Cards exchanged "+toStringCard(drawPileCard)+" with "+toStringCard(playerCard))
+	// logSuccess("swapCard", "Cards exchanged "+toStringCard(drawPileCard)+" with "+toStringCard(playerCard))
 	return game
 }
 
@@ -279,7 +279,7 @@ func main() {
 	name = *pName
 
 	// Starting App
-	logInfo("main", "Launching app...")
+	// logInfo("main", "Launching app...")
 	// Initialising key variables for app
 	messageReceived := ""
 	game := getInitState()
@@ -290,7 +290,7 @@ func main() {
 	for {
 		if name == "A1" {
 			// One of the apps plays the game (for testing)
-			logInfo("main", "A1 swapping cards.")
+			// logInfo("main", "A1 swapping cards.")
 			game = swapCard(game.Players[0].Hand[0], game.DrawPile[0], game.Players[0], game)
 			// game = renewDrawPile(game)
 			// game = renewPlayerHands(game)
@@ -298,7 +298,7 @@ func main() {
 			time.Sleep(time.Duration(10) * time.Second)
 		} else {
 			// Standard app behaviour
-			logInfo("main", "Waiting for message.")
+			// logInfo("main", "Waiting for message.")
 			// Message reception
 			messageReceived = scanUntilNewline()
 			messageReceived = messageReceived[:len(messageReceived)-1]
@@ -312,7 +312,7 @@ func main() {
 			}
 
 			// Message is a game state (process)
-			logInfo("main", "Processing game state... "+messageReceived)
+			// logInfo("main", "Processing game state... "+messageReceived)
 			// Replace game state if an update was received
 			if gameStateToString(game) != messageReceived {
 				game = stringToGameState(messageReceived)
