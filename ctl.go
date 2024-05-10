@@ -48,7 +48,7 @@ func main() {
 
 		// Determine message type for processing
 		keyValTable = decodeMessage(messageReceived)
-		sender := findValue(keyValTable, "sender")
+		sender := findValue(keyValTable, "snd")
 		// Filter out random messages
 		if len(sender) != 2 || len(name) != 2 {
 			logError("main", "Message invalid sender OR wrong ctl name (ignored) - CAN BE FATAL!")
@@ -85,11 +85,11 @@ func main() {
 		// logInfo("main", "Sending message...")
 		if clockReceivedStr != "" {
 			// Sending to base app
-			fmt.Printf(encodeMessage([]string{"msg", "sender"}, []string{findValue(keyValTable, "msg"), name}) + "\n")
+			fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, findValue(keyValTable, "msg")}) + "\n")
 			logInfo("main", "Message sent to local app.")
 		} else {
 			// Sending to other controller
-			fmt.Printf(encodeMessage([]string{"msg", "hlg", "sender"}, []string{messageReceived, strconv.Itoa(clock), name}) + "\n")
+			fmt.Printf(encodeMessage([]string{"snd", "msg", "hlg"}, []string{name, messageReceived, strconv.Itoa(clock)}) + "\n")
 			logInfo("main", "Message sent to other controller.")
 		}
 

@@ -295,7 +295,7 @@ func main() {
 			game = swapCard(game.Players[0].Hand[0], game.DrawPile[0], game.Players[0], game)
 			// game = renewDrawPile(game)
 			// game = renewPlayerHands(game)
-			fmt.Printf(encodeMessage([]string{"msg", "sender"}, []string{gameStateToString(game), name}) + "\n")
+			fmt.Printf(encodeMessage([]string{"sender", "msg"}, []string{name, gameStateToString(game)}) + "\n")
 			logInfo("main", "A1 SENT MESSAGE.")
 			time.Sleep(time.Duration(10) * time.Second)
 		} else {
@@ -331,7 +331,7 @@ func main() {
 			if gameStateToString(game) != messageReceived {
 				game = stringToGameState(messageReceived)
 				// Sending update to next app (through controller)
-				fmt.Printf(encodeMessage([]string{"msg", "sender"}, []string{messageReceived, name}) + "\n")
+				fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, messageReceived}) + "\n")
 				logInfo("main", "Sent updated game state to next app through controller.")
 			} else {
 				logSuccess("main", "Game state is already up to date, all apps up to date.")
