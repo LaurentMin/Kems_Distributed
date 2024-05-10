@@ -282,7 +282,6 @@ func main() {
 	// logInfo("main", "Launching app...")
 	// Initialising key variables for app
 	messageReceived := ""
-	first := true
 	keyValTable := []string{}
 	game := getInitState()
 	game = renewDrawPile(game)
@@ -290,62 +289,50 @@ func main() {
 
 	// Main loop of the app, manages message reception and emission and processing
 	for {
-		if name == "A1" && first == true {
-			first = false
-			// One of the apps plays the game (for testing)
-			// logInfo("main", "A1 swapping cards.")
-			// game = swapCard(game.Players[0].Hand[0], game.DrawPile[0], game.Players[0], game)
-			// game = renewDrawPile(game)
-			// game = renewPlayerHands(game)
-			fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, gameStateToString(game)}) + "\n")
-			logInfo("main", "A1 SENT FIRST MESSAGE.")
-			// time.Sleep(time.Duration(10) * time.Second)
-		} else {
-			// Standard app behaviour
-			// logInfo("main", "Waiting for message.")
-			// Message reception
-			messageReceived = scanUntilNewline()
-			// logInfo("main", "Message received. "+messageReceived)
-			logInfo("main", "Message received. "+messageReceived)
+		// Standard app behaviour
+		// logInfo("main", "Waiting for message.")
+		// Message reception
+		messageReceived = scanUntilNewline()
+		// logInfo("main", "Message received. "+messageReceived)
+		logInfo("main", "Message received. "+messageReceived)
 
-			// Determine message type for processing
-			keyValTable = decodeMessage(messageReceived)
-			sender := findValue(keyValTable, "snd")
-			// Filter out random messages
-			if len(sender) != 2 || len(name) != 2 || sender != "C"+name[1:2] {
-				logError("main", "Message invalid sender OR invalid app name (ignored) - CAN BE FATAL!")
-				messageReceived = ""
-				continue
-			}
-			// Filter out messages from our controller to other controllers
-			if findValue(keyValTable, "hlg") != "" {
-				logError("main", "Message from own controller to other controllers, (ignored).")
-				messageReceived = ""
-				continue
-			}
-
-			messageReceived = findValue(keyValTable, "msg")
-			// Message is not a game state (ignore)
-			if len(messageReceived) < 11 || messageReceived[:11] != "[GAMESTATE]" {
-				// logInfo("main", "Wrong message type for app received "+messageReceived+" (ignoring).")
-				logInfo("main", "Wrong message type for app received (ignoring).")
-				messageReceived = ""
-				continue
-			}
-
-			// Message is a game state (process)
-			// logInfo("main", "Processing game state... "+messageReceived)
-			// Replace game state if an update was received
-			if gameStateToString(game) != messageReceived {
-				game = stringToGameState(messageReceived)
-				// Sending update to next app (through controller)
-				fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, messageReceived}) + "\n")
-				logInfo("main", "Sent updated game state to next app through controller.")
-			} else {
-				logSuccess("main", "Game state is already up to date, all apps up to date.")
-			}
-
+		// Determine message type for processing
+		keyValTable = decodeMessage(messageReceived)
+		sender := findValue(keyValTable, "snd")
+		// Filter out random messages
+		if len(sender) != 2 || len(name) != 2 || sender != "C"+name[1:2] {
+			logError("main", "Message invalid sender OR invalid app name (ignored) - CAN BE FATAL!")
 			messageReceived = ""
+			continue
 		}
+		// Filter out messages from our controller to other controllers
+		if findValue(keyValTable, "hlg") != "" {
+			logError("main", "Message from own controller to other controllers, (ignored).")
+			messageReceived = ""
+			continue
+		}
+
+		messageReceived = findValue(keyValTable, "msg")
+		// Message is not a game state (ignore)
+		if len(messageReceived) < 11 || messageReceived[:11] != "[GAMESTATE]" {
+			// logInfo("main", "Wrong message type for app received "+messageReceived+" (ignoring).")
+			logInfo("main", "Wrong message type for app received (ignoring).")
+			messageReceived = ""
+			continue
+		}
+
+		// Message is a game state (process)
+		// logInfo("main", "Processing game state... "+messageReceived)
+		// Replace game state if an update was received
+		if gameStateToString(game) != messageReceived {
+			game = stringToGameState(messageReceived)
+			// Sending update to next app (through controller)
+			fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, messageReceived}) + "\n")
+			logInfo("main", "Sent updated game state to next app through controller.")
+		} else {
+			logSuccess("main", "Game state is already up to date, all apps up to date.")
+		}
+
+		messageReceived = ""
 	}
 }
