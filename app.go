@@ -289,11 +289,9 @@ func main() {
 
 	// Main loop of the app, manages message reception and emission and processing
 	for {
-		// Standard app behaviour
 		// logInfo("main", "Waiting for message.")
 		// Message reception
 		messageReceived = scanUntilNewline()
-		// logInfo("main", "Message received. "+messageReceived)
 		logInfo("main", "Message received. "+messageReceived)
 
 		// Determine message type for processing
