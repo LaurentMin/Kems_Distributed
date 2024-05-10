@@ -51,7 +51,7 @@ func main() {
 		sender := findValue(keyValTable, "sender")
 		// Filter out random messages
 		if len(sender) != 2 || len(name) != 2 {
-			logError("main", "Message invalid sender or name (ignored) - CAN BE FATAL!")
+			logError("main", "Message invalid sender OR wrong ctl name (ignored) - CAN BE FATAL!")
 			messageReceived = ""
 			continue
 		}
@@ -85,7 +85,7 @@ func main() {
 		// logInfo("main", "Sending message...")
 		if clockReceivedStr != "" {
 			// Sending to base app
-			fmt.Printf(encodeMessage([]string{"msg", "sender"}, []string{findValue(keyValTable, "msg") + "\n", name}))
+			fmt.Printf(encodeMessage([]string{"msg", "sender"}, []string{findValue(keyValTable, "msg"), name}) + "\n")
 			logInfo("main", "Message sent to local app.")
 		} else {
 			// Sending to other controller

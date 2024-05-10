@@ -282,6 +282,7 @@ func main() {
 	// logInfo("main", "Launching app...")
 	// Initialising key variables for app
 	messageReceived := ""
+	keyValTable := []string{}
 	game := getInitState()
 	game = renewDrawPile(game)
 	game = renewPlayerHands(game)
@@ -294,7 +295,7 @@ func main() {
 			game = swapCard(game.Players[0].Hand[0], game.DrawPile[0], game.Players[0], game)
 			// game = renewDrawPile(game)
 			// game = renewPlayerHands(game)
-			fmt.Printf(gameStateToString(game) + "\n")
+			fmt.Printf(encodeMessage([]string{"msg", "sender"}, []string{gameStateToString(game), name}) + "\n")
 			logInfo("main", "A1 SENT MESSAGE.")
 			time.Sleep(time.Duration(10) * time.Second)
 		} else {
@@ -305,6 +306,17 @@ func main() {
 			// logInfo("main", "Message received. "+messageReceived)
 			logInfo("main", "Message received. "+messageReceived)
 
+			// Determine message type for processing
+			keyValTable = decodeMessage(messageReceived)
+			sender := findValue(keyValTable, "sender")
+			// Filter out random messages
+			if len(sender) != 2 || len(name) != 2 || sender != "C"+name[1:2] {
+				logError("main", "Message invalid sender OR invalid app name (ignored) - CAN BE FATAL!")
+				messageReceived = ""
+				continue
+			}
+
+			messageReceived = findValue(keyValTable, "msg")
 			// Message is not a game state (ignore)
 			if len(messageReceived) < 11 || messageReceived[:11] != "[GAMESTATE]" {
 				// logInfo("main", "Wrong message type for app received "+messageReceived+" (ignoring).")
@@ -319,7 +331,7 @@ func main() {
 			if gameStateToString(game) != messageReceived {
 				game = stringToGameState(messageReceived)
 				// Sending update to next app (through controller)
-				fmt.Printf(messageReceived + "\n")
+				fmt.Printf(encodeMessage([]string{"msg", "sender"}, []string{messageReceived, name}) + "\n")
 				logInfo("main", "Sent updated game state to next app through controller.")
 			} else {
 				logSuccess("main", "Game state is already up to date, all apps up to date.")
