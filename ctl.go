@@ -44,8 +44,8 @@ func main() {
 		// ReadString until '\n' delimiter (instead of Scanln)
 		messageReceived = scanUntilNewline()
 		messageReceived = messageReceived[:len(messageReceived)-1]
-		logInfo("main", "Message received. "+messageReceived)
-
+		// logInfo("main", "Message received. "+messageReceived)
+		logInfo("main", "Message received. " + messageReceived)
 		// Defining local clock depending on received message
 		// logInfo("main", "Clock updating...")
 		keyValTable = decodeMessage(messageReceived)

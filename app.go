@@ -295,6 +295,7 @@ func main() {
 			// game = renewDrawPile(game)
 			// game = renewPlayerHands(game)
 			fmt.Printf(gameStateToString(game) + "\n")
+			logInfo("main", "A1 SENT MESSAGE.")
 			time.Sleep(time.Duration(10) * time.Second)
 		} else {
 			// Standard app behaviour
@@ -302,11 +303,13 @@ func main() {
 			// Message reception
 			messageReceived = scanUntilNewline()
 			messageReceived = messageReceived[:len(messageReceived)-1]
-			logInfo("main", "Message received. "+messageReceived)
+			// logInfo("main", "Message received. "+messageReceived)
+			logInfo("main", "Message received. " + messageReceived)
 
 			// Message is not a game state (ignore)
 			if len(messageReceived) <= 11 || messageReceived[:11] != "[GAMESTATE]" {
-				logInfo("main", "Wrong message type for app received "+messageReceived+" (ignoring).")
+				// logInfo("main", "Wrong message type for app received "+messageReceived+" (ignoring).")
+				logInfo("main", "Wrong message type for app received (ignoring).")
 				messageReceived = ""
 				continue
 			}
