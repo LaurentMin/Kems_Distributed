@@ -40,7 +40,10 @@ func main() {
 	for {
 		logInfo("main", "Waiting for message.")
 		// Message reception
-		fmt.Scanln(&messageReceived)
+		// fmt.Scanln(&messageReceived)
+		// ReadString until '\n' delimiter (instead of Scanln)
+		messageReceived = scanUntilNewline()
+		messageReceived = messageReceived[:len(messageReceived)-1]
 		logInfo("main", "Message received. "+messageReceived)
 
 		// Defining local clock depending on received message

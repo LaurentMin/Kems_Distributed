@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bufio"
+	"os"
 	"strings"
 )
 
@@ -142,4 +144,31 @@ func findValue(table []string, key string) string {
 	// Error returns ""
 	// logMessage("findValue", "No value found for key : "+key)
 	return ""
+}
+
+///////////////////
+// READING STDIN //
+///////////////////
+/*
+	Scans stdin until the first newline '\n' character is reached
+*/
+func scanUntilNewline() string {
+	reader := bufio.NewReader(os.Stdin)
+	input := ""
+
+	for {
+		line, err := reader.ReadString('\n')
+		// ERROR returns what could be read
+		if err != nil {
+			logError("scanUntilNewline:", "Error while using ReadString('\n')"+err.Error())
+			return input
+		}
+		input += line
+
+		if strings.Contains(line, "\n") {
+			break
+		}
+	}
+
+	return input
 }

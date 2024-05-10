@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"math/rand"
-	"strings"
 	"time"
 )
 
@@ -286,7 +285,6 @@ func main() {
 	game := getInitState()
 	game = renewDrawPile(game)
 	game = renewPlayerHands(game)
-	newGame := GameState{}
 
 	// Main loop of the app, manages message reception and emission and processing
 	for {
@@ -302,7 +300,8 @@ func main() {
 			// Standard app behaviour
 			logInfo("main", "Waiting for message.")
 			// Message reception
-			fmt.Scanln(&messageReceived)
+			messageReceived = scanUntilNewline()
+			messageReceived = messageReceived[:len(messageReceived)-1]
 			logInfo("main", "Message received. "+messageReceived)
 
 			// Message is not a game state (ignore)
@@ -314,19 +313,16 @@ func main() {
 
 			// Message is a game state (process)
 			logInfo("main", "Processing game state... "+messageReceived)
-			// Removing \n from message received and setting it as a new game state
-			messageReceived = strings.ReplaceAll(messageReceived, "\n", "")
-			newGame = stringToGameState(messageReceived)
 			// Replace game state if an update was received
-			if gameStateToString(game) == gameStateToString(newGame) {
-				game = newGame
+			if gameStateToString(game) != messageReceived {
+				game = stringToGameState(messageReceived)
 				// Sending update to next app (through controller)
-				fmt.Printf(gameStateToString(game) + "\n")
+				fmt.Printf(messageReceived + "\n")
 				logInfo("main", "Sent updated game state to next app through controller.")
 			} else {
 				logSuccess("main", "Game state is already up to date, all apps up to date.")
 			}
-			newGame = GameState{}
+
 			messageReceived = ""
 		}
 	}
