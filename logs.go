@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"strings"
 )
 
 /*
@@ -25,21 +26,31 @@ var reset string = "\033[0;00m"
 	Logging functions (they all print to stderr with program details)
 */
 func logMessage(where string, what string) {
+	where = strings.ReplaceAll(where, "\n", "")
+	what = strings.ReplaceAll(what, "\n", "")
 	stderr.Printf(" + [%-10.10s %d] %-16.16s : %s\n", name, pid, where, what)
 }
 
 func logSuccess(where string, what string) {
+	where = strings.ReplaceAll(where, "\n", "")
+	what = strings.ReplaceAll(what, "\n", "")
 	stderr.Printf("%s # [%-10.10s %d] %-16.16s : %s\n%s", green, name, pid, where, what, reset)
 }
 
 func logInfo(where string, what string) {
+	where = strings.ReplaceAll(where, "\n", "")
+	what = strings.ReplaceAll(what, "\n", "")
 	stderr.Printf("%s ? [%-10.10s %d] %-16.16s : %s\n%s", blue, name, pid, where, what, reset)
 }
 
 func logWarning(where string, what string) {
+	where = strings.ReplaceAll(where, "\n", "")
+	what = strings.ReplaceAll(what, "\n", "")
 	stderr.Printf("%s * [%-10.10s %d] %-16.16s : %s\n%s", orange, name, pid, where, what, reset)
 }
 
 func logError(where string, what string) {
+	where = strings.ReplaceAll(where, "\n", "")
+	what = strings.ReplaceAll(what, "\n", "")
 	stderr.Printf("%s ! [%-10.10s %d] %-16.16s : %s\n%s", red, name, pid, where, what, reset)
 }

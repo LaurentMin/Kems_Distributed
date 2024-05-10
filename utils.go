@@ -32,7 +32,7 @@ func determineSep(msg string) string {
 			if strings.Contains(msg, asciiVal) {
 				continue
 			}
-			logSuccess("determineSep", asciiVal+" found as a seperator for "+msg)
+			// logSuccess("determineSep", asciiVal+" found as a seperator for "+msg)
 			return asciiVal
 		}
 	}
@@ -88,7 +88,7 @@ func encodeMessage(keyTab []string, valTab []string) string {
 	for i := 0; i < len(keyTab); i++ {
 		msg += fieldSep + keyTab[i] + valTab[i]
 	}
-	logSuccess("encodeMessage", "Message formatted correctly : "+msg)
+	// logSuccess("encodeMessage", "Message formatted correctly : "+msg)
 	return msg
 }
 
@@ -102,14 +102,14 @@ func decodeMessage(msg string) []string {
 	// logMessage("decodeMessage", "Parsing : "+msg)
 	// Error returns empty table
 	if len(msg) < 4 {
-		logWarning("decodeMessage", "Message too short for parsing : "+msg)
+		// logWarning("decodeMessage", "Message too short for parsing : "+msg)
 		return []string{}
 	}
 
 	// Getting seperator and returning splitted string
 	sep := msg[0:1]
 	// msg[1:] is to avoid that split returns a first empty element
-	logSuccess("decodeMessage", msg+" parsed with seperator "+sep)
+	// logSuccess("decodeMessage", msg+" parsed with seperator "+sep)
 	return strings.Split(msg[1:], sep)
 }
 
@@ -122,7 +122,7 @@ func findValue(table []string, key string) string {
 	// logMessage("findValue", "Finding value of key "+key)
 	// Error returns ""
 	if len(table) == 0 {
-		logWarning("findValue", "No value to find in empty table, key : "+key)
+		// logWarning("findValue", "No value to find in empty table, key : "+key)
 		return ""
 	}
 
@@ -136,7 +136,7 @@ func findValue(table []string, key string) string {
 
 		// Trying to match key
 		if pair[0] == key {
-			logSuccess("findValue", pair[1]+" value found for key "+key)
+			// logSuccess("findValue", pair[1]+" value found for key "+key)
 			return pair[1]
 		}
 	}

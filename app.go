@@ -55,7 +55,7 @@ type GameState struct {
 	Returns initialised Settings
 */
 func getInitSettings() GameSettings {
-	logMessage("getInitSettings", "Initialising settings")
+	// logMessage("getInitSettings", "Initialising settings")
 	settings := GameSettings{
 		HandSize:     2,
 		DrawPileSize: 2,
@@ -68,7 +68,7 @@ func getInitSettings() GameSettings {
 	Builds the deck and shuffles it
 */
 func getInitDeck() []Card {
-	logMessage("getInitDeck", "Initialising deck")
+	// logMessage("getInitDeck", "Initialising deck")
 	deck := []Card{}
 
 	// Setting the deck building parameters
@@ -97,7 +97,7 @@ func getInitDeck() []Card {
 	Returns an initialised list of Players
 */
 func getInitPlayers() []Player {
-	logMessage("getInitPlayers", "Initialising players")
+	// logMessage("getInitPlayers", "Initialising players")
 	players := []Player{
 		{Name: "Newbie", Score: 0, Hand: []Card{}},
 		{Name: "Mexican", Score: 0, Hand: []Card{}},
@@ -113,7 +113,7 @@ func getInitPlayers() []Player {
 	Draw pile and discard pile are empty as well as player hands
 */
 func getInitState() GameState {
-	logMessage("getInitState", "Initialising game state")
+	// logMessage("getInitState", "Initialising game state")
 	game := GameState{
 		Settings:    getInitSettings(),
 		Deck:        getInitDeck(),
@@ -132,7 +132,7 @@ func getInitState() GameState {
 	Puts the cards of the discard pile back into the deck and shuffles the deck
 */
 func reshuffleDiscard(game GameState) GameState {
-	logMessage("reshuffleDiscard", "Putting cards back from discard pile to deck and shuffling.")
+	// logMessage("reshuffleDiscard", "Putting cards back from discard pile to deck and shuffling.")
 
 	// Putting cards of the discard pile back in the deck
 	for i := 0; i < len(game.DiscardPile); i++ {
@@ -160,9 +160,9 @@ func renewDrawPile(game GameState) GameState {
 	// Bool allows to differentiate the first draw from the renewing of the pile
 	drawPileEmpty := len(game.DrawPile) == 0
 	if drawPileEmpty {
-		logMessage("renewDrawPile", "Drawing cards from the deck to fill the draw pile (first draw).")
+		// logMessage("renewDrawPile", "Drawing cards from the deck to fill the draw pile (first draw).")
 	} else {
-		logMessage("renewDrawPile", "Drawing cards from the deck to renew the draw pile.")
+		// logMessage("renewDrawPile", "Drawing cards from the deck to renew the draw pile.")
 	}
 
 	// Drawing cards from the deck until draw pile is filled
@@ -198,9 +198,9 @@ func renewPlayerHands(game GameState) GameState {
 	// Bool allows to differentiate the first draw from the renewing of the pile
 	playerHandsEmpty := len(game.Players[0].Hand) == 0
 	if playerHandsEmpty {
-		logMessage("renewPlayerHands", "Drawing cards from the deck to fill the players hands (first draw).")
+		// logMessage("renewPlayerHands", "Drawing cards from the deck to fill the players hands (first draw).")
 	} else {
-		logMessage("renewPlayerHands", "Drawing cards from the deck to renew players hands.")
+		// logMessage("renewPlayerHands", "Drawing cards from the deck to renew players hands.")
 	}
 
 	// Error returns same game state
@@ -240,7 +240,7 @@ func renewPlayerHands(game GameState) GameState {
 	Returns a game state after a player exchanged a card with the draw pile
 */
 func swapCard(playerCard Card, drawPileCard Card, player Player, game GameState) GameState {
-	logMessage("swapCard", "Swapping player card "+toStringCard(playerCard)+" with draw pile card "+toStringCard(drawPileCard))
+	// logMessage("swapCard", "Swapping player card "+toStringCard(playerCard)+" with draw pile card "+toStringCard(drawPileCard))
 	// Getting usefull variables and checking params
 	indexPlayer := findIndexPlayer(player, game.Players)
 	if indexPlayer == -1 {

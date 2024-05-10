@@ -58,11 +58,11 @@ func main() {
 				continue
 			}
 			clock = clockAdjustment(clock, clockReceived)
-			logInfo("main", "Clock updated, message recived from other controller.")
+			logInfo("main", "Clock updated, message received from other controller.")
 		} else {
 			// Incremented if message received from base app
 			clock = clock + 1
-			logInfo("main", "Clock updated, message recived from local app.")
+			logInfo("main", "Clock updated, message received from local app.")
 
 		}
 
