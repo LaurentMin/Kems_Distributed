@@ -47,7 +47,6 @@ func logWarning(where string, what string) {
 	where = strings.ReplaceAll(where, "\n", "")
 	what = strings.ReplaceAll(what, "\n", "")
 	stderr.Printf("%s * [%-10.10s %d] %-16.16s : %s\n%s", orange, name, pid, where, what, reset)
-	stderr.Printf("%s * [%-10.10s %d] %-16.16s : %s\n%s", orange, name, pid, where, what, reset)
 }
 
 func logError(where string, what string) {

@@ -298,7 +298,7 @@ func main() {
 		keyValTable = decodeMessage(messageReceived)
 		sender := findValue(keyValTable, "snd")
 		// Filter out random messages
-		if len(sender) != 2 || len(name) != 2 || sender != "C"+name[1:2] || sender != "P"+name[1:2] {
+		if len(sender) != 2 || len(name) != 2 || (sender != "C"+name[1:2] && sender != "P"+name[1:2]) {
 			logError("main", "Message invalid sender OR invalid app name (ignored) - CAN BE FATAL!")
 			messageReceived = ""
 			continue
