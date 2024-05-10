@@ -170,5 +170,5 @@ func scanUntilNewline() string {
 		}
 	}
 
-	return input
+	return strings.ReplaceAll(input, "\n", "")
 }

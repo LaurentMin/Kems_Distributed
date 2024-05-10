@@ -302,12 +302,11 @@ func main() {
 			// logInfo("main", "Waiting for message.")
 			// Message reception
 			messageReceived = scanUntilNewline()
-			messageReceived = messageReceived[:len(messageReceived)-1]
 			// logInfo("main", "Message received. "+messageReceived)
-			logInfo("main", "Message received. " + messageReceived)
+			logInfo("main", "Message received. "+messageReceived)
 
 			// Message is not a game state (ignore)
-			if len(messageReceived) <= 11 || messageReceived[:11] != "[GAMESTATE]" {
+			if len(messageReceived) < 11 || messageReceived[:11] != "[GAMESTATE]" {
 				// logInfo("main", "Wrong message type for app received "+messageReceived+" (ignoring).")
 				logInfo("main", "Wrong message type for app received (ignoring).")
 				messageReceived = ""
