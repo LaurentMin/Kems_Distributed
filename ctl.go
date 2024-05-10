@@ -76,7 +76,7 @@ func main() {
 			// logInfo("main", "Clock updated, message received from local app.")
 		} else { // Filters out messages from other controller to it's own app
 			// ERROR, ignoring
-			logError("main", "Unexpected ERROR, message was not supposed to be built this way.")
+			logError("main", "Message from another controller to it's own app (IGNORED) OR UNEXPECTED ERROR.")
 			messageReceived = ""
 			continue
 		}
@@ -89,7 +89,7 @@ func main() {
 			logInfo("main", "Message sent to local app.")
 		} else {
 			// Sending to other controller
-			fmt.Printf(encodeMessage([]string{"snd", "msg", "hlg"}, []string{name, messageReceived, strconv.Itoa(clock)}) + "\n")
+			fmt.Printf(encodeMessage([]string{"snd", "hlg", "msg"}, []string{name, strconv.Itoa(clock), findValue(keyValTable, "msg")}) + "\n")
 			logInfo("main", "Message sent to other controller.")
 		}
 

@@ -295,7 +295,7 @@ func main() {
 			game = swapCard(game.Players[0].Hand[0], game.DrawPile[0], game.Players[0], game)
 			// game = renewDrawPile(game)
 			// game = renewPlayerHands(game)
-			fmt.Printf(encodeMessage([]string{"sender", "msg"}, []string{name, gameStateToString(game)}) + "\n")
+			fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, gameStateToString(game)}) + "\n")
 			logInfo("main", "A1 SENT MESSAGE.")
 			time.Sleep(time.Duration(10) * time.Second)
 		} else {
@@ -308,10 +308,16 @@ func main() {
 
 			// Determine message type for processing
 			keyValTable = decodeMessage(messageReceived)
-			sender := findValue(keyValTable, "sender")
+			sender := findValue(keyValTable, "snd")
 			// Filter out random messages
 			if len(sender) != 2 || len(name) != 2 || sender != "C"+name[1:2] {
 				logError("main", "Message invalid sender OR invalid app name (ignored) - CAN BE FATAL!")
+				messageReceived = ""
+				continue
+			}
+			// Filter out messages from our controller to other controllers
+			if findValue(keyValTable, "hlg") != "" {
+				logError("main", "Message from own controller to other controllers, (ignored).")
 				messageReceived = ""
 				continue
 			}
