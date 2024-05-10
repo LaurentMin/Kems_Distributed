@@ -44,13 +44,24 @@ func main() {
 		// ReadString until '\n' delimiter (instead of Scanln)
 		messageReceived = scanUntilNewline()
 		// logInfo("main", "Message received. "+messageReceived)
-		logInfo("main", "Message received '"+messageReceived+"'")
-		// Defining local clock depending on received message
-		// logInfo("main", "Clock updating...")
+		logInfo("main", "Message received "+messageReceived)
+
+		// Determine message type for processing
 		keyValTable = decodeMessage(messageReceived)
+		sender := findValue(keyValTable, "sender")
+		// Filter out random messages
+		if len(sender) != 2 || len(name) != 2 {
+			logError("main", "Message invalid sender or name (ignored) - CAN BE FATAL!")
+			messageReceived = ""
+			continue
+		}
+
+		// Defining local clock depending on received message (ignores messages from other controllers to their own apps)
+		// logInfo("main", "Clock updating...")
 		clockReceivedStr := findValue(keyValTable, "hlg")
-		if clockReceivedStr != "" {
+		if clockReceivedStr != "" && sender[:1] == "C" { // Filters out messages from an app with a clock
 			// Clock adjustment if message received from other controller
+			// In this case the message is from a controller to another controller
 			clockReceived, err := strconv.Atoi(clockReceivedStr)
 			if err != nil {
 				logError("main", "Error converting string to int : "+err.Error())
@@ -58,22 +69,27 @@ func main() {
 			}
 			clock = clockAdjustment(clock, clockReceived)
 			// logInfo("main", "Clock updated, message received from other controller.")
-		} else {
+
+		} else if clockReceivedStr == "" && sender == "A"+name[1:2] { // Filters out messages without a clock from the wrong app.
 			// Incremented if message received from base app
 			clock = clock + 1
 			// logInfo("main", "Clock updated, message received from local app.")
-
+		} else { // Filters out messages from other controller to it's own app
+			// ERROR, ignoring
+			logError("main", "Unexpected ERROR, message was not supposed to be built this way.")
+			messageReceived = ""
+			continue
 		}
 
 		// Message emission
 		// logInfo("main", "Sending message...")
 		if clockReceivedStr != "" {
 			// Sending to base app
-			fmt.Printf(findValue(keyValTable, "msg") + "\n")
+			fmt.Printf(encodeMessage([]string{"msg", "sender"}, []string{findValue(keyValTable, "msg") + "\n", name}))
 			logInfo("main", "Message sent to local app.")
 		} else {
 			// Sending to other controller
-			fmt.Printf(encodeMessage([]string{"msg", "hlg"}, []string{messageReceived, strconv.Itoa(clock)}) + "\n")
+			fmt.Printf(encodeMessage([]string{"msg", "hlg", "sender"}, []string{messageReceived, strconv.Itoa(clock), name}) + "\n")
 			logInfo("main", "Message sent to other controller.")
 		}
 
