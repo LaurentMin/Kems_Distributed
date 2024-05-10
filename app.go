@@ -282,6 +282,7 @@ func main() {
 	// logInfo("main", "Launching app...")
 	// Initialising key variables for app
 	messageReceived := ""
+	first := true
 	keyValTable := []string{}
 	game := getInitState()
 	game = renewDrawPile(game)
@@ -289,15 +290,16 @@ func main() {
 
 	// Main loop of the app, manages message reception and emission and processing
 	for {
-		if name == "A1" {
+		if name == "A1" && first == true {
+			first = false
 			// One of the apps plays the game (for testing)
 			// logInfo("main", "A1 swapping cards.")
-			game = swapCard(game.Players[0].Hand[0], game.DrawPile[0], game.Players[0], game)
+			// game = swapCard(game.Players[0].Hand[0], game.DrawPile[0], game.Players[0], game)
 			// game = renewDrawPile(game)
 			// game = renewPlayerHands(game)
 			fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, gameStateToString(game)}) + "\n")
-			logInfo("main", "A1 SENT MESSAGE.")
-			time.Sleep(time.Duration(10) * time.Second)
+			logInfo("main", "A1 SENT FIRST MESSAGE.")
+			// time.Sleep(time.Duration(10) * time.Second)
 		} else {
 			// Standard app behaviour
 			// logInfo("main", "Waiting for message.")
