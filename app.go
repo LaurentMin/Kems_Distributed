@@ -300,11 +300,29 @@ func main() {
 		keyValTable = decodeMessage(messageReceived)
 		sender := findValue(keyValTable, "snd")
 		// Filter out random messages
-		if len(sender) != 2 || len(name) != 2 || sender != "C"+name[1:2] {
+		if len(sender) != 2 || len(name) != 2 || sender != "C"+name[1:2] || sender != "P"+name[1:2] {
 			logError("main", "Message invalid sender OR invalid app name (ignored) - CAN BE FATAL!")
 			messageReceived = ""
 			continue
 		}
+
+		// The message is from app Player
+		if sender == "P"+name[1:2] {
+			action := findValue(keyValTable, "msg")
+			oldGame := gameStateToString(game)
+			game = handleAction(action, game)
+			if oldGame == gameStateToString(game) {
+				logWarning("main", "Action did not change game state, no update required.")
+			} else {
+				logSuccess("main", "Gamestate updated, sending game update.")
+				fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, gameStateToString(game)}) + "\n")
+			}
+
+			messageReceived = ""
+			continue
+		}
+
+		// The message is from app Controller
 		// Filter out messages from our controller to other controllers
 		if findValue(keyValTable, "hlg") != "" {
 			logError("main", "Message from own controller to other controllers, (ignored).")
@@ -327,7 +345,7 @@ func main() {
 		if gameStateToString(game) != messageReceived {
 			game = stringToGameState(messageReceived)
 			// Sending update to next app (through controller)
-			fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, messageReceived}) + "\n")
+			fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, gameStateToString(game)}) + "\n")
 			logInfo("main", "Sent updated game state to next app through controller.")
 		} else {
 			logSuccess("main", "Game state is already up to date, all apps up to date.")

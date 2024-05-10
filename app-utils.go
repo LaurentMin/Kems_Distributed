@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -158,4 +159,22 @@ func findIndexCard(card Card, cards []Card) int {
 		}
 	}
 	return -1
+}
+
+/*
+	Handle player action
+*/
+func handleAction(action string, game GameState) GameState {
+	switch action {
+	case "Swap":
+		fmt.Println("It's Monday!")
+	case "R":
+		fmt.Println("It's a weekday!")
+	case "Friday":
+		fmt.Println("TGIF! It's Friday!")
+	default:
+		logError("handleAction", "Uknown action, (ignored) "+action)
+		return game
+	}
+	return game
 }
