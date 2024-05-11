@@ -1,3 +1,4 @@
+#!/bin/bash
 # Fonction de nettoyage
 nettoyer () {
   # Suppression des processus de l'application app

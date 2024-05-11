@@ -1,3 +1,4 @@
+#!/bin/bash
 echo "Building..."
 go build -o app app.go app-utils.go utils.go logs.go
 echo "Built app"
