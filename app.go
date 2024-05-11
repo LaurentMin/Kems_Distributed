@@ -167,15 +167,56 @@ func handleAction(fullAction string, game GameState) GameState {
 
 	// Process action
 	switch actionType {
-	case "Kems": // Players cards are all the same, validate win
-		game = reshuffleDiscard(game)
-	case "ContreKems": // Counter player that has all similar cards
-		game = renewPlayerHands(game)
-	case "RedrawPile":
+	case "ResetGame": // NO CONTROLS -> Resets the whole game (players, scores, decks, ...)
+		game = GameState{}
+		game = getInitState()
 		game = renewDrawPile(game)
-	case "SwapCards":
+		game = renewPlayerHands(game)
+
+	case "NewSleeve": // NO CONTROLS -> Starts a new game sleeve (deals new hands and new draw pile)
+		game = renewPlayerHands(game)
+		game = renewDrawPile(game)
+
+	case "NextSleeve": // NO CONTROLS -> Goes to the next sleeve when no other player wants to trade (deals new draw pile)
+		game = renewDrawPile(game)
+
+	case "Kems": // CONTROLS -> Increments player score if won (or does nothing)
+		// Getting app player index
+		appPlayerIndex, _ := strconv.Atoi(name[1:2])
+		appPlayerIndex -= 1
+
+		// Player won
+		if hasKems(game.Players[appPlayerIndex]) {
+			// Add score to player
+			game.Players[appPlayerIndex].Score += 1
+			// Start new sleeve
+			game = renewPlayerHands(game)
+			game = renewDrawPile(game)
+		}
+
+	case "ContreKems": // CONTROLS -> Player counters another players win
+		otherPlayerIndexString := decodeMessage(actionParams)
+		otherPlayerIndex, err := strconv.Atoi(findValue(otherPlayerIndexString, "playerIndex"))
+		// Check params
+		if err != nil {
+			logError("handleAction", "Error converting action params to integers for Contre Kems "+err.Error()+" action, (ignored) "+actionType)
+			return game
+		}
+		otherPlayerIndex -= 1
+		if otherPlayerIndex < 0 || otherPlayerIndex >= len(game.Players) {
+			logError("handleAction", "Wrong params values, action (ignored) "+actionType)
+			return game
+		}
+
+		// Player countered
+		if hasKems(game.Players[otherPlayerIndex]) {
+			// Start new sleeve without adding score to player
+			game = renewPlayerHands(game)
+			game = renewDrawPile(game)
+		}
+
+	case "SwapCards": // CONTROLS -> Plater swaps one card of his hand with one of the draw pile
 		// Get params for card swapping
-		logError("handleAction", actionParams)
 		cardsIndexes := decodeMessage(actionParams)
 		playerIndex, err1 := strconv.Atoi(findValue(cardsIndexes, "playerIndex"))
 		playerCardIndex, err2 := strconv.Atoi(findValue(cardsIndexes, "playerCardIndex"))
@@ -192,7 +233,8 @@ func handleAction(fullAction string, game GameState) GameState {
 		}
 		// Update gamestate
 		game = swapCard(game.Players[playerIndex].Hand[playerCardIndex], game.DrawPile[drawPileCardIndex], game.Players[playerIndex], game)
-	default:
+
+	default: // Uknown action, ERROR
 		// Action not recognized, send same game state (app should not share it)
 		logError("handleAction", "Uknown action, (ignored) "+actionType)
 		return game
@@ -217,8 +259,8 @@ func main() {
 	messageReceived := ""
 	keyValTable := []string{}
 	game := getInitState()
-	game = renewDrawPile(game)
 	game = renewPlayerHands(game)
+	game = renewDrawPile(game)
 
 	// Main loop of the app, manages message reception and emission and processing
 	for {
