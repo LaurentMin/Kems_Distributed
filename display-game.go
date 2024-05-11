@@ -5,6 +5,10 @@ import (
 	"fmt"
 )
 
+func clearScreen() {
+	stderr.Printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+}
+
 func displayCard(card Card) string {
 	suit := ""
 	if card.Suit == "Hearts" {
@@ -64,7 +68,22 @@ func displayPlayerHand(player Player) {
 	stderr.Printf(cards + "\n" + numbersCard + "\n\n")
 }
 
+func displayScore(game GameState) {
+	scoreString := "Actual score:\t "
+	scoreMax := 0
+	var winner string
+	for i := 0; i < len(game.Players); i++ {
+		scoreString += game.Players[i].Name + ": " + fmt.Sprint(game.Players[i].Score) + "\t"
+		if game.Players[i].Score > scoreMax {
+			scoreMax = game.Players[i].Score
+			winner = game.Players[i].Name
+		}
+	}
+	stderr.Printf(scoreString + "\n The current winner is " + winner + "\n\n")
+}
+
 func displayGameBoard(game GameState) {
+	clearScreen()
 	displayDeck(game)
 	displayDiscardPile(game)
 	displayDrawPile(game)
