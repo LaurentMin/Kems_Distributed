@@ -186,7 +186,7 @@ func handleAction(fullAction string, game GameState) GameState {
 		appPlayerIndex -= 1
 
 		// Player won
-		if hasKems(game.Players[appPlayerIndex]) {
+		if hasKems(game, appPlayerIndex) {
 			// Add score to player
 			game.Players[appPlayerIndex].Score += 1
 			// Start new sleeve
@@ -209,8 +209,8 @@ func handleAction(fullAction string, game GameState) GameState {
 		}
 
 		// Player countered
-		if hasKems(game.Players[otherPlayerIndex]) {
-			// Start new sleeve without adding score to player
+		if hasKems(game, otherPlayerIndex) {
+			game.Players[otherPlayerIndex].Score -= 1
 			game = renewPlayerHands(game)
 			game = renewDrawPile(game)
 		}
