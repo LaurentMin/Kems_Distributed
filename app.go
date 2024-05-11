@@ -253,7 +253,7 @@ func main() {
 	// Getting name from commandline (usefull for logging)
 	pName := flag.String("n", "app", "name")
 	flag.Parse()
-	playerId = *pName
+	playerId := *pName
 
 	// Starting App
 	// logInfo("main", "Launching app...")
