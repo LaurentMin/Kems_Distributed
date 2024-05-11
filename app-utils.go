@@ -179,6 +179,7 @@ func handleAction(fullAction string, game GameState) GameState {
 		game = renewDrawPile(game)
 	case "SwapCards":
 		// Get params for card swapping
+		logError("handleAction", actionParams)
 		cardsIndexes := decodeMessage(actionParams)
 		playerIndex, err1 := strconv.Atoi(findValue(cardsIndexes, "playerIndex"))
 		playerCardIndex, err2 := strconv.Atoi(findValue(cardsIndexes, "playerCardIndex"))
