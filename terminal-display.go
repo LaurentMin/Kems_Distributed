@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"time"
 )
 
 func clearScreen() {
@@ -82,8 +83,31 @@ func displayScore(game GameState) {
 	stderr.Printf(scoreString + "\n The current winner is " + winner + "\n\n")
 }
 
+func displayKemsRules() {
+	fmt.Println("KEMS Card Game Rules:")
+	fmt.Println("KEMS is a card game played with a standard deck of 52 cards.")
+	fmt.Println("The objective is to be the first player to form a hand with the same value and shout 'KEMS' to win.")
+	fmt.Println()
+	fmt.Println("Rules:")
+	fmt.Println("1. Players are dealt 4 cards at the beginning.")
+	fmt.Println("2. Each turn there are 4 cards in the draw pile.")
+	fmt.Println("3. Any player can exchange a card from their hand with a card from the draw pile at any moment.")
+	fmt.Println("4. When nobody is exchanging cards, a player replace the draw pile.")
+	fmt.Println("5. The first player to form a combination of cards of the exact same value quickly needs to type 'KEMS' to win 1 point.")
+	fmt.Println("6. When one player has a 'KEMS' combination, the other players can type 'C' followed by the player index BEFORE the winner type 'KEMS' to counter the 'KEMS', therefore giving a malus of 1 point to the winner.")
+}
+
+func displayCommands() {
+	fmt.Println("Commands (maj and spaces are not necessary):")
+	fmt.Println("Swap cards : s <drawPileCardIndex> <playerCardIndex>")
+	fmt.Println("Next turn : n")
+	fmt.Println("Kems: kems")
+	fmt.Println("ContreKems: c <playerIndex>\n\n\n")
+}
+
 func displayGameBoard(game GameState) {
 	clearScreen()
+	displayCommands()
 	displayDeck(game)
 	displayDiscardPile(game)
 	displayDrawPile(game)
@@ -102,23 +126,21 @@ func main() {
 	flag.Parse()
 
 	// Setting app name (usefull for debug)
-	name = "Display"
 
 	messageReceived := ""
 	state := GameState{}
 	inputFile := *pfile
 	logInfo("main", "Displaying with input file "+inputFile)
 
-	// Main loop, displays game state when receives it
+	displayKemsRules()
+	time.Sleep(5 * time.Second)
 	for {
 		logInfo("main", "Waiting for next state...")
-		// Message reception
 		messageReceived = scanUntilNewline()
 
 		// Ignore message not for display
 		if len(messageReceived) < 11 || messageReceived[:11] != "[GAMESTATE]" {
 			logInfo("main", "Message received not destinated to display.")
-			state = GameState{}
 			messageReceived = ""
 			continue
 		}

@@ -167,22 +167,24 @@ func handleAction(fullAction string, game GameState) GameState {
 
 	// Process action
 	switch actionType {
+	case "InitPlayer":
+		fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{playerId, gameStateToString(game)}) + "\n")
 	case "ResetGame": // NO CONTROLS -> Resets the whole game (players, scores, decks, ...)
 		game = GameState{}
 		game = getInitState()
 		game = renewDrawPile(game)
 		game = renewPlayerHands(game)
 
-	case "NewSleeve": // NO CONTROLS -> Starts a new game sleeve (deals new hands and new draw pile)
+	case "NewRound": // NO CONTROLS -> Starts a new game sleeve (deals new hands and new draw pile)
 		game = renewPlayerHands(game)
 		game = renewDrawPile(game)
 
-	case "NextSleeve": // NO CONTROLS -> Goes to the next sleeve when no other player wants to trade (deals new draw pile)
+	case "NextTurn": // NO CONTROLS -> Goes to the next sleeve when no other player wants to trade (deals new draw pile)
 		game = renewDrawPile(game)
 
 	case "Kems": // CONTROLS -> Increments player score if won (or does nothing)
 		// Getting app player index
-		appPlayerIndex, _ := strconv.Atoi(name[1:2])
+		appPlayerIndex, _ := strconv.Atoi(playerId[1:2])
 		appPlayerIndex -= 1
 
 		// Player won
@@ -251,7 +253,7 @@ func main() {
 	// Getting name from commandline (usefull for logging)
 	pName := flag.String("n", "app", "name")
 	flag.Parse()
-	name = *pName
+	playerId = *pName
 
 	// Starting App
 	// logInfo("main", "Launching app...")
@@ -273,14 +275,14 @@ func main() {
 		keyValTable = decodeMessage(messageReceived)
 		sender := findValue(keyValTable, "snd")
 		// Filter out random messages
-		if len(sender) != 2 || len(name) != 2 || (sender != "C"+name[1:2] && sender != "P"+name[1:2]) {
+		if len(sender) != 2 || len(playerId) != 2 || (sender != "C"+playerId[1:2] && sender != "P"+playerId[1:2]) {
 			logError("main", "Message invalid sender OR invalid app name (ignored) - CAN BE FATAL!")
 			messageReceived = ""
 			continue
 		}
 
 		// The message is from app Player
-		if sender == "P"+name[1:2] {
+		if sender == "P"+playerId[1:2] {
 			action := findValue(keyValTable, "msg")
 			oldGame := gameStateToString(game)
 			game = handleAction(action, game)
@@ -288,7 +290,7 @@ func main() {
 				logWarning("main", "Action did not change game state, no update required.")
 			} else {
 				logSuccess("main", "Gamestate updated, sending game update.")
-				fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, gameStateToString(game)}) + "\n")
+				fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{playerId, gameStateToString(game)}) + "\n")
 			}
 
 			messageReceived = ""
@@ -318,7 +320,7 @@ func main() {
 		if gameStateToString(game) != messageReceived {
 			game = stringToGameState(messageReceived)
 			// Sending update to next app (through controller)
-			fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, gameStateToString(game)}) + "\n")
+			fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{playerId, gameStateToString(game)}) + "\n")
 			logInfo("main", "Sent updated game state to next app through controller.")
 		} else {
 			logSuccess("main", "Game state is already up to date, all apps up to date. (updating display if there is one)")
