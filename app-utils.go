@@ -209,3 +209,34 @@ func findIndexCard(card Card, cards []Card) int {
 	}
 	return -1
 }
+
+////////////////////////////////
+// GAMESTATE HELPER FUNCTIONS //
+////////////////////////////////
+/*
+	Checks if given player has won
+*/
+func hasKems(player Player) bool {
+	// Check params, Errors return false
+	if len(player.Hand) < 2 {
+		logError("hasKems", "Player has insufficient cards in hand. (FATAL ERROR)")
+		return false
+	}
+	// Getting first card
+	value := player.Hand[0].Value
+	suit := player.Hand[0].Suit
+	if value == "" || suit == "" {
+		logError("hasKems", "Player cards are undefined. (FATAL ERROR)")
+		return false
+	}
+
+	// Returns false if next card different from first one
+	for i := 1; i < len(player.Hand); i++ {
+		if value != player.Hand[i].Value || suit != player.Hand[i].Suit {
+			return false
+		}
+	}
+
+	// returns true if all similar
+	return true
+}

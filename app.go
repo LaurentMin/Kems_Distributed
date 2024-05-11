@@ -62,7 +62,6 @@ func getInitPlayers() []Player {
 		{Name: "Newbie", Score: 0, Hand: []Card{}},
 		{Name: "Mexican", Score: 0, Hand: []Card{}},
 		{Name: "Convict", Score: 0, Hand: []Card{}},
-		{Name: "Tomatoe", Score: 0, Hand: []Card{}},
 	}
 	return players
 }
@@ -243,9 +242,9 @@ func handleAction(fullAction string, game GameState) GameState {
 
 	// Process action
 	switch actionType {
-	case "ReshuffleDiscard":
+	case "Kems": // Players cards are all the same, validate win
 		game = reshuffleDiscard(game)
-	case "RedrawHands":
+	case "ContreKems": // Counter player that has all similar cards
 		game = renewPlayerHands(game)
 	case "RedrawPile":
 		game = renewDrawPile(game)
