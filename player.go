@@ -21,6 +21,12 @@ func main() {
 	// Initialising key variables for player
 	inputLocation := "/tmp/in_A" + name
 	playerInput := ""
+	actionParamsValues := []string{name, "0", "0"}
+	actionParamsNames := []string{"playerIndex", "playerCardIndex", "drawPileCardIndex"}
+	if len(actionParamsNames) != len(actionParamsValues) {
+		logError("main", "Bad parameter setting, modify code.")
+		return
+	}
 
 	// Main loop of the player, manages user input and sending messages
 	for {
@@ -30,7 +36,11 @@ func main() {
 		logInfo("main", playerInput+" action received.")
 
 		logInfo("main", "Sending action to "+inputLocation)
-		fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{"P" + name, playerInput}) + "\n")
+		// Building action
+		params := encodeMessage(actionParamsNames, actionParamsValues)
+		action := encodeMessage([]string{"typ", "prm"}, []string{playerInput, params})
+		// Sending action
+		fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{"P" + name, action}) + "\n")
 
 		playerInput = ""
 	}
