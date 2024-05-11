@@ -1,3 +1,3 @@
 #!/bin/bash
 
-./player -n 2 > /tmp/in_A2
+./terminal-input -n 2 > /tmp/in_A2
