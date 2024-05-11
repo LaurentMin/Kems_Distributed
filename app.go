@@ -4,49 +4,9 @@ import (
 	"flag"
 	"fmt"
 	"math/rand"
+	"strconv"
 	"time"
 )
-
-////////////////////////////
-// GAME STATE DECLARATION //
-////////////////////////////
-/*
-	Single Card structure
-*/
-type Card struct {
-	Value string
-	Suit  string
-}
-
-/*
-	Single Player structure
-*/
-type Player struct {
-	Name  string
-	Score int
-	Hand  []Card
-}
-
-/*
-	Game parameters structure
-	Allows to define the rules for the game
-*/
-type GameSettings struct {
-	HandSize     int // Number of cards a player can hold
-	DrawPileSize int // Number of cards in the draw pile
-}
-
-/*
-	Global game state structure (shared data)
-	Contains deck, players (and their hands, score), draw pile
-*/
-type GameState struct {
-	Settings    GameSettings
-	Deck        []Card
-	Players     []Player
-	DrawPile    []Card
-	DiscardPile []Card
-}
 
 ///////////////////////////////
 // GAME STATE INITIALISATION //
@@ -124,9 +84,9 @@ func getInitState() GameState {
 	return game
 }
 
-////////////////
-// GAME UTILS //
-////////////////
+///////////////////////////
+// ACTION HANDLING UTILS //
+///////////////////////////
 /*
 	Returns a gamestate with a new deck and empty discard pile
 	Puts the cards of the discard pile back into the deck and shuffles the deck
@@ -269,6 +229,55 @@ func swapCard(playerCard Card, drawPileCard Card, player Player, game GameState)
 	return game
 }
 
+/////////////////////
+// ACTION HANDLING //
+/////////////////////
+/*
+	Handle player action
+*/
+func handleAction(fullAction string, game GameState) GameState {
+	// Get action type and parameters
+	actionTab := decodeMessage(fullAction)
+	actionType := findValue(actionTab, "typ")
+	actionParams := findValue(actionTab, "prm")
+
+	// Process action
+	switch actionType {
+	case "ReshuffleDiscard":
+		game = reshuffleDiscard(game)
+	case "RedrawHands":
+		game = renewPlayerHands(game)
+	case "RedrawPile":
+		game = renewDrawPile(game)
+	case "SwapCards":
+		// Get params for card swapping
+		logError("handleAction", actionParams)
+		cardsIndexes := decodeMessage(actionParams)
+		playerIndex, err1 := strconv.Atoi(findValue(cardsIndexes, "playerIndex"))
+		playerCardIndex, err2 := strconv.Atoi(findValue(cardsIndexes, "playerCardIndex"))
+		drawPileCardIndex, err3 := strconv.Atoi(findValue(cardsIndexes, "drawPileCardIndex"))
+		// Check params
+		if err1 != nil || err2 != nil || err3 != nil {
+			logError("handleAction", "Error converting action params to integers for card swapping "+err1.Error()+err2.Error()+err3.Error()+" action, (ignored) "+actionType)
+			return game
+		}
+		playerIndex -= 1
+		if playerIndex < 0 || playerCardIndex < 0 || drawPileCardIndex < 0 || playerIndex >= len(game.Players) || playerCardIndex >= len(game.Players[playerIndex].Hand) || drawPileCardIndex >= len(game.DrawPile) {
+			logError("handleAction", "Wrong params values, action (ignored) "+actionType)
+			return game
+		}
+		// Update gamestate
+		game = swapCard(game.Players[playerIndex].Hand[playerCardIndex], game.DrawPile[drawPileCardIndex], game.Players[playerIndex], game)
+	default:
+		// Action not recognized, send same game state (app should not share it)
+		logError("handleAction", "Uknown action, (ignored) "+actionType)
+		return game
+	}
+
+	// Sends updated (or not) game state (if not updated, app should not share it)
+	return game
+}
+
 //////////
 // GAME //
 //////////
@@ -346,7 +355,9 @@ func main() {
 			fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, gameStateToString(game)}) + "\n")
 			logInfo("main", "Sent updated game state to next app through controller.")
 		} else {
-			logSuccess("main", "Game state is already up to date, all apps up to date.")
+			logSuccess("main", "Game state is already up to date, all apps up to date. (updating display if there is one)")
+			// Updating display (if it is started)
+			fmt.Printf(gameStateToString(game) + "\n")
 		}
 
 		messageReceived = ""
