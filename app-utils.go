@@ -309,7 +309,7 @@ func hasKems(player Player) bool {
 
 	// Returns false if next card different from first one
 	for i := 1; i < len(player.Hand); i++ {
-		if value != player.Hand[i].Value || suit != player.Hand[i].Suit {
+		if value != player.Hand[i].Value || (value == player.Hand[i].Value && suit == player.Hand[i].Suit) {
 			return false
 		}
 	}
