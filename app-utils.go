@@ -163,19 +163,44 @@ func findIndexCard(card Card, cards []Card) int {
 /*
 	Handle player action
 */
-func handleAction(action string, game GameState) GameState {
-	switch action {
+func handleAction(fullAction string, game GameState) GameState {
+	// Get action type and parameters
+	actionTab := decodeMessage(fullAction)
+	actionType := findValue(actionTab, "typ")
+	actionParams := findValue(actionTab, "prm")
+
+	// Process action
+	switch actionType {
 	case "ReshuffleDiscard":
 		game = reshuffleDiscard(game)
 	case "RedrawHands":
 		game = renewPlayerHands(game)
 	case "RedrawPile":
 		game = renewDrawPile(game)
-
+	case "SwapCards":
+		// Get params for card swapping
+		cardsIndexes := decodeMessage(actionParams)
+		playerIndex, err1 := strconv.Atoi(findValue(cardsIndexes, "playerIndex"))
+		playerCardIndex, err2 := strconv.Atoi(findValue(cardsIndexes, "playerCardIndex"))
+		drawPileCardIndex, err3 := strconv.Atoi(findValue(cardsIndexes, "drawPileCardIndex"))
+		// Check params
+		if err1 != nil || err2 != nil || err3 != nil {
+			logError("handleAction", "Error converting action params to integers for card swapping "+err1.Error()+err2.Error()+err3.Error()+" action, (ignored) "+actionType)
+			return game
+		}
+		playerIndex -= 1
+		if playerIndex < 0 || playerCardIndex < 0 || drawPileCardIndex < 0 || playerIndex >= len(game.Players) || playerCardIndex >= len(game.Players[playerIndex].Hand) || drawPileCardIndex >= len(game.DrawPile) {
+			logError("handleAction", "Wrong params values, action (ignored) "+actionType)
+			return game
+		}
+		// Update gamestate
+		game = swapCard(game.Players[playerIndex].Hand[playerCardIndex], game.DrawPile[drawPileCardIndex], game.Players[playerIndex], game)
 	default:
-		logError("handleAction", "Uknown action, (ignored) "+action)
+		// Action not recognized, send same game state (app should not share it)
+		logError("handleAction", "Uknown action, (ignored) "+actionType)
 		return game
 	}
 
+	// Sends updated (or not) game state (if not updated, app should not share it)
 	return game
 }
