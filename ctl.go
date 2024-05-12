@@ -79,7 +79,7 @@ func main() {
 			continue
 		}
 
-		// Message emission
+		// Message processing
 		// getting message
 		messageReceived = findValue(keyValTable, "msg")
 		// Filter out wrong messages
@@ -93,17 +93,17 @@ func main() {
 		// Controller sent message (sending to app)
 		// logInfo("main", "Sending message...")
 		if clockReceivedStr != "" && sender[:1] == "C" {
-			// Filter out wrong messages
-			if messageReceived[:11] != "[GAMESTATE]" && messageReceived[:11] != "[ACRITICAL]" && messageReceived[:11] != "[VCRITICAL]" {
-				// logInfo("main", "Wrong message type for app received "+messageReceived+" (ignoring).")
-				logInfo("main", "Wrong message type for app received (controller sent wrong type) (ignoring).")
-				messageReceived = ""
-				continue
+			switch messageReceived[:11] {
+			case "[GAMESTATE]":
+				fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, messageReceived}) + "\n")
+				logInfo("main", "Gamestate message sent to local app.")
+			case "[ACRITICAL]": // TO DO
+				logInfo("main", "TO DO.")
+			case "[VCRITICAL]": // TO DO
+				logInfo("main", "TO DO.")
+			default:
+				logError("main", "Wrong message type for app received (controller sent wrong type) (ignoring) (could be critical for clock).")
 			}
-
-			// Message from controller, sending to base app
-			fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, findValue(keyValTable, "msg")}) + "\n")
-			logInfo("main", "Message sent to local app.")
 
 			messageReceived = ""
 			continue
@@ -111,16 +111,18 @@ func main() {
 
 		// App sent message (sending to controllers)
 		if clockReceivedStr == "" && sender == "A"+name[1:2] {
-			// Filter out wrong messages
-			if messageReceived[:11] != "[GAMESTATE]" && messageReceived[:11] != "[BCRITICAL]" && messageReceived[:11] != "[ECRITICAL]" {
-				// logInfo("main", "Wrong message type for app received "+messageReceived+" (ignoring).")
-				logInfo("main", "Wrong message type for app received (app sent wrong type) (ignoring).")
-				messageReceived = ""
-				continue
+			switch messageReceived[:11] {
+			case "[GAMESTATE]":
+				fmt.Printf(encodeMessage([]string{"snd", "hlg", "msg"}, []string{name, strconv.Itoa(clock), messageReceived}) + "\n")
+				logInfo("main", "Gamestate message sent to other controller.")
+			case "[BCRITICAL]": // TO DO
+				fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, "[BCRITICAL]"}) + "\n")
+				logInfo("main", "TEST ACCEPT ACCESS.")
+			case "[ECRITICAL]": // TO DO
+				logInfo("main", "LIBERATE ACCESS.")
+			default:
+				logError("main", "Wrong message type for app received (app sent wrong type) (ignoring) (could be critical for clock).")
 			}
-
-			fmt.Printf(encodeMessage([]string{"snd", "hlg", "msg"}, []string{name, strconv.Itoa(clock), findValue(keyValTable, "msg")}) + "\n")
-			logInfo("main", "Message sent to other controller.")
 
 			messageReceived = ""
 			continue
