@@ -157,6 +157,11 @@ func swapCard(playerCard Card, drawPileCard Card, player Player, game GameState)
 // ACTION HANDLING //
 /////////////////////
 /*
+	Global variable to know which player controls this app instance
+*/
+var lastConnectedPlayer string = ""
+
+/*
 	Handle player action
 */
 func handleAction(fullAction string, game GameState) GameState {
@@ -165,11 +170,37 @@ func handleAction(fullAction string, game GameState) GameState {
 	actionType := findValue(actionTab, "typ")
 	actionParams := findValue(actionTab, "prm")
 
+	// Handle player definition
+	if actionType == "InitPlayer" {
+		newPlayerTab := decodeMessage(actionParams)
+		newPlayer := findValue(newPlayerTab, "newPlayer")
+		// Check new player validity
+		if newPlayer != "1" && newPlayer != "2" && newPlayer != "3" {
+			// Player not valid (ignore)
+			logError("handleAction", "Player Disconnected OR Player not valid (player reset)")
+			lastConnectedPlayer = ""
+			return game
+		} else {
+			// Valid player : updates
+			lastConnectedPlayer = newPlayer
+			logInfo("handleAction", "App player set to "+lastConnectedPlayer+" game was reset.")
+			// Game resets when player connects
+			game = GameState{}
+			game = getInitState()
+			game = renewDrawPile(game)
+			game = renewPlayerHands(game)
+			return game
+		}
+	}
+
+	// Check if app controls valid player
+	if lastConnectedPlayer != "1" && lastConnectedPlayer != "2" && lastConnectedPlayer != "3" {
+		logError("handleAction", "No player defined or player not recognized! Impossible to do other actions than player initialisation.")
+		return game
+	}
+
 	// Process action
 	switch actionType {
-	case "InitPlayer":
-		logInfo("handleAction", "Player initialized.")
-		sendGameStateToPLayer(game)
 	case "ResetGame": // NO CONTROLS -> Resets the whole game (players, scores, decks, ...)
 		game = GameState{}
 		game = getInitState()
@@ -185,7 +216,7 @@ func handleAction(fullAction string, game GameState) GameState {
 
 	case "Kems": // CONTROLS -> Increments player score if won (or does nothing)
 		// Getting app player index
-		appPlayerIndex, _ := strconv.Atoi(name[1:2])
+		appPlayerIndex, _ := strconv.Atoi(lastConnectedPlayer)
 		appPlayerIndex -= 1
 
 		// Player won
@@ -276,14 +307,14 @@ func main() {
 		keyValTable = decodeMessage(messageReceived)
 		sender := findValue(keyValTable, "snd")
 		// Filter out random messages
-		if len(sender) != 2 || len(name) != 2 || (sender != "C"+name[1:2] && sender != "P"+name[1:2]) {
+		if len(sender) != 2 || len(name) != 2 || (sender != "C"+name[1:2] && sender[:1] != "P") {
 			logError("main", "Message invalid sender OR invalid app name (ignored) - CAN BE FATAL!")
 			messageReceived = ""
 			continue
 		}
 
-		// The message is from app Player
-		if sender == "P"+name[1:2] {
+		// The message is from a player EXCLUSION MUTUELLE
+		if sender == "P"+lastConnectedPlayer || (sender[:1] == "P" && lastConnectedPlayer == "") {
 			action := findValue(keyValTable, "msg")
 			oldGame := gameStateToString(game)
 			game = handleAction(action, game)
@@ -306,6 +337,8 @@ func main() {
 			continue
 		}
 
+		// CONTROLLER EXCLUSION MUTUELLE CONFIRMATION
+
 		messageReceived = findValue(keyValTable, "msg")
 		// Message is not a game state (ignore)
 		if len(messageReceived) < 11 || messageReceived[:11] != "[GAMESTATE]" {
@@ -321,9 +354,9 @@ func main() {
 		if gameStateToString(game) != messageReceived {
 			game = stringToGameState(messageReceived)
 
-			// Sending update to next app (through controller)
+			// Sending update to apps (through controllers)
 			fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, gameStateToString(game)}) + "\n")
-			logInfo("main", "Sent updated game state to next app through controller.")
+			logInfo("main", "Sent updated game state to all apps through controller.")
 		} else {
 			logSuccess("main", "Game state is already up to date, all apps up to date. (updating display if there is one)")
 			sendGameStateToPLayer(game)
