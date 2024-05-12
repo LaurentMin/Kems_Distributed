@@ -1,34 +1,58 @@
+const cardBackImgPath = 'cards/BACK.png'
 
-const cardObjectDefinitions = [
-    { id: 1, imagePath: '/images/card-KingHearts.png' },
-    { id: 2, imagePath: '/images/card-JackClubs.png' },
-    { id: 3, imagePath: '/images/card-QueenDiamonds.png' },
-    { id: 4, imagePath: '/images/card-AceSpades.png' }
+const testCardsDraw = [
+    { id: 1, value: 2, suit: 'Cloves' },
+    { id: 2, value: 3, suit: 'Diamonds' },
+    { id: 3, value: 4, suit: 'Hearts' },
+    { id: 4, value: 5, suit: 'Spades' }
 ]
 
-const aceId = 4
+const testCardsHand = [
+    { id: 5, value: 6, suit: 'Cloves' },
+    { id: 6, value: 9, suit: 'Diamonds' },
+    { id: 7, value: 7, suit: 'Hearts' },
+    { id: 8, value: 8, suit: 'Spades' }
+]
 
-const cardBackImgPath = '/images/card-back-blue.png'
+const createAllCardsObject = () => {
+    const suits = ['Clubs', 'Diamonds', 'Hearts', 'Spades']
+    const cards = []
+    let htmlId = 0
+    suits.forEach((suit, id) => {
+        for (let i = 1; i <= 13; i++) {
+            cards.push({ id: htmlId, value: i, suit: suit })
+            htmlId++
+        }
+    })
+    return cards
+}
 
-let cards = []
+const allCards = createAllCardsObject()
 
-const playGameButtonElem = document.getElementById('playGame')
-
-const cardContainerElem = document.querySelector('.card-container')
-
-const collapsedGridAreaTemplate = '"a a" "a a"'
-const cardCollectionCellClass = ".card-pos-a"
-
-const numCards = cardObjectDefinitions.length
+const getCardValueForFileName = (card) => {
+    if (card.value === 0) {
+        return ''
+    }
+    else if (card.value === 1) {
+        return 'A'
+    } else if (card.value === 11) {
+        return 'J'
+    }
+    else if (card.value === 12) {
+        return 'Q'
+    }
+    else if (card.value === 13) {
+        return 'K'
+    }
+    else {
+        return card.value
+    }
+}
 
 let cardPositions = []
 
 
-let gameInProgress = false
-let shufflingInProgress = false
-let cardsRevealed = false
-
-
+const playGameButtonElem = document.getElementById('playGame')
 const currentGameStatusElem = document.querySelector('.current-status')
 const scoreContainerElem = document.querySelector('.header-score-container')
 const scoreElem = document.querySelector('.score')
@@ -39,14 +63,9 @@ const winColor = "green"
 const loseColor = "red"
 const primaryColor = "black"
 
-let roundNum = 0
+let roundNum = 1
 let maxRounds = 4
 let score = 0
-
-let gameObj = {}
-
-const localStorageGameKey = "HTA"
-
 
 /* <div class="card">
 <div class="card-inner">
@@ -60,73 +79,12 @@ const localStorageGameKey = "HTA"
 </div> */
 
 
-loadGame()
-
-
-function gameOver() {
-    updateStatusElement(scoreContainerElem, "none")
-    updateStatusElement(roundContainerElem, "none")
-
-    const gameOverMessage = `Game Over! Final Score - <span class = 'badge'>${score}</span> Click 'Play Game' button to play again`
-
-    updateStatusElement(currentGameStatusElem, "block", primaryColor, gameOverMessage)
-
-    gameInProgress = false
-    playGameButtonElem.disabled = false
-}
-
 function endRound() {
-    setTimeout(() => {
-        if (roundNum == maxRounds) {
-            gameOver()
-            return
-        }
-        else {
-            startRound()
-        }
-    }, 3000)
-}
-
-function chooseCard(card) {
-    if (canChooseCard()) {
-        evaluateCardChoice(card)
-        saveGameObjectToLocalStorage(score, roundNum)
-        flipCard(card, false)
-
-        setTimeout(() => {
-            flipCards(false)
-            updateStatusElement(currentGameStatusElem, "block", primaryColor, "Card positions revealed")
-
-            endRound()
-
-        }, 3000)
-        cardsRevealed = true
-    }
-
-}
-
-function calculateScoreToAdd(roundNum) {
-    if (roundNum == 1) {
-        return 100
-    }
-    else if (roundNum == 2) {
-        return 50
-    }
-    else if (roundNum == 3) {
-        return 25
-    }
-    else {
-        return 10
-    }
-}
-
-function calculateScore() {
-    const scoreToAdd = calculateScoreToAdd(roundNum)
-    score = score + scoreToAdd
+    // TODO:
 }
 
 function updateScore() {
-    calculateScore()
+    // calculateScore()
     updateStatusElement(scoreElem, "block", primaryColor, `Score <span class='badge'>${score}</span>`)
 
 }
@@ -150,89 +108,43 @@ function outputChoiceFeedBack(hit) {
     }
 }
 
-function evaluateCardChoice(card) {
-    if (card.id == aceId) {
-        updateScore()
-        outputChoiceFeedBack(true)
-    }
-    else {
-        outputChoiceFeedBack(false)
+
+// Swap cards logic
+let drawPileSelectedCard = null;
+let handPileSelectedCard = null;
+
+
+function swapButtonHandler() {
+    if (drawPileSelectedCard && handPileSelectedCard) {
+        swapCards(drawPileSelectedCard, handPileSelectedCard);
+
+        drawPileSelectedCard.classList.remove('selected');
+        handPileSelectedCard.classList.remove('selected');
+        drawPileSelectedCard = null;
+        handPileSelectedCard = null;
+        playGameButtonElem.style.display = "none"
     }
 }
-
-function canChooseCard() {
-    return gameInProgress == true && !shufflingInProgress && !cardsRevealed
-}
-
 
 
 function loadGame() {
     createCards()
 
     cards = document.querySelectorAll('.card')
+    console.log(cards)
 
-    cardFlyInEffect()
+    playGameButtonElem.textContent = 'Swap Cards';
 
-    playGameButtonElem.addEventListener('click', () => startGame())
-
-    updateStatusElement(scoreContainerElem, "none")
-    updateStatusElement(roundContainerElem, "none")
-
-}
-
-function checkForIncompleteGame() {
-    const serializedGameObj = getLocalStorageItemValue(localStorageGameKey)
-    if (serializedGameObj) {
-        gameObj = getObjectFromJSON(serializedGameObj)
-
-        if (gameObj.round >= maxRounds) {
-            removeLocalStorageItem(localStorageGameKey)
-        }
-        else {
-            if (confirm('Would you like to continue with your last game?')) {
-                score = gameObj.score
-                roundNum = gameObj.round
-            }
-        }
-
-    }
+    updateStatusElement(scoreContainerElem, "0")
+    updateStatusElement(roundContainerElem, "0")
 
 }
 
-function startGame() {
-    initializeNewGame()
-    startRound()
 
-}
-function initializeNewGame() {
-    score = 0
-    roundNum = 0
 
-    checkForIncompleteGame()
 
-    shufflingInProgress = false
-
-    updateStatusElement(scoreContainerElem, "flex")
-    updateStatusElement(roundContainerElem, "flex")
-
-    updateStatusElement(scoreElem, "block", primaryColor, `Score <span class='badge'>${score}</span>`)
-    updateStatusElement(roundElem, "block", primaryColor, `Round <span class='badge'>${roundNum}</span>`)
-
-}
-function startRound() {
-    initializeNewRound()
-    collectCards()
-    flipCards(true)
-    shuffleCards()
-
-}
 function initializeNewRound() {
     roundNum++
-    playGameButtonElem.disabled = true
-
-    gameInProgress = true
-    shufflingInProgress = true
-    cardsRevealed = false
 
     updateStatusElement(currentGameStatusElem, "block", primaryColor, "Shuffling...")
 
@@ -240,29 +152,11 @@ function initializeNewRound() {
 
 }
 
-function collectCards() {
-    transformGridArea(collapsedGridAreaTemplate)
-    addCardsToGridAreaCell(cardCollectionCellClass)
-
-}
-
-function transformGridArea(areas) {
-    cardContainerElem.style.gridTemplateAreas = areas
-
-}
-function addCardsToGridAreaCell(cellPositionClassName) {
-    const cellPositionElem = document.querySelector(cellPositionClassName)
-
-    cards.forEach((card, index) => {
-        addChildElement(cellPositionElem, card)
-    })
-
-}
 
 function flipCard(card, flipToBack) {
     const innerCardElem = card.firstChild
 
-    if (flipToBack && !innerCardElem.classList.contains('flip-it')) {
+    if (flipToBack) {
         innerCardElem.classList.add('flip-it')
     }
     else if (innerCardElem.classList.contains('flip-it')) {
@@ -271,153 +165,38 @@ function flipCard(card, flipToBack) {
 
 }
 
-function flipCards(flipToBack) {
-    cards.forEach((card, index) => {
-        setTimeout(() => {
-            flipCard(card, flipToBack)
-        }, index * 100)
-    })
-}
+const drawPileClassName = [
+    '.card-pos-a',
+    '.card-pos-b',
+    '.card-pos-c',
+    '.card-pos-d'
+]
 
-function cardFlyInEffect() {
-    const id = setInterval(flyIn, 5)
-    let cardCount = 0
+const handPileClassName = [
+    '.card-pos-a-player',
+    '.card-pos-b-player',
+    '.card-pos-c-player',
+    '.card-pos-d-player'
+]
 
-    let count = 0
+const deckClassName = ".card-deck"
+const discardClassName = ".card-discard"
 
-    function flyIn() {
-        count++
-        if (cardCount == numCards) {
-            clearInterval(id)
-            playGameButtonElem.style.display = "inline-block"
-        }
-        if (count == 1 || count == 250 || count == 500 || count == 750) {
-            cardCount++
-            let card = document.getElementById(cardCount)
-            card.classList.remove("fly-in")
-        }
-    }
-
-
-
-}
-
-function removeShuffleClasses() {
-    cards.forEach((card) => {
-        card.classList.remove("shuffle-left")
-        card.classList.remove("shuffle-right")
-    })
-}
-function animateShuffle(shuffleCount) {
-    const random1 = Math.floor(Math.random() * numCards) + 1
-    const random2 = Math.floor(Math.random() * numCards) + 1
-
-    let card1 = document.getElementById(random1)
-    let card2 = document.getElementById(random2)
-
-    if (shuffleCount % 4 == 0) {
-        card1.classList.toggle("shuffle-left")
-        card1.style.zIndex = 100
-    }
-    if (shuffleCount % 10 == 0) {
-        card2.classList.toggle("shuffle-right")
-        card2.style.zIndex = 200
-    }
-
-}
-
-function shuffleCards() {
-    let shuffleCount = 0
-    const id = setInterval(shuffle, 12)
-
-
-    function shuffle() {
-        randomizeCardPositions()
-
-        animateShuffle(shuffleCount)
-
-        if (shuffleCount == 500) {
-            clearInterval(id)
-            shufflingInProgress = false
-            removeShuffleClasses()
-            dealCards()
-            updateStatusElement(currentGameStatusElem, "block", primaryColor, "Please click the card that you think is the Ace of Spades...")
-
-        }
-        else {
-            shuffleCount++
-        }
-
-    }
-
-}
-function randomizeCardPositions() {
-    const random1 = Math.floor(Math.random() * numCards) + 1
-    const random2 = Math.floor(Math.random() * numCards) + 1
-
-    const temp = cardPositions[random1 - 1]
-
-    cardPositions[random1 - 1] = cardPositions[random2 - 1]
-    cardPositions[random2 - 1] = temp
-
-}
-function dealCards() {
-    addCardsToAppropriateCell()
-    const areasTemplate = returnGridAreasMappedToCardPos()
-
-    transformGridArea(areasTemplate)
-
-}
-function returnGridAreasMappedToCardPos() {
-    let firstPart = ""
-    let secondPart = ""
-    let areas = ""
-
-    cards.forEach((card, index) => {
-        if (cardPositions[index] == 1) {
-            areas = areas + "a "
-        }
-        else if (cardPositions[index] == 2) {
-            areas = areas + "b "
-        }
-        else if (cardPositions[index] == 3) {
-            areas = areas + "c "
-        }
-        else if (cardPositions[index] == 4) {
-            areas = areas + "d "
-        }
-        if (index == 1) {
-            firstPart = areas.substring(0, areas.length - 1)
-            areas = "";
-        }
-        else if (index == 3) {
-            secondPart = areas.substring(0, areas.length - 1)
-        }
-
-    })
-
-    return `"${firstPart}" "${secondPart}"`
-
-
-}
-
-
-function addCardsToAppropriateCell() {
-    cards.forEach((card) => {
-        addCardToGridCell(card)
-    })
-}
-
-
-
+// Test
 function createCards() {
-    cardObjectDefinitions.forEach((cardItem) => {
-        createCard(cardItem)
+    testCardsDraw.forEach((cardItem, id) => {
+        createCard(cardItem, 'draw', drawPileClassName[id])
     })
+
+    testCardsHand.forEach((cardItem, id) => {
+        createCard(cardItem, 'hand', handPileClassName[id])
+    })
+
+    createCard({ id: 9, value: 10, suit: 'Spades' }, 'deck', deckClassName)
 }
 
 
-function createCard(cardItem) {
+function createCard(cardItem, pile, cardPositionClassName) {
 
     //create div elements that make up a card
     const cardElem = createElement('div')
@@ -431,7 +210,6 @@ function createCard(cardItem) {
 
     //add class and id to card element
     addClassToElement(cardElem, 'card')
-    addClassToElement(cardElem, 'fly-in')
     addIdToElement(cardElem, cardItem.id)
 
     //add class to inner card element
@@ -447,7 +225,9 @@ function createCard(cardItem) {
     addSrcToImageElem(cardBackImg, cardBackImgPath)
 
     //add src attribute and appropriate value to img element - front of card
-    addSrcToImageElem(cardFrontImg, cardItem.imagePath)
+    value = getCardValueForFileName(cardItem)
+    imgPath = `/cards/${value}-${cardItem.suit[0]}.png`
+    addSrcToImageElem(cardFrontImg, `cards/${value}-${cardItem.suit[0]}.png`)
 
     //assign class to back image element of back of card
     addClassToElement(cardBackImg, 'card-img')
@@ -471,25 +251,102 @@ function createCard(cardItem) {
     addChildElement(cardElem, cardInnerElem)
 
     //add card element as child element to appropriate grid cell
-    addCardToGridCell(cardElem)
+    const cardPosElem = document.querySelector(cardPositionClassName)
+    addChildElement(cardPosElem, cardElem)
+
 
     initializeCardPositions(cardElem)
 
-    attatchClickEventHandlerToCard(cardElem)
+    attatchClickEventHandlerToCard(cardElem, pile)
 
+    if (pile === 'deck') {
+        flipCard(cardElem, true)
+    }
+}
+
+
+function attatchClickEventHandlerToCard(card, pile) {
+    switch (pile) {
+        case 'draw':
+            card.addEventListener('click', () => {
+                console.log('Hand pile card clicked', card);
+                if (drawPileSelectedCard) {
+                    console.log('Previous card deselected',);
+                    drawPileSelectedCard.classList.remove('selected');
+                    if (drawPileSelectedCard === card) {
+                        drawPileSelectedCard = null;
+                        playGameButtonElem.style.display = "none"
+                        return;
+                    }
+                }
+                card.classList.add('selected');
+                drawPileSelectedCard = card;
+                console.log('Draw pile card selected', drawPileSelectedCard);
+
+                if (drawPileSelectedCard && handPileSelectedCard) {
+                    // Remove old event listener
+                    playGameButtonElem.removeEventListener('click', swapButtonHandler);
+
+                    playGameButtonElem.textContent = 'Swap Cards';
+                    playGameButtonElem.style.display = "inline-block";
+                    // Add new event listener
+                    playGameButtonElem.addEventListener('click', swapButtonHandler);
+                } else {
+                    playGameButtonElem.style.display = "none"
+                }
+            });
+            break;
+        case 'hand':
+            card.addEventListener('click', () => {
+                console.log('Hand pile card clicked', card);
+                if (handPileSelectedCard) {
+                    console.log('Previous card deselected',);
+                    handPileSelectedCard.classList.remove('selected');
+                    if (handPileSelectedCard === card) {
+                        handPileSelectedCard = null;
+                        playGameButtonElem.style.display = "none"
+                        return;
+                    }
+                }
+                card.classList.add('selected');
+                handPileSelectedCard = card;
+                console.log('Hand pile card selected', handPileSelectedCard);
+
+                if (drawPileSelectedCard && handPileSelectedCard) {
+                    // Remove old event listener
+                    playGameButtonElem.removeEventListener('click', swapButtonHandler);
+
+                    playGameButtonElem.textContent = 'Swap Cards';
+                    playGameButtonElem.style.display = "inline-block";
+                    // Add new event listener
+                    playGameButtonElem.addEventListener('click', swapButtonHandler);
+                } else {
+                    playGameButtonElem.style.display = "none"
+                }
+            });
+            break;
+        case 'deck':
+            newTurn()
+            break;
+
+    }
 
 }
-function attatchClickEventHandlerToCard(card) {
-    card.addEventListener('click', () => chooseCard(card))
+
+// Back function
+function newTurn() {
+    console.log('New Turn')
 }
 
-function initializeCardPositions(card) {
-    cardPositions.push(card.id)
+function swapCards(drawCard, handCard) {
+    console.log('Swaxpping Cards')
 }
 
 function createElement(elemType) {
     return document.createElement(elemType)
-
+}
+function initializeCardPositions(card) {
+    cardPositions.push(card.id)
 }
 function addClassToElement(elem, className) {
     elem.classList.add(className)
@@ -497,36 +354,15 @@ function addClassToElement(elem, className) {
 function addIdToElement(elem, id) {
     elem.id = id
 }
+
 function addSrcToImageElem(imgElem, src) {
     imgElem.src = src
 }
+
 function addChildElement(parentElem, childElem) {
     parentElem.appendChild(childElem)
 }
 
-function addCardToGridCell(card) {
-    const cardPositionClassName = mapCardIdToGridCell(card)
-
-    const cardPosElem = document.querySelector(cardPositionClassName)
-
-    addChildElement(cardPosElem, card)
-
-}
-function mapCardIdToGridCell(card) {
-
-    if (card.id == 1) {
-        return '.card-pos-a'
-    }
-    else if (card.id == 2) {
-        return '.card-pos-b'
-    }
-    else if (card.id == 3) {
-        return '.card-pos-c'
-    }
-    else if (card.id == 4) {
-        return '.card-pos-d'
-    }
-}
 
 //local storage functions
 function getSerializedObjectAsJSON(obj) {
@@ -545,11 +381,4 @@ function getLocalStorageItemValue(key) {
     return localStorage.getItem(key)
 }
 
-function updateGameObject(score, round) {
-    gameObj.score = score
-    gameObj.round = round
-}
-function saveGameObjectToLocalStorage(score, round) {
-    updateGameObject(score, round)
-    updateLocalStorageItem(localStorageGameKey, getSerializedObjectAsJSON(gameObj))
-}
+loadGame()
