@@ -13,11 +13,11 @@
     <header>
         <div class="header-title-container">
             <h1>Kems</h1>
+            <div class="header-img-container">
+                <img src="images/AceSpades.png" alt="" class="header-img">
+            </div>
         </div>
         <div class="header-round-info-container">
-            <div class="header-img-container">
-                <img src="/images/AceSpades.png" alt="" class="header-img">
-            </div>
             <div class="header-score-container">
                 <h2 class="score">Score&nbsp;<span class="badge">0</span></h2>
             </div>
@@ -30,26 +30,47 @@
                 Click 'Play Game' button to play game
             </p>
         </div>
-        <div class="header-button-container">
-            <div class="game-play-button-container">
-                <button id="playGame" class="play-game">Play Game</button>
-            </div>
-        </div>
     </header>
     <main>
-        <div class="card-container">
-            <div class="card-pos-a">
+        <div class="board-row">
+
+            <div class="deck-container">
+                <div class="card-deck"> </div>
+            </div>
+
+            <div class="board-center">
+
+                <div class="card-container">
+                    <div class="card-pos-a"> </div>
+                    <div class="card-pos-b"> </div>
+                    <div class="card-pos-c"> </div>
+                    <div class="card-pos-d"> </div>
+                </div>
+
+                <div class="card-container-player">
+                    <div class="card-pos-a-player"> </div>
+                    <div class="card-pos-b-player"> </div>
+                    <div class="card-pos-c-player"> </div>
+                    <div class="card-pos-d-player"> </div>
+                </div>
+                <span class="playerCardText"> Your cards</span>
+
+
+                <div class="header-button-container">
+                    <div class="game-play-button-container">
+                        <button id="playGame" class="play-game">Swap cards</button>
+                    </div>
+                </div>
 
             </div>
-            <div class="card-pos-b">
 
-            </div>
-            <div class="card-pos-c">
 
+            <div class="discard-container">
+                <div class="discard">
+                    <div class="card-discard"> </div>
+                </div>
             </div>
-            <div class="card-pos-d">
 
-            </div>
         </div>
     </main>
     <script src="index.js"></script>
