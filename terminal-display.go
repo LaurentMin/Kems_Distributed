@@ -181,7 +181,7 @@ func main() {
 
 		// Ignore message not for display
 		if len(messageReceived) < 11 || messageReceived[:11] != "[GAMESTATE]" {
-			logInfo("main", "Message received not destinated to display.")
+			logWarning("main", "Message received not destinated to display.")
 			messageReceived = ""
 			continue
 		}
