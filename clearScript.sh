@@ -2,6 +2,12 @@
 
 # Fonction de nettoyage
 nettoyer () {
+  # Suppression des processus de l'application affichage terminal
+  killall terminal-display 2> /dev/null
+
+  # Suppression des processus de l'application input terminal
+  killall terminal-input 2> /dev/null
+
   # Suppression des processus de l'application app
   killall app 2> /dev/null
 
