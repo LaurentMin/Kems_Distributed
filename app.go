@@ -177,14 +177,19 @@ func handleAction(player string, fullAction string, game GameState) GameState {
 		// Check new player validity
 		if newPlayer != "1" && newPlayer != "2" && newPlayer != "3" {
 			// Player not valid (ignore)
-			logError("handleAction", "Player not valid (ignored)")
+			logError("handleAction", "Player not valid (player reset)")
+			lastConnectedPlayer = ""
 			return game
 		} else {
 			// Valid player : updates
 			lastConnectedPlayer = newPlayer
-			logInfo("handleAction", "App player set to "+lastConnectedPlayer)
-			// Sync apps gamestates
-			fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, gameStateToString(game)}) + "\n")
+			logInfo("handleAction", "App player set to "+lastConnectedPlayer+" game was reset.")
+			// Game resets when player connects
+			game = GameState{}
+			game = getInitState()
+			game = renewDrawPile(game)
+			game = renewPlayerHands(game)
+			return game
 		}
 	}
 
@@ -302,14 +307,14 @@ func main() {
 		keyValTable = decodeMessage(messageReceived)
 		sender := findValue(keyValTable, "snd")
 		// Filter out random messages
-		if len(sender) != 2 || len(name) != 2 || (sender != "C"+name[1:2] && sender != "P"+lastConnectedPlayer) {
+		if len(sender) != 2 || len(name) != 2 || (sender != "C"+name[1:2] && sender[:1] != "P") {
 			logError("main", "Message invalid sender OR invalid app name (ignored) - CAN BE FATAL!")
 			messageReceived = ""
 			continue
 		}
 
 		// The message is from a player EXCLUSION MUTUELLE
-		if sender == "P"+lastConnectedPlayer {
+		if sender == "P"+lastConnectedPlayer || (sender[:1] == "P" && lastConnectedPlayer == "") {
 			action := findValue(keyValTable, "msg")
 			oldGame := gameStateToString(game)
 			game = handleAction(lastConnectedPlayer, action, game)
