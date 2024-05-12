@@ -292,6 +292,7 @@ func main() {
 	// Initialising key variables for app
 	messageReceived := ""
 	keyValTable := []string{}
+	actionToDo := ""
 	game := getInitState()
 	game = renewPlayerHands(game)
 	game = renewDrawPile(game)
@@ -306,44 +307,65 @@ func main() {
 		// Determine message type for processing
 		keyValTable = decodeMessage(messageReceived)
 		sender := findValue(keyValTable, "snd")
-		// Filter out random messages
+
+		// Filter out obviously wrong messages that an app should not receive
 		if len(sender) != 2 || len(name) != 2 || (sender != "C"+name[1:2] && sender[:1] != "P") {
 			logError("main", "Message invalid sender OR invalid app name (ignored) - CAN BE FATAL!")
 			messageReceived = ""
 			continue
 		}
 
-		// The message is from a player EXCLUSION MUTUELLE
+		// PLAYER sent message (ask for exclusive access)
 		if sender == "P"+lastConnectedPlayer || (sender[:1] == "P" && lastConnectedPlayer == "") {
-			action := findValue(keyValTable, "msg")
-			oldGame := gameStateToString(game)
-			game = handleAction(action, game)
-			if oldGame == gameStateToString(game) {
-				logWarning("main", "Action did not change game state, no update required.")
-			} else {
-				logSuccess("main", "Gamestate updated, sending game update.")
-				fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, gameStateToString(game)}) + "\n")
-			}
-
+			actionToDo = findValue(keyValTable, "msg")
+			// Ask for exclusive access
+			fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, "[BCRITICAL]"}) + "\n")
 			messageReceived = ""
 			continue
 		}
 
-		// The message is from app Controller
+		// CONTROLLER sent message
 		// Filter out messages from our controller to other controllers
 		if findValue(keyValTable, "hlg") != "" {
 			logError("main", "Message from own controller to other controllers, (ignored).")
 			messageReceived = ""
 			continue
 		}
-
-		// CONTROLLER EXCLUSION MUTUELLE CONFIRMATION
-
+		// Getting message
 		messageReceived = findValue(keyValTable, "msg")
-		// Message is not a game state (ignore)
-		if len(messageReceived) < 11 || messageReceived[:11] != "[GAMESTATE]" {
+
+		// Filter ou wrong messages (just in case)
+		if len(messageReceived) < 11 || (messageReceived[:11] != "[GAMESTATE]" && messageReceived[:11] != "[BCRITICAL]") {
 			// logInfo("main", "Wrong message type for app received "+messageReceived+" (ignoring).")
 			logInfo("main", "Wrong message type for app received (ignoring).")
+			messageReceived = ""
+			continue
+		}
+
+		// Message is an exclusive access grant => handle action
+		if messageReceived[:11] == "[BCRITICAL]" {
+			// Error if app is not trying to handle an action
+			if actionToDo == "" {
+				logError("main", "App received access but did not need it anymore (liberating)")
+				fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, "[ECRITICAL]"}) + "\n")
+				messageReceived = ""
+				continue
+			}
+
+			oldGame := gameStateToString(game)
+			game = handleAction(actionToDo, game)
+			if oldGame == gameStateToString(game) {
+				logWarning("main", "Action did not change game state, no update required. (Ended critical access)")
+				fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, "[ECRITICAL]"}) + "\n")
+			} else {
+				logSuccess("main", "Gamestate updated, sending game update. (Ended critical access) + (Sent update to display)")
+				fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, gameStateToString(game)}) + "\n")
+				fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, "[ECRITICAL]"}) + "\n")
+				sendGameStateToPLayer(game)
+			}
+			// Reset action (it has been processed)
+			actionToDo = ""
+
 			messageReceived = ""
 			continue
 		}
@@ -351,17 +373,22 @@ func main() {
 		// Message is a game state (process)
 		// logInfo("main", "Processing game state... "+messageReceived)
 		// Replace game state if an update was received
-		if gameStateToString(game) != messageReceived {
-			game = stringToGameState(messageReceived)
+		if messageReceived[:11] == "[GAMESTATE]" {
+			if gameStateToString(game) != messageReceived {
+				game = stringToGameState(messageReceived)
 
-			// Sending update to apps (through controllers)
-			fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, gameStateToString(game)}) + "\n")
-			logInfo("main", "Sent updated game state to all apps through controller.")
-		} else {
-			logSuccess("main", "Game state is already up to date, all apps up to date. (updating display if there is one)")
-			sendGameStateToPLayer(game)
+				// Sending update to apps (through controllers)
+				fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, gameStateToString(game)}) + "\n")
+				logInfo("main", "Sent updated game state to all apps through controller.")
+			} else {
+				logSuccess("main", "Game state is already up to date, all apps up to date.")
+			}
+
+			messageReceived = ""
+			continue
 		}
 
+		logError("main", "CRITICAL ERROR, MESSAGE TREATMENT WAS NOT IMPLEMENTED (should never happen)")
 		messageReceived = ""
 	}
 }
