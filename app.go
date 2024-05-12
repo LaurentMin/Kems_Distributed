@@ -282,7 +282,7 @@ func main() {
 			continue
 		}
 
-		// The message is from app Player
+		// The message is from a player EXCLUSION MUTUELLE
 		if sender == "P"+name[1:2] {
 			action := findValue(keyValTable, "msg")
 			oldGame := gameStateToString(game)
@@ -306,6 +306,8 @@ func main() {
 			continue
 		}
 
+		// CONTROLLER EXCLUSION MUTUELLE CONFIRMATION
+
 		messageReceived = findValue(keyValTable, "msg")
 		// Message is not a game state (ignore)
 		if len(messageReceived) < 11 || messageReceived[:11] != "[GAMESTATE]" {
@@ -321,9 +323,9 @@ func main() {
 		if gameStateToString(game) != messageReceived {
 			game = stringToGameState(messageReceived)
 
-			// Sending update to next app (through controller)
+			// Sending update to apps (through controllers)
 			fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, gameStateToString(game)}) + "\n")
-			logInfo("main", "Sent updated game state to next app through controller.")
+			logInfo("main", "Sent updated game state to all apps through controller.")
 		} else {
 			logSuccess("main", "Game state is already up to date, all apps up to date. (updating display if there is one)")
 			sendGameStateToPLayer(game)
