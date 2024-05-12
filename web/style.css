@@ -1,11 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Quicksand&display=swap');
 
 :root {
-    --card-width-lg: 157px;
-    --card-height-lg: 220px;
+    --card-width-lg: 110px;
+    --card-height-lg: 150px;
 
-    --card-width-sm: 120px;
-    --card-height-sm: 168px;
+    --card-width-sm: 90px;
+    --card-height-sm: 140px;
 
     --num-cards: 4;
 
@@ -25,49 +25,97 @@ body {
 }
 
 main {
-    height: 55%;
+    height: 70%;
+    display: flex;
+    width: 100%;
+}
+
+
+.board-row {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-around;
+    flex-direction: row;
+    height: 100%;
+}
+
+.board-center {
     display: flex;
     justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    height: 100%;
+}
 
+.deck-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    height: 100%;
+}
+
+
+.card-container-player,
+.card-container {
+    margin-top: 50px;
+    position: relative;
+    height: 160px;
+    width: calc(var(--card-width-lg) * (var(--num-cards)) + var(--card-horizontal-space-lg));
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    grid-template-rows: 1fr;
+    grid-template-areas: "a b c d";
+}
+
+.card-container-player {
+    padding-top: 60px;
 }
 
 .card-container {
-    position: relative;
-    height: 100%;
-    width: calc(var(--card-width-lg) * (var(--num-cards) / 2) + var(--card-horizontal-space-lg));
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
-    grid-template-areas: "a b"
-        "c d";
-
+    margin-top: 0;
+    padding: 15px;
+    background-color: aquamarine;
+    border-radius: 10px;
 }
 
+.card-pos-a-player,
 .card-pos-a {
     grid-area: a;
     /* background-color: gray; */
 }
 
+.card-pos-b-player,
 .card-pos-b {
     grid-area: b;
     /* background-color: goldenrod; */
 }
 
+.card-pos-c-player,
 .card-pos-c {
     grid-area: c;
     /* background-color: rosybrown; */
 }
 
+.card-pos-d-player,
 .card-pos-d {
     grid-area: d;
     /* background-color: darkcyan; */
 }
 
+
+
+.card-pos-a-player,
+.card-pos-b-player,
+.card-pos-c-player,
+.card-pos-d-player,
 .card-pos-a,
 .card-pos-b,
 .card-pos-c,
 .card-pos-d {
     display: flex;
+
     justify-content: center;
     align-items: center;
 }
@@ -80,6 +128,18 @@ main {
     cursor: pointer;
     transition: transform 0.6s ease-in-out
 }
+
+.card:hover {
+    transform: scale(1.1);
+
+}
+
+.card.selected {
+    box-shadow: 0 0 10px 5px lightblue;
+    transform: scale(1.1);
+    z-index: 100;
+}
+
 
 .card-inner {
     position: relative;
@@ -111,6 +171,14 @@ main {
     transform: rotateY(180deg);
 }
 
+.playerCardText {
+    padding-top: 40px;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--primary-color);
+
+}
+
 header {
     display: flex;
     flex-direction: column;
@@ -128,7 +196,7 @@ header {
 }
 
 .current-status {
-    font-size: 1.5rem;
+    font-size: 1rem;
     text-align: center;
 }
 
@@ -143,14 +211,20 @@ header {
     align-items: center;
 }
 
+.current-status,
+.header-status-info-container {
+    margin-top: 0;
+}
+
 .header-score-container,
 .header-round-container,
 .header-img-container {
-    width: 150px;
+    width: 80px;
 }
 
 .header-img {
-    height: 75px;
+    height: 50px;
+    position: absolute;
     border-radius: 5px;
     border: 1px solid black;
     padding: 5px;
@@ -166,12 +240,14 @@ header {
 }
 
 .game-play-button-container {
+    margin-top: 20px;
     width: 150px;
     height: 70px;
 }
 
 /* CSS */
 #playGame {
+    display: none;
     appearance: none;
     background-color: transparent;
     border: 2px solid #1A1A1A;
@@ -179,7 +255,6 @@ header {
     box-sizing: border-box;
     color: #3B3B3B;
     cursor: pointer;
-    display: none;
     font-family: var(--primary-font);
     font-size: 16px;
     font-weight: 600;
@@ -246,7 +321,11 @@ header {
     }
 
     .card-container {
-        width: calc(var(--card-width-sm) * (var(--num-cards)/2) + var(--card-horizontal-space-sm));
+        width: calc(var(--card-width-sm) * (var(--num-cards)) + var(--card-horizontal-space-sm));
+    }
+
+    .card-container-player {
+        width: calc(var(--card-width-sm) * (var(--num-cards)) + var(--card-horizontal-space-sm));
     }
 
     main {
@@ -269,6 +348,6 @@ header {
     }
 
     .header-img {
-        height: 55px;
+        height: 40px;
     }
 }
