@@ -183,8 +183,8 @@ func handleAction(player string, fullAction string, game GameState) GameState {
 			// Valid player : updates
 			lastConnectedPlayer = newPlayer
 			logInfo("handleAction", "App player set to "+lastConnectedPlayer)
-			// Update view
-			sendGameStateToPLayer(game)
+			// Sync apps gamestates
+			fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, gameStateToString(game)}) + "\n")
 		}
 	}
 
@@ -211,7 +211,7 @@ func handleAction(player string, fullAction string, game GameState) GameState {
 
 	case "Kems": // CONTROLS -> Increments player score if won (or does nothing)
 		// Getting app player index
-		appPlayerIndex, _ := strconv.Atoi(name[1:2])
+		appPlayerIndex, _ := strconv.Atoi(lastConnectedPlayer)
 		appPlayerIndex -= 1
 
 		// Player won
@@ -302,14 +302,14 @@ func main() {
 		keyValTable = decodeMessage(messageReceived)
 		sender := findValue(keyValTable, "snd")
 		// Filter out random messages
-		if len(sender) != 2 || len(name) != 2 || (sender != "C"+name[1:2] && sender != "P"+name[1:2]) {
+		if len(sender) != 2 || len(name) != 2 || (sender != "C"+name[1:2] && sender != "P"+lastConnectedPlayer) {
 			logError("main", "Message invalid sender OR invalid app name (ignored) - CAN BE FATAL!")
 			messageReceived = ""
 			continue
 		}
 
 		// The message is from a player EXCLUSION MUTUELLE
-		if sender == "P"+name[1:2] {
+		if sender == "P"+lastConnectedPlayer {
 			action := findValue(keyValTable, "msg")
 			oldGame := gameStateToString(game)
 			game = handleAction(lastConnectedPlayer, action, game)
