@@ -183,7 +183,7 @@ func handleAction(fullAction string, game GameState) GameState {
 		} else {
 			// Valid player : updates
 			lastConnectedPlayer = newPlayer
-			logInfo("handleAction", "App player set to "+lastConnectedPlayer+" game was reset.")
+			// logInfo("handleAction", "App player set to "+lastConnectedPlayer+" game was reset.")
 			// Game resets when player connects
 			game = GameState{}
 			game = getInitState()
