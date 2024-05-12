@@ -61,7 +61,7 @@ func main() {
 	}
 
 	// Starting Player
-	sendAction("InitPlayer", []string{}, []string{})
+	sendAction("InitPlayer", []string{"newPlayer"}, []string{name})
 	// logInfo("main", "Launching player...")
 	playerInput := ""
 

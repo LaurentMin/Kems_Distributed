@@ -157,19 +157,45 @@ func swapCard(playerCard Card, drawPileCard Card, player Player, game GameState)
 // ACTION HANDLING //
 /////////////////////
 /*
+	Global variable to know which player controls this app instance
+*/
+var lastConnectedPlayer string = ""
+
+/*
 	Handle player action
 */
-func handleAction(fullAction string, game GameState) GameState {
+func handleAction(player string, fullAction string, game GameState) GameState {
 	// Get action type and parameters
 	actionTab := decodeMessage(fullAction)
 	actionType := findValue(actionTab, "typ")
 	actionParams := findValue(actionTab, "prm")
 
+	// Handle player definition
+	if actionType == "InitPlayer" {
+		newPlayerTab := decodeMessage(actionParams)
+		newPlayer := findValue(newPlayerTab, "newPlayer")
+		// Check new player validity
+		if newPlayer != "1" && newPlayer != "2" && newPlayer != "3" {
+			// Player not valid (ignore)
+			logError("handleAction", "Player not valid (ignored)")
+			return game
+		} else {
+			// Valid player : updates
+			lastConnectedPlayer = newPlayer
+			logInfo("handleAction", "App player set to "+lastConnectedPlayer)
+			// Update view
+			sendGameStateToPLayer(game)
+		}
+	}
+
+	// Check if app controls valid player
+	if player != "1" && player != "2" && player != "3" {
+		logError("handleAction", "No player defined or player not recognized! Impossible to do other actions than player initialisation.")
+		return game
+	}
+
 	// Process action
 	switch actionType {
-	case "InitPlayer":
-		logInfo("handleAction", "Player initialized.")
-		sendGameStateToPLayer(game)
 	case "ResetGame": // NO CONTROLS -> Resets the whole game (players, scores, decks, ...)
 		game = GameState{}
 		game = getInitState()
@@ -286,7 +312,7 @@ func main() {
 		if sender == "P"+name[1:2] {
 			action := findValue(keyValTable, "msg")
 			oldGame := gameStateToString(game)
-			game = handleAction(action, game)
+			game = handleAction(lastConnectedPlayer, action, game)
 			if oldGame == gameStateToString(game) {
 				logWarning("main", "Action did not change game state, no update required.")
 			} else {
