@@ -16,7 +16,7 @@ func handleUserInput(input string, playerIndex string) {
 		if _, err := strconv.Atoi(numberStr); err == nil {
 			drawPileIndex := int(input[1]) - '0' - 1
 			playerCardIndex := int(input[2]) - '0' - 1
-			sendAction("SwapCards", []string{"playerIndex", "playerCardIndex", "drawPileCardIndex"}, []string{playerId, strconv.Itoa(playerCardIndex), strconv.Itoa(drawPileIndex)})
+			sendAction("SwapCards", []string{"playerIndex", "playerCardIndex", "drawPileCardIndex"}, []string{name, strconv.Itoa(playerCardIndex), strconv.Itoa(drawPileIndex)})
 		}
 	case 'n':
 		sendAction("NextTurn", []string{"playerIndex"}, []string{playerIndex})
@@ -26,7 +26,8 @@ func handleUserInput(input string, playerIndex string) {
 		}
 	case 'c':
 		if _, err := strconv.Atoi(string(input[1])); err == nil {
-			sendAction("ContreKems", []string{"playerIndex"}, []string{string(input[1])})
+			otherPlayerIndex := int(input[1]) - '0'
+			sendAction("ContreKems", []string{"playerIndex"}, []string{strconv.Itoa(otherPlayerIndex)})
 		}
 
 	default:
@@ -39,16 +40,16 @@ func sendAction(actionType string, actionParamsNames []string, actionParamsValue
 	action := encodeMessage([]string{"typ", "prm"}, []string{actionType, params})
 
 	logInfo("Input terminal", "Sending action "+action)
-	fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{"P" + playerId, action}) + "\n")
+	fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{"P" + name, action}) + "\n")
 }
 
 func main() {
 	// Getting name from commandline (needs to be the same as the app)
 	pName := flag.String("n", "player", "name (1,2,3)")
 	flag.Parse()
-	playerId = *pName
+	name = *pName
 
-	if playerId != "1" && playerId != "2" && playerId != "3" {
+	if name != "1" && name != "2" && name != "3" {
 		logError("Input terminal", "Wrong playerId for anneauCtl structure, change code if needed.")
 		return
 	}
@@ -61,7 +62,7 @@ func main() {
 	for {
 		// Message reception
 		playerInput = scanUntilNewline()
-		handleUserInput(playerInput, playerId)
+		handleUserInput(playerInput, name)
 
 		playerInput = ""
 	}

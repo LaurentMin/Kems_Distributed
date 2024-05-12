@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"strconv"
 	"time"
 )
 
@@ -30,7 +31,7 @@ func displayCard(card Card) string {
 }
 
 func displayDrawPile(game GameState) {
-	drawCards := "Draw pile:\t"
+	drawCards := green + "Draw pile:" + reset + "\t"
 	numbersCard := "          \t"
 	for i := 0; i < len(game.DrawPile); i++ {
 		drawCards += displayCard(game.DrawPile[i])
@@ -108,12 +109,51 @@ func displayCommands() {
 func displayGameBoard(game GameState) {
 	clearScreen()
 	displayCommands()
-	displayDeck(game)
-	displayDiscardPile(game)
+	// displayDeck(game)
+	fmt.Printf("Deck has %d cards left\n\n", len(game.Deck))
+	// displayDiscardPile(game)
 	displayDrawPile(game)
+	fmt.Println()
 	for i := 0; i < len(game.Players); i++ {
 		displayPlayerHand(game.Players[i])
 	}
+}
+
+func displayWarningKems(playerIndex int) {
+	fmt.Print(orange + "Player " + strconv.Itoa(playerIndex+1) + " has KEMS !!\n" + reset)
+}
+
+func checkIfKems(game GameState) int {
+	for i := 0; i < len(game.Players); i++ {
+		if hasKems(game, i) {
+			return i
+		}
+	}
+	return -1
+}
+
+func checkIfWinner(oldGame GameState, newGame GameState) int {
+	if len(oldGame.Players) == 0 {
+		return -1
+	}
+	for i := 0; i < len(newGame.Players); i++ {
+		if newGame.Players[i].Score > oldGame.Players[i].Score {
+			return i
+		}
+	}
+	return -1
+}
+
+func checkIfLoser(oldGame GameState, newGame GameState) int {
+	if len(oldGame.Players) == 0 {
+		return -1
+	}
+	for i := 0; i < len(newGame.Players); i++ {
+		if newGame.Players[i].Score < oldGame.Players[i].Score {
+			return i
+		}
+	}
+	return -1
 }
 
 /*
@@ -124,6 +164,7 @@ func main() {
 	// Getting input file from commandline
 	pfile := flag.String("f", "/tmp/in_Debug", "input file")
 	flag.Parse()
+	name = "display"
 
 	// Setting app name (usefull for debug)
 
@@ -145,16 +186,50 @@ func main() {
 			continue
 		}
 
-		state = stringToGameState(messageReceived)
+		newState := stringToGameState(messageReceived)
 		// Check if message is state
-		if len(state.Players) == 0 {
+		if len(newState.Players) == 0 {
 			logInfo("main", "Wrong state received ignoring.")
 		} else {
+			winner := checkIfWinner(state, newState)
+			if winner != -1 {
+				clearScreen()
+				fmt.Println("KEMS !!\n")
+				fmt.Println("Player " + strconv.Itoa(winner) + " has won a point!\n")
+				displayPlayerHand(state.Players[winner])
+				fmt.Println()
+				displayScore(newState)
+				time.Sleep(10 * time.Second) // Pas ouf ça faudrait peut-être une variable pour être sûr que tt le monde est prêt
+				displayGameBoard(newState)
+
+				state = newState
+				messageReceived = ""
+				continue
+			}
+			loser := checkIfLoser(state, newState)
+			if loser != -1 {
+				clearScreen()
+				fmt.Println("KEMS for the player " + strconv.Itoa(loser) + " ... Almost! Counter KEMS!\n")
+				fmt.Println("Player " + strconv.Itoa(loser) + " has lost a point!\n")
+				displayPlayerHand(state.Players[loser])
+				fmt.Println()
+				displayScore(newState)
+				time.Sleep(10 * time.Second) // Pas ouf ça faudrait peut-être une variable pour être sûr que tt le monde est prêt
+				displayGameBoard(newState)
+
+				state = newState
+				messageReceived = ""
+				continue
+			}
+			potentialWinner := checkIfKems(newState)
 			logInfo("main", "State received, displaying.")
-			displayGameBoard(state)
+			displayGameBoard(newState)
+			if potentialWinner != -1 {
+				displayWarningKems(potentialWinner)
+			}
 		}
 
-		state = GameState{}
+		state = newState
 		messageReceived = ""
 	}
 }
