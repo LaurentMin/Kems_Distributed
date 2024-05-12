@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math/rand"
 	"strconv"
 	"strings"
@@ -293,9 +294,11 @@ func findIndexCard(card Card, cards []Card) int {
 /*
 	Checks if given player has won
 */
-func hasKems(player Player) bool {
+func hasKems(game GameState, playerIndex int) bool {
 	// Check params, Errors return false
-	if len(player.Hand) < 2 {
+	player := game.Players[playerIndex]
+	handSize := game.Settings.HandSize
+	if len(player.Hand) < handSize {
 		logError("hasKems", "Player has insufficient cards in hand. (FATAL ERROR)")
 		return false
 	}
@@ -307,13 +310,17 @@ func hasKems(player Player) bool {
 		return false
 	}
 
-	// Returns false if next card different from first one
+	// Returns false if any card is different from first one
 	for i := 1; i < len(player.Hand); i++ {
-		if value != player.Hand[i].Value || (value == player.Hand[i].Value && suit == player.Hand[i].Suit) {
+		if value != player.Hand[i].Value {
 			return false
 		}
 	}
 
 	// returns true if all similar
 	return true
+}
+
+func sendGameStateToPLayer(game GameState) {
+	fmt.Printf(gameStateToString(game) + "\n")
 }

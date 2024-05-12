@@ -49,9 +49,9 @@ func main() {
 		// Determine message type for processing
 		keyValTable = decodeMessage(messageReceived)
 		sender := findValue(keyValTable, "snd")
-		// Filter out random messages
+		// Filter out random messages (Display messages for instance)
 		if len(sender) != 2 || len(name) != 2 {
-			logError("main", "Message invalid sender OR wrong ctl name (ignored) - CAN BE FATAL!")
+			logError("main", "Display message OR invalid sender OR wrong ctl name (ignored) - CAN BE FATAL!")
 			messageReceived = ""
 			continue
 		}
@@ -74,7 +74,7 @@ func main() {
 			// Incremented if message received from base app
 			clock = clock + 1
 			// logInfo("main", "Clock updated, message received from local app.")
-		} else { // Filters out messages from other controller to it's own app
+		} else { // Filters out messages from other controller to their own app
 			// ERROR, ignoring
 			logError("main", "Message from another controller to it's own app (IGNORED) OR UNEXPECTED ERROR.")
 			messageReceived = ""
