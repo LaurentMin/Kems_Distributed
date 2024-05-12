@@ -320,6 +320,7 @@ func main() {
 			actionToDo = findValue(keyValTable, "msg")
 			// Ask for exclusive access
 			fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, "[BCRITICAL]"}) + "\n")
+			logInfo("main", "Asked for exclusive access.")
 			messageReceived = ""
 			continue
 		}
