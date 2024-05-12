@@ -377,11 +377,11 @@ func main() {
 		if messageReceived[:11] == "[GAMESTATE]" {
 			if gameStateToString(game) != messageReceived {
 				game = stringToGameState(messageReceived)
-				// Sending update to apps (through controllers)
-				fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, gameStateToString(game)}) + "\n")
-				logInfo("main", "Sent updated game state to all apps through controller.")
+				// Updated game state not sent anymore when update is received
+				// fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, gameStateToString(game)}) + "\n")
+				logInfo("main", "Updated game state (but did not diffuse the update).")
 			} else {
-				logSuccess("main", "Game state is already up to date, all apps up to date.")
+				logSuccess("main", "Game state is already up to date, all apps up to date. (should not happen anymore)")
 			}
 
 			messageReceived = ""
