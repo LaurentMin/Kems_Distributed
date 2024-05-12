@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math/rand"
 	"strconv"
 	"strings"
@@ -318,4 +319,8 @@ func hasKems(game GameState, playerIndex int) bool {
 
 	// returns true if all similar
 	return true
+}
+
+func sendGameStateToPLayer(game GameState) {
+	fmt.Printf(gameStateToString(game) + "\n")
 }
