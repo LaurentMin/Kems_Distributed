@@ -319,7 +319,7 @@ func main() {
 		if sender == "P"+lastConnectedPlayer || (sender[:1] == "P" && lastConnectedPlayer == "") {
 			actionToDo = findValue(keyValTable, "msg")
 			// Ask for exclusive access
-			fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, "[BCRITICAL]"}) + "\n")
+			fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, "[ACRITICAL]"}) + "\n")
 			logInfo("main", "Asked for exclusive access.")
 			messageReceived = ""
 			continue
@@ -336,7 +336,7 @@ func main() {
 		messageReceived = findValue(keyValTable, "msg")
 
 		// Filter out wrong messages (just in case)
-		if len(messageReceived) < 11 || (messageReceived[:11] != "[GAMESTATE]" && messageReceived[:11] != "[BCRITICAL]") {
+		if len(messageReceived) < 11 || (messageReceived[:11] != "[GAMESTATE]" && messageReceived[:11] != "[VCRITICAL]") {
 			// logInfo("main", "Wrong message type for app received "+messageReceived+" (ignoring).")
 			logInfo("main", "Wrong message type for app received (ignoring).")
 			messageReceived = ""
@@ -344,7 +344,7 @@ func main() {
 		}
 
 		// Message is an exclusive access grant => handle action
-		if messageReceived[:11] == "[BCRITICAL]" {
+		if messageReceived[:11] == "[VCRITICAL]" {
 			// Error if app is not trying to handle an action
 			if actionToDo == "" {
 				logError("main", "App received access but did not need it anymore (liberating)")
