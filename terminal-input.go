@@ -10,6 +10,12 @@ import (
 func handleUserInput(input string, playerIndex string) {
 	logInfo("handleUserInput", "Handling input "+input)
 	input = strings.ToLower(strings.TrimSpace(input))
+	// Error empty input
+	if len(input) == 0 {
+		logError("Input terminal", "Input empty!")
+		return
+	}
+
 	switch input[0] {
 	case 's':
 		numberStr := input[1:]
