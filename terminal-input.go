@@ -8,7 +8,7 @@ import (
 )
 
 func handleUserInput(input string, playerIndex string) {
-	logInfo("Input terminal", "Handling input "+input)
+	logInfo("handleUserInput", "Handling input "+input)
 	input = strings.ToLower(strings.TrimSpace(input))
 	switch input[0] {
 	case 's':
@@ -39,7 +39,7 @@ func sendAction(actionType string, actionParamsNames []string, actionParamsValue
 	params := encodeMessage(actionParamsNames, actionParamsValues)
 	action := encodeMessage([]string{"typ", "prm"}, []string{actionType, params})
 
-	logInfo("Input terminal", "Sending action "+action)
+	logInfo("sendAction", "Sending action "+action)
 	fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{"P" + name, action}) + "\n")
 }
 
@@ -50,13 +50,13 @@ func main() {
 	name = *pName
 
 	if name != "1" && name != "2" && name != "3" {
-		logError("Input terminal", "Wrong playerId for anneauCtl structure, change code if needed.")
+		logError("main", "Wrong playerId for anneauCtl structure, change code if needed.")
 		return
 	}
 
 	// Starting Player
 	sendAction("InitPlayer", []string{}, []string{})
-	logInfo("Input terminal", "Launching player...")
+	// logInfo("main", "Launching player...")
 	playerInput := ""
 
 	for {
