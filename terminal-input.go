@@ -9,7 +9,6 @@ import (
 
 func handleUserInput(input string, playerIndex string) {
 	logInfo("handleUserInput", "Handling input "+input)
-	input = strings.ToLower(strings.TrimSpace(input))
 	// Error empty input
 	if len(input) == 0 {
 		logError("Input terminal", "Input empty!")
@@ -68,6 +67,16 @@ func main() {
 	for {
 		// Message reception
 		playerInput = scanUntilNewline()
+		// Message received
+
+		playerInput = strings.ToLower(strings.TrimSpace(playerInput))
+		// Handle logout
+		if playerInput == "exit" {
+			sendAction("InitPlayer", []string{"newPlayer"}, []string{"exit"})
+			return
+		}
+
+		// Handle other
 		handleUserInput(playerInput, name)
 
 		playerInput = ""

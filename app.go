@@ -164,7 +164,7 @@ var lastConnectedPlayer string = ""
 /*
 	Handle player action
 */
-func handleAction(player string, fullAction string, game GameState) GameState {
+func handleAction(fullAction string, game GameState) GameState {
 	// Get action type and parameters
 	actionTab := decodeMessage(fullAction)
 	actionType := findValue(actionTab, "typ")
@@ -177,7 +177,7 @@ func handleAction(player string, fullAction string, game GameState) GameState {
 		// Check new player validity
 		if newPlayer != "1" && newPlayer != "2" && newPlayer != "3" {
 			// Player not valid (ignore)
-			logError("handleAction", "Player not valid (player reset)")
+			logError("handleAction", "Player Disconnected OR Player not valid (player reset)")
 			lastConnectedPlayer = ""
 			return game
 		} else {
@@ -194,7 +194,7 @@ func handleAction(player string, fullAction string, game GameState) GameState {
 	}
 
 	// Check if app controls valid player
-	if player != "1" && player != "2" && player != "3" {
+	if lastConnectedPlayer != "1" && lastConnectedPlayer != "2" && lastConnectedPlayer != "3" {
 		logError("handleAction", "No player defined or player not recognized! Impossible to do other actions than player initialisation.")
 		return game
 	}
@@ -317,7 +317,7 @@ func main() {
 		if sender == "P"+lastConnectedPlayer || (sender[:1] == "P" && lastConnectedPlayer == "") {
 			action := findValue(keyValTable, "msg")
 			oldGame := gameStateToString(game)
-			game = handleAction(lastConnectedPlayer, action, game)
+			game = handleAction(action, game)
 			if oldGame == gameStateToString(game) {
 				logWarning("main", "Action did not change game state, no update required.")
 			} else {
