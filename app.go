@@ -335,7 +335,7 @@ func main() {
 		// Getting message
 		messageReceived = findValue(keyValTable, "msg")
 
-		// Filter ou wrong messages (just in case)
+		// Filter out wrong messages (just in case)
 		if len(messageReceived) < 11 || (messageReceived[:11] != "[GAMESTATE]" && messageReceived[:11] != "[BCRITICAL]") {
 			// logInfo("main", "Wrong message type for app received "+messageReceived+" (ignoring).")
 			logInfo("main", "Wrong message type for app received (ignoring).")
@@ -377,7 +377,6 @@ func main() {
 		if messageReceived[:11] == "[GAMESTATE]" {
 			if gameStateToString(game) != messageReceived {
 				game = stringToGameState(messageReceived)
-
 				// Sending update to apps (through controllers)
 				fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, gameStateToString(game)}) + "\n")
 				logInfo("main", "Sent updated game state to all apps through controller.")

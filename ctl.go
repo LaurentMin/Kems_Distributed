@@ -40,28 +40,26 @@ func main() {
 	for {
 		// logInfo("main", "Waiting for message.")
 		// Message reception
-		// fmt.Scanln(&messageReceived)
-		// ReadString until '\n' delimiter (instead of Scanln)
 		messageReceived = scanUntilNewline()
-		// logInfo("main", "Message received. "+messageReceived)
 		logInfo("main", "Message received "+messageReceived)
 
 		// Determine message type for processing
 		keyValTable = decodeMessage(messageReceived)
 		sender := findValue(keyValTable, "snd")
-		// Filter out random messages (Display messages for instance)
-		if len(sender) != 2 || len(name) != 2 {
+
+		// Filter out random messages (Display messages for example)
+		if len(sender) != 2 || len(name) != 2 || (sender != "A"+name[1:2] && sender[:1] != "C") {
 			logError("main", "Display message OR invalid sender OR wrong ctl name (ignored) - CAN BE FATAL!")
 			messageReceived = ""
 			continue
 		}
 
-		// Defining local clock depending on received message (ignores messages from other controllers to their own apps)
+		// Clock updating
+
 		// logInfo("main", "Clock updating...")
 		clockReceivedStr := findValue(keyValTable, "hlg")
-		if clockReceivedStr != "" && sender[:1] == "C" { // Filters out messages from an app with a clock
+		if clockReceivedStr != "" && sender[:1] == "C" { // Filters out messages from an app with a clock (should never happen)
 			// Clock adjustment if message received from other controller
-			// In this case the message is from a controller to another controller
 			clockReceived, err := strconv.Atoi(clockReceivedStr)
 			if err != nil {
 				logError("main", "Error converting string to int : "+err.Error())
@@ -70,11 +68,11 @@ func main() {
 			clock = clockAdjustment(clock, clockReceived)
 			// logInfo("main", "Clock updated, message received from other controller.")
 
-		} else if clockReceivedStr == "" && sender == "A"+name[1:2] { // Filters out messages without a clock from the wrong app.
-			// Incremented if message received from base app
+		} else if clockReceivedStr == "" && sender == "A"+name[1:2] { // Filters out messages without a clock from the wrong app or a controller.
+			// Incremented if message received from app
 			clock = clock + 1
 			// logInfo("main", "Clock updated, message received from local app.")
-		} else { // Filters out messages from other controller to their own app
+		} else { // Filters out messages from other controller to their own app or other errors
 			// ERROR, ignoring
 			logError("main", "Message from another controller to it's own app (IGNORED) OR UNEXPECTED ERROR.")
 			messageReceived = ""
@@ -82,17 +80,53 @@ func main() {
 		}
 
 		// Message emission
-		// logInfo("main", "Sending message...")
-		if clockReceivedStr != "" {
-			// Sending to base app
-			fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, findValue(keyValTable, "msg")}) + "\n")
-			logInfo("main", "Message sent to local app.")
-		} else {
-			// Sending to other controller
-			fmt.Printf(encodeMessage([]string{"snd", "hlg", "msg"}, []string{name, strconv.Itoa(clock), findValue(keyValTable, "msg")}) + "\n")
-			logInfo("main", "Message sent to other controller.")
+		// getting message
+		messageReceived = findValue(keyValTable, "msg")
+		// Filter out wrong messages
+		if len(messageReceived) < 11 {
+			// logInfo("main", "Wrong message type for app received "+messageReceived+" (ignoring).")
+			logInfo("main", "Wrong message type for app received (too short) (ignoring).")
+			messageReceived = ""
+			continue
 		}
 
+		// Controller sent message (sending to app)
+		// logInfo("main", "Sending message...")
+		if clockReceivedStr != "" && sender[:1] == "C" {
+			// Filter out wrong messages
+			if messageReceived[:11] != "[GAMESTATE]" && messageReceived[:11] != "[ACRITICAL]" && messageReceived[:11] != "[VCRITICAL]" {
+				// logInfo("main", "Wrong message type for app received "+messageReceived+" (ignoring).")
+				logInfo("main", "Wrong message type for app received (controller sent wrong type) (ignoring).")
+				messageReceived = ""
+				continue
+			}
+
+			// Message from controller, sending to base app
+			fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, findValue(keyValTable, "msg")}) + "\n")
+			logInfo("main", "Message sent to local app.")
+
+			messageReceived = ""
+			continue
+		}
+
+		// App sent message (sending to controllers)
+		if clockReceivedStr == "" && sender == "A"+name[1:2] {
+			// Filter out wrong messages
+			if messageReceived[:11] != "[GAMESTATE]" && messageReceived[:11] != "[BCRITICAL]" && messageReceived[:11] != "[ECRITICAL]" {
+				// logInfo("main", "Wrong message type for app received "+messageReceived+" (ignoring).")
+				logInfo("main", "Wrong message type for app received (app sent wrong type) (ignoring).")
+				messageReceived = ""
+				continue
+			}
+
+			fmt.Printf(encodeMessage([]string{"snd", "hlg", "msg"}, []string{name, strconv.Itoa(clock), findValue(keyValTable, "msg")}) + "\n")
+			logInfo("main", "Message sent to other controller.")
+
+			messageReceived = ""
+			continue
+		}
+
+		logError("main", "CRITICAL ERROR, MESSAGE TREATMENT WAS NOT IMPLEMENTED (should never happen)")
 		messageReceived = ""
 	}
 }
