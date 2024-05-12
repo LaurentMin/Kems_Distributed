@@ -15,7 +15,7 @@ func handleUserInput(input string, playerIndex string) {
 		logError("Input terminal", "Input empty!")
 		return
 	}
-	
+
 	switch input[0] {
 	case 's':
 		numberStr := input[1:]
