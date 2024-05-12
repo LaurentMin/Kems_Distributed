@@ -167,17 +167,20 @@ func handleAction(fullAction string, game GameState) GameState {
 
 	// Process action
 	switch actionType {
+	case "InitPlayer":
+		logInfo("handleAction", "Player initialized.")
+		sendGameStateToPLayer(game)
 	case "ResetGame": // NO CONTROLS -> Resets the whole game (players, scores, decks, ...)
 		game = GameState{}
 		game = getInitState()
 		game = renewDrawPile(game)
 		game = renewPlayerHands(game)
 
-	case "NewSleeve": // NO CONTROLS -> Starts a new game sleeve (deals new hands and new draw pile)
+	case "NewRound": // NO CONTROLS -> Starts a new game sleeve (deals new hands and new draw pile)
 		game = renewPlayerHands(game)
 		game = renewDrawPile(game)
 
-	case "NextSleeve": // NO CONTROLS -> Goes to the next sleeve when no other player wants to trade (deals new draw pile)
+	case "NextTurn": // NO CONTROLS -> Goes to the next sleeve when no other player wants to trade (deals new draw pile)
 		game = renewDrawPile(game)
 
 	case "Kems": // CONTROLS -> Increments player score if won (or does nothing)
@@ -186,7 +189,7 @@ func handleAction(fullAction string, game GameState) GameState {
 		appPlayerIndex -= 1
 
 		// Player won
-		if hasKems(game.Players[appPlayerIndex]) {
+		if hasKems(game, appPlayerIndex) {
 			// Add score to player
 			game.Players[appPlayerIndex].Score += 1
 			// Start new sleeve
@@ -209,8 +212,8 @@ func handleAction(fullAction string, game GameState) GameState {
 		}
 
 		// Player countered
-		if hasKems(game.Players[otherPlayerIndex]) {
-			// Start new sleeve without adding score to player
+		if hasKems(game, otherPlayerIndex) {
+			game.Players[otherPlayerIndex].Score -= 1
 			game = renewPlayerHands(game)
 			game = renewDrawPile(game)
 		}
@@ -317,13 +320,13 @@ func main() {
 		// Replace game state if an update was received
 		if gameStateToString(game) != messageReceived {
 			game = stringToGameState(messageReceived)
+
 			// Sending update to next app (through controller)
 			fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, gameStateToString(game)}) + "\n")
 			logInfo("main", "Sent updated game state to next app through controller.")
 		} else {
 			logSuccess("main", "Game state is already up to date, all apps up to date. (updating display if there is one)")
-			// Updating display (if it is started)
-			fmt.Printf(gameStateToString(game) + "\n")
+			sendGameStateToPLayer(game)
 		}
 
 		messageReceived = ""
