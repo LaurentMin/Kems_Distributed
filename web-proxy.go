@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"net/http"
@@ -39,6 +40,9 @@ func do_webserver(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Bonjour depuis le serveur web en Go !")
 }
 
+func parseJSONactionType(jsonAction string) {
+}
+
 func do_websocket(w http.ResponseWriter, r *http.Request) {
 	var upgrader = websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool { return true },
@@ -59,6 +63,53 @@ func do_websocket(w http.ResponseWriter, r *http.Request) {
 		}
 		logInfo("Web proxy", "Received message "+string(message))
 		// ------------------------------- WEB to APP -------------------------------
+
+		// Declared an empty interface
+		var result map[string]interface{}
+
+		// test if is a valid JSON
+		if err := json.Unmarshal([]byte(message), &result); err != nil {
+			logError("Web proxy", "Error unmarshalling JSON: "+err.Error())
+			continue
+		}
+
+		// Unmarshal or Decode the JSON to the interface
+		json.Unmarshal([]byte(message), &result)
+
+		actionType := result["action"].(string)
+
+		switch actionType {
+		case "NextTurn":
+			sendAction("NextTurn", []string{"playerIndex"}, []string{name})
+		case "SwapCards":
+			handCardValue := result["handCardValue"].(string)
+			handCardSuit := result["handCardSuit"].(string)
+			drawCardValue := result["drawCardValue"].(string)
+			drawCardSuit := result["drawCardSuit"].(string)
+
+			handCardIndex := -1
+			drawCardIndex := -1
+			for i, card := range state.Players[playerId-1].Hand {
+				if card.Value == handCardValue && card.Suit == handCardSuit {
+					handCardIndex = i
+				}
+			}
+			for i, card := range state.DrawPile {
+				if card.Value == drawCardValue && card.Suit == drawCardSuit {
+					drawCardIndex = i
+				}
+			}
+			sendAction("SwapCards", []string{"playerIndex", "playerCardIndex", "drawPileCardIndex"}, []string{name, strconv.Itoa(handCardIndex), strconv.Itoa(drawCardIndex)})
+		case "Kems":
+			sendAction("Kems", []string{"playerIndex"}, []string{name})
+		case "ContreKems":
+			otherPlayerId := checkIfKems(state)
+			sendAction("ContreKems", []string{"playerIndex"}, []string{strconv.Itoa(otherPlayerId)})
+		case "ResetGame":
+			sendAction("ResetGame", []string{"playerIndex"}, []string{name})
+		default:
+			logError("Web proxy", "Unknown action type: "+actionType)
+		}
 
 	}
 }
@@ -105,7 +156,7 @@ func sendGameStateToWeb(newState GameState, playerId int) {
 		numberRound += newState.Players[i].Score
 	}
 
-	jsonGameState := "{\"playerId\":" + name + ", \"hand\": " + cardsToJSON(newState.Players[playerId].Hand) + ", \"drawPile\": " + cardsToJSON(newState.DrawPile) + ", \"scores\": " + scoresToJSON(newState.Players) + ", \"round\": " + strconv.Itoa(numberRound)
+	jsonGameState := "{\"playerId\":" + name + ", \"hand\": " + cardsToJSON(newState.Players[playerId-1].Hand) + ", \"drawPile\": " + cardsToJSON(newState.DrawPile) + ", \"scores\": " + scoresToJSON(newState.Players) + ", \"round\": " + strconv.Itoa(numberRound)
 
 	//Discard can be empty at the beginning of the game
 	if len(newState.DiscardPile) > 0 {
@@ -116,10 +167,23 @@ func sendGameStateToWeb(newState GameState, playerId int) {
 
 	potentialWinner := checkIfKems(newState)
 	if potentialWinner != -1 {
-		jsonGameState += ", \"potentialWinner\": " + strconv.Itoa(potentialWinner)
+		jsonGameState += ", \"potentialWinner\": " + strconv.Itoa(potentialWinner+1)
+	}
+
+	if len(state.Players) > 0 {
+		isEndRound := false
+		for i := 0; i < len(newState.Players); i++ {
+			if newState.Players[i].Score != state.Players[i].Score {
+				isEndRound = true
+			}
+		}
+		if isEndRound {
+			jsonGameState += ", \"newRound\": true"
+		}
 	}
 	jsonGameState += "}"
 
+	state = newState
 	ws_send(jsonGameState)
 }
 
@@ -136,14 +200,17 @@ func listenAppUpdateAndTransmit(playerId int) {
 }
 
 var ws *websocket.Conn = nil
+var state GameState
+var playerId int
 
 func main() {
-	var port = flag.String("port", "4444", "n° de port")
-	var addr = flag.String("addr", "localhost", "nom/adresse machine")
-	var playerName = flag.String("name", "1", "nom du joueur (1,2,3)")
+	var port = flag.String("p", "4444", "n° de port")
+	var addr = flag.String("a", "localhost", "nom/adresse machine")
+	var playerName = flag.String("n", "1", "nom du joueur (1,2,3)")
 	name = *playerName
 
-	playerId, err := strconv.Atoi(name)
+	var err error
+	playerId, err = strconv.Atoi(name)
 	if err != nil {
 		logError("Web proxy", "Error converting player name to int: "+err.Error())
 		return
