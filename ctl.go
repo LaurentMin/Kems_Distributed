@@ -104,7 +104,7 @@ func main() {
 			case "[ECRITICAL]": // TO DO END CRITICAL
 				logInfo("main", "TO DO.")
 			default:
-				logError("main", "Wrong message type for app received (controller sent wrong type) (ignoring) (could be critical for clock).")
+				logError("main", "Wrong message type received (controller sent wrong type) (ignoring) (could be critical for clock).")
 			}
 
 			messageReceived = ""
@@ -123,14 +123,14 @@ func main() {
 			case "[ECRITICAL]": // TO DO END CRITICAL
 				logInfo("main", "LIBERATE ACCESS.")
 			default:
-				logError("main", "Wrong message type for app received (app sent wrong type) (ignoring) (could be critical for clock).")
+				logError("main", "Wrong message type received (app sent wrong type) (ignoring) (could be critical for clock).")
 			}
 
 			messageReceived = ""
 			continue
 		}
 
-		logError("main", "CRITICAL ERROR, MESSAGE TREATMENT WAS NOT IMPLEMENTED (should never happen)")
+		logError("main", "CRITICAL ERROR, MESSAGE TREATMENT WAS NOT IMPLEMENTED (should never happen) (bad for clock)")
 		messageReceived = ""
 	}
 }
