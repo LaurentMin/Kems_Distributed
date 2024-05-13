@@ -123,39 +123,6 @@ func displayWarningKems(playerIndex int) {
 	fmt.Print(orange + "Player " + strconv.Itoa(playerIndex+1) + " has KEMS !!\n" + reset)
 }
 
-func checkIfKems(game GameState) int {
-	for i := 0; i < len(game.Players); i++ {
-		if hasKems(game, i) {
-			return i
-		}
-	}
-	return -1
-}
-
-func checkIfWinner(oldGame GameState, newGame GameState) int {
-	if len(oldGame.Players) == 0 {
-		return -1
-	}
-	for i := 0; i < len(newGame.Players); i++ {
-		if newGame.Players[i].Score > oldGame.Players[i].Score {
-			return i
-		}
-	}
-	return -1
-}
-
-func checkIfLoser(oldGame GameState, newGame GameState) int {
-	if len(oldGame.Players) == 0 {
-		return -1
-	}
-	for i := 0; i < len(newGame.Players); i++ {
-		if newGame.Players[i].Score < oldGame.Players[i].Score {
-			return i
-		}
-	}
-	return -1
-}
-
 /*
 	This program displays the full state of the game (usefull for debugging and testing)
 	Update is done when app that sent update receives its own state, setting the end of the update

@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"strconv"
 	"strings"
 )
@@ -38,14 +37,6 @@ func handleUserInput(input string, playerIndex string) {
 	default:
 		logError("Input terminal", "Invalid input "+input)
 	}
-}
-
-func sendAction(actionType string, actionParamsNames []string, actionParamsValues []string) {
-	params := encodeMessage(actionParamsNames, actionParamsValues)
-	action := encodeMessage([]string{"typ", "prm"}, []string{actionType, params})
-
-	logInfo("sendAction", "Sending action "+action)
-	fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{"P" + name, action}) + "\n")
 }
 
 func main() {
