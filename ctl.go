@@ -38,6 +38,7 @@ type Request struct {
 */
 func canGoCritical(estampilles []Request, site int) bool {
 	for i := 0; i < len(estampilles); i++ {
+		logError("canGoCritical", "num site : "+ strconv.Itoa(i+1) + " clock : " + strconv.Itoa(estampilles[i].Clock))
 		if estampilles[site].Clock > estampilles[i].Clock || (estampilles[site].Clock == estampilles[i].Clock && site > i) {
 			return false
 		}
