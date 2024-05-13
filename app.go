@@ -364,7 +364,7 @@ func main() {
 				logInfo("main", "Ended critical access message sent.")
 				fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, "[ECRITICAL]"}) + "\n")
 				logInfo("main", "Sent update to display.")
-				sendGameStateToPLayer(game)
+				fmt.Printf(gameStateToString(game) + "\n")
 
 			}
 			// Reset action (it has been processed)
@@ -383,7 +383,7 @@ func main() {
 				// Updated game state not sent anymore when update is received
 				// fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, gameStateToString(game)}) + "\n")
 				logInfo("main", "Updated game state (but did not diffuse the update nor display.")
-				// sendGameStateToPLayer(game) // Updating interface just in case went wrong last time
+				// fmt.Printf(gameStateToString(game) + "\n") // Updating interface just in case went wrong last time
 			} else {
 				logSuccess("main", "Game state is already up to date, all apps up to date. (should not happen anymore)")
 			}
