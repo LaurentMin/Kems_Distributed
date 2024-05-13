@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"math/rand"
 	"strconv"
 	"time"
@@ -296,12 +295,17 @@ func main() {
 	game := getInitState()
 	game = renewPlayerHands(game)
 	game = renewDrawPile(game)
+	// Go routines to read and write input / output
+	inChan := make(chan string, 10)
+	outChan := make(chan string, 10)
+	go read(inChan)
+	go write(outChan)
 
 	// Main loop of the app, manages message reception and emission and processing
 	for {
 		// logInfo("main", "Waiting for message.")
 		// Message reception
-		messageReceived = scanUntilNewline()
+		messageReceived = <-inChan
 		logInfo("main", "Message received. "+messageReceived)
 
 		// Determine message type for processing
@@ -319,7 +323,7 @@ func main() {
 		if sender == "P"+lastConnectedPlayer || (sender[:1] == "P" && lastConnectedPlayer == "") {
 			actionToDo = findValue(keyValTable, "msg")
 			// Ask for exclusive access
-			fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, "[ACRITICAL]"}) + "\n")
+			outChan <- encodeMessage([]string{"snd", "msg"}, []string{name, "[ACRITICAL]"}) + "\n"
 			logInfo("main", "Asked for exclusive access.")
 			messageReceived = ""
 			continue
@@ -348,7 +352,7 @@ func main() {
 			// Error if app is not trying to handle an action
 			if actionToDo == "" {
 				logError("main", "App received access but did not need it anymore (liberating)")
-				fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, "[ECRITICAL]"}) + "\n")
+				outChan <- encodeMessage([]string{"snd", "msg"}, []string{name, "[ECRITICAL]"}) + "\n"
 				messageReceived = ""
 				continue
 			}
@@ -357,14 +361,14 @@ func main() {
 			game = handleAction(actionToDo, game)
 			if oldGame == gameStateToString(game) {
 				logWarning("main", "Action did not change game state, no update required. (Ended critical access)")
-				fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, "[ECRITICAL]"}) + "\n")
+				outChan <- encodeMessage([]string{"snd", "msg"}, []string{name, "[ECRITICAL]"}) + "\n"
 			} else {
 				logSuccess("main", "Gamestate updated, sending game update. (Ended critical access) + (Sent update to display)")
-				fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, gameStateToString(game)}) + "\n")
+				outChan <- encodeMessage([]string{"snd", "msg"}, []string{name, gameStateToString(game)}) + "\n"
 				logInfo("main", "Ended critical access message sent.")
-				fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, "[ECRITICAL]"}) + "\n")
+				outChan <- encodeMessage([]string{"snd", "msg"}, []string{name, "[ECRITICAL]"}) + "\n"
 				logInfo("main", "Sent update to display.")
-				fmt.Printf(gameStateToString(game) + "\n")
+				outChan <- gameStateToString(game) + "\n"
 
 			}
 			// Reset action (it has been processed)
@@ -381,9 +385,9 @@ func main() {
 			if gameStateToString(game) != messageReceived {
 				game = stringToGameState(messageReceived)
 				// Updated game state not sent anymore when update is received
-				// fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, gameStateToString(game)}) + "\n")
+				// outChan <- encodeMessage([]string{"snd", "msg"}, []string{name, gameStateToString(game)}) + "\n"
 				logInfo("main", "Updated game state (but did not diffuse the update nor display.")
-				// fmt.Printf(gameStateToString(game) + "\n") // Updating interface just in case went wrong last time
+				// outChan <- gameStateToString(game) + "\n" // Updating interface just in case went wrong last time
 			} else {
 				logSuccess("main", "Game state is already up to date, all apps up to date. (should not happen anymore)")
 			}
