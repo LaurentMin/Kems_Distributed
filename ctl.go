@@ -87,7 +87,8 @@ func main() {
 	clock := 0
 	vClock := []int{0, 0, 0}
 	// Find the controller number in vClock
-	idVClock, err := strconv.Atoi(name[len(name):])
+	idVClock, err := strconv.Atoi(name[len(name)-1:])
+	logInfo("main", "idVClock: "+strconv.Itoa(idVClock))
 	if err != nil {
 		logError("main", "Error converting string to int for idVClock: "+err.Error())
 	}
