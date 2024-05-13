@@ -165,18 +165,20 @@ func main() {
 	flag.Parse()
 	name = "display"
 
-	// Setting app name (usefull for debug)
-
+	// Initialising important variables
 	messageReceived := ""
 	state := GameState{}
 	inputFile := *pfile
 	logInfo("main", "Displaying with input file "+inputFile)
+	// Go routines to read input
+	inChan := make(chan string, 10)
+	go read(inChan)
 
 	displayKemsRules()
 	// time.Sleep(5 * time.Second)
 	for {
 		logInfo("main", "Waiting for next state...")
-		messageReceived = scanUntilNewline()
+		messageReceived = <-inChan
 
 		// Ignore message not for display
 		if len(messageReceived) < 11 || messageReceived[:11] != "[GAMESTATE]" {
