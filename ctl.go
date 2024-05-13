@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"strconv"
-	"time"
 )
 
 ///////////
@@ -38,7 +37,7 @@ type Request struct {
 */
 func canGoCritical(estampilles []Request, site int) bool {
 	for i := 0; i < len(estampilles); i++ {
-		logError("canGoCritical", "num site : "+ strconv.Itoa(i+1) + " clock : " + strconv.Itoa(estampilles[i].Clock))
+		logError("canGoCritical", "num site : "+strconv.Itoa(i+1)+" clock : "+strconv.Itoa(estampilles[i].Clock))
 		if estampilles[site].Clock > estampilles[i].Clock || (estampilles[site].Clock == estampilles[i].Clock && site > i) {
 			return false
 		}
@@ -128,19 +127,16 @@ func main() {
 			case "[GAMESTATE]":
 				fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, messageReceived}) + "\n")
 				logInfo("main", "Gamestate message sent to local app.")
-				time.Sleep(1 * time.Second)
 
 			case "[ACRITICAL]": // Other controller asks for access restriction
 				estampilles[otherSiteNumber].Type = "[ACRITICAL]"
 				estampilles[otherSiteNumber].Clock = clock
 				fmt.Printf(encodeMessage([]string{"snd", "hlg", "msg"}, []string{name, strconv.Itoa(clock), "[VCRITICAL]"}) + "\n")
 				logInfo("main", "Answered to other controller restriction access demand.")
-				time.Sleep(1 * time.Second)
 				// Check if can start own critical
 				if estampilles[siteNum].Type == "[ACRITICAL]" && canGoCritical(estampilles, siteNum) {
 					fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, "[BCRITICAL]"}) + "\n")
 					logInfo("main", "Begin critical section sent to base app.")
-					time.Sleep(1 * time.Second)
 				}
 
 			case "[VCRITICAL]": // Other controller validates request reception
@@ -154,7 +150,6 @@ func main() {
 				if estampilles[siteNum].Type == "[ACRITICAL]" && canGoCritical(estampilles, siteNum) {
 					fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, "[BCRITICAL]"}) + "\n")
 					logInfo("main", "Begin critical section sent to base app.")
-					time.Sleep(1 * time.Second)
 				}
 
 			case "[ECRITICAL]": // Other controller liberates access restriction
@@ -165,7 +160,6 @@ func main() {
 				if estampilles[siteNum].Type == "[ACRITICAL]" && canGoCritical(estampilles, siteNum) {
 					fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, "[BCRITICAL]"}) + "\n")
 					logInfo("main", "Begin critical section sent to base app.")
-					time.Sleep(1 * time.Second)
 				}
 
 			default:
@@ -182,21 +176,18 @@ func main() {
 			case "[GAMESTATE]":
 				fmt.Printf(encodeMessage([]string{"snd", "hlg", "msg"}, []string{name, strconv.Itoa(clock), messageReceived}) + "\n")
 				logInfo("main", "Gamestate message sent to other controller.")
-				time.Sleep(1 * time.Second)
 
 			case "[ACRITICAL]": // Base app asks critical (asking other controllers)
 				estampilles[siteNum].Type = "[ACRITICAL]"
 				estampilles[siteNum].Clock = clock
 				fmt.Printf(encodeMessage([]string{"snd", "hlg", "msg"}, []string{name, strconv.Itoa(clock), "[ACRITICAL]"}) + "\n")
 				logInfo("main", "Asked other controllers for access restriction.")
-				time.Sleep(1 * time.Second)
 
 			case "[ECRITICAL]": // Base app stops critical (liberating other controllers)
 				estampilles[siteNum].Type = "[ECRITICAL]"
 				estampilles[siteNum].Clock = clock
 				fmt.Printf(encodeMessage([]string{"snd", "hlg", "msg"}, []string{name, strconv.Itoa(clock), "[ECRITICAL]"}) + "\n")
 				logInfo("main", "Liberated other controllers from access restriction.")
-				time.Sleep(1 * time.Second)
 
 			default:
 				logError("main", "Wrong message type received (app sent wrong type) (ignoring) (could be critical for clock).")
