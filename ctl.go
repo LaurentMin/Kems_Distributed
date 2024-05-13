@@ -76,7 +76,7 @@ func main() {
 
 		// Filter out random messages (Display messages for example)
 		if len(sender) != 2 || len(name) != 2 || (sender != "A"+name[1:2] && sender[:1] != "C") {
-			logError("main", "Display message OR invalid sender OR wrong ctl name (ignored) - CAN BE FATAL!")
+			logWarning("main", "Display message OR invalid sender OR wrong ctl name (ignored) - CAN BE FATAL!")
 			messageReceived = ""
 			continue
 		}
@@ -101,7 +101,7 @@ func main() {
 			// logInfo("main", "Clock updated, message received from local app.")
 		} else { // Filters out messages from other controller to their own app or other errors
 			// ERROR, ignoring
-			logError("main", "Message from another controller to it's own app (IGNORED) OR UNEXPECTED ERROR.")
+			logWarning("main", "Message from another controller to it's own app (IGNORED) OR UNEXPECTED ERROR.")
 			messageReceived = ""
 			continue
 		}
@@ -150,7 +150,6 @@ func main() {
 					fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, "[BCRITICAL]"}) + "\n")
 					logInfo("main", "Begin critical section sent to base app.")
 				}
-				logInfo("main", "TO DO.")
 
 			case "[ECRITICAL]": // Other controller liberates access restriction
 				estampilles[otherSiteNumber].Type = "[ECRITICAL]"

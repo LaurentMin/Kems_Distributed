@@ -177,7 +177,7 @@ func handleAction(fullAction string, game GameState) GameState {
 		// Check new player validity
 		if newPlayer != "1" && newPlayer != "2" && newPlayer != "3" {
 			// Player not valid (ignore)
-			logError("handleAction", "Player Disconnected OR Player not valid (player reset)")
+			logWarning("handleAction", "Player Disconnected OR Player not valid (player reset)")
 			lastConnectedPlayer = ""
 			return game
 		} else {
@@ -328,7 +328,7 @@ func main() {
 		// CONTROLLER sent message
 		// Filter out messages from our controller to other controllers
 		if findValue(keyValTable, "hlg") != "" {
-			logError("main", "Message from own controller to other controllers, (ignored).")
+			logWarning("main", "Message from own controller to other controllers, (ignored).")
 			messageReceived = ""
 			continue
 		}
