@@ -138,7 +138,7 @@ const updateGame = (gameState) => {
     playerScore = gameState.scores[gameState.playerId - 1]
     console.log("Player score", playerScore, gameState.round)
 
-    updateStatusElement(scoreElem, "block", primaryColor, `Score&nbsp;<span class='badge'>${score}</span>`)
+    updateStatusElement(scoreElem, "block", primaryColor, `Score&nbsp;<span class='badge'>${playerScore}</span>`)
     updateStatusElement(roundElem, "block", primaryColor, `Round&nbsp;<span class='badge'>${gameState.round}</span>`)
 }
 
@@ -219,12 +219,6 @@ let cardPositions = []
 
 function endRound() {
     // TODO:
-}
-
-function updateScore() {
-    // calculateScore()
-    updateStatusElement(scoreElem, "block", primaryColor, `Score <span class='badge'>${score}</span>`)
-
 }
 
 function updateStatusElement(elem, display, color, innerHTML) {
