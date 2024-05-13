@@ -151,7 +151,7 @@ func findValue(table []string, key string) string {
 ///////////////////
 /*
 	Scans stdin until the first newline '\n' character is reached
-	Returns "" if error
+	Ignores errors
 */
 func scanUntilNewline() string {
 	reader := bufio.NewReader(os.Stdin)
@@ -161,8 +161,9 @@ func scanUntilNewline() string {
 		line, err := reader.ReadString('\n')
 		// ERROR returns what could be read
 		if err != nil {
-			logError("scanUntilNewline:", "Error while using ReadString('\n')"+err.Error())
-			return ""
+			// logError("scanUntilNewline:", "Error while using ReadString('\n')"+err.Error())
+			// return ""
+			continue
 		}
 		input += line
 

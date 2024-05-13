@@ -61,6 +61,8 @@ func main() {
 	clock := 0
 	estampilles := []Request{Request{"[ECRITICAL]", 0}, Request{"[ECRITICAL]", 0}, Request{"[ECRITICAL]", 0}} // Index 0..2 corresponds to controllers 1..3
 	siteNum, _ := strconv.Atoi(name[1:2])                                                                     // Ok if this makes app crash (name must be defined)
+	siteNum -= 1
+
 	// Main loop of the controller, manages message reception and emission and processing
 	for {
 		// logInfo("main", "Waiting for message.")
@@ -119,6 +121,7 @@ func main() {
 		// logInfo("main", "Sending message...")
 		if clockReceivedStr != "" && sender[:1] == "C" {
 			otherSiteNumber, _ := strconv.Atoi(sender[1:2])
+			otherSiteNumber -= 1
 			switch messageReceived[:11] {
 			case "[GAMESTATE]":
 				fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, messageReceived}) + "\n")
