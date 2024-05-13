@@ -321,7 +321,6 @@ func main() {
 			// Ask for exclusive access
 			fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, "[ACRITICAL]"}) + "\n")
 			logInfo("main", "Asked for exclusive access.")
-			time.Sleep(1 * time.Second)
 			messageReceived = ""
 			continue
 		}
@@ -350,7 +349,6 @@ func main() {
 			if actionToDo == "" {
 				logError("main", "App received access but did not need it anymore (liberating)")
 				fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, "[ECRITICAL]"}) + "\n")
-				time.Sleep(1 * time.Second)
 				messageReceived = ""
 				continue
 			}
@@ -360,17 +358,13 @@ func main() {
 			if oldGame == gameStateToString(game) {
 				logWarning("main", "Action did not change game state, no update required. (Ended critical access)")
 				fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, "[ECRITICAL]"}) + "\n")
-				time.Sleep(1 * time.Second)
 			} else {
 				logSuccess("main", "Gamestate updated, sending game update. (Ended critical access) + (Sent update to display)")
 				fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, gameStateToString(game)}) + "\n")
-				time.Sleep(1 * time.Second)
 				logInfo("main", "Ended critical access message sent.")
 				fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, "[ECRITICAL]"}) + "\n")
-				time.Sleep(1 * time.Second)
 				logInfo("main", "Sent update to display.")
 				sendGameStateToPLayer(game)
-				time.Sleep(1 * time.Second)
 
 			}
 			// Reset action (it has been processed)
@@ -390,7 +384,6 @@ func main() {
 				// fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, gameStateToString(game)}) + "\n")
 				logInfo("main", "Updated game state (but did not diffuse the update nor send it to display).")
 				// sendGameStateToPLayer(game) // Updating interface just in case went wrong last time
-				// time.Sleep(1 * time.Second) // Not needed if no print
 			} else {
 				logSuccess("main", "Game state is already up to date, all apps up to date. (should not happen anymore)")
 			}
