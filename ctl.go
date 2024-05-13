@@ -20,6 +20,42 @@ func clockAdjustment(x, y int) int {
 	return x + 1
 }
 
+/*
+	Vector clock adjustment
+*/
+func vClockAdjustment(x, y []int, ind int) []int {
+	// logMessage("vClockAdjustment", "Adjusting vector clock to max(local,received) + 1.")
+	for i := 0; i < len(x); i++ {
+		if x[i] < y[i] {
+			x[i] = y[i]
+		} else {
+			x[i] = x[i]
+		}
+	}
+	x[ind] = x[ind] + 1
+	return x
+}
+
+/*
+	Cast string to vector clock*
+*/
+func castStringToVClock(strVlg string) []int {
+    strVlg = strings.Trim(strVlg, "[]")
+    elements := strings.Split(strVlg, " ")
+
+    var vlg []int
+
+	for _, element := range elements {
+        num, err := strconv.Atoi(element)
+        if err != nil {
+            panic(err)
+        }
+        vlg = append(vlg, num)
+    }
+
+	return vlg
+}
+
 //////////
 // MAIN //
 //////////
@@ -35,6 +71,9 @@ func main() {
 	messageReceived := ""
 	keyValTable := []string{}
 	clock := 0
+	vClock := []int{0, 0, 0}
+	// Find the controller number in vClock
+	idVClock := name[len(name):]
 
 	// Main loop of the controller, manages message reception and emission and processing
 	for {
@@ -59,7 +98,8 @@ func main() {
 		// Defining local clock depending on received message (ignores messages from other controllers to their own apps)
 		// logInfo("main", "Clock updating...")
 		clockReceivedStr := findValue(keyValTable, "hlg")
-		if clockReceivedStr != "" && sender[:1] == "C" { // Filters out messages from an app with a clock
+		vClockReceivedStr := findValue(keyValTable, "vlg")
+		if clockReceivedStr != "" && vClockReceivedStr != "" && sender[:1] == "C" { // Filters out messages from an app with a clock
 			// Clock adjustment if message received from other controller
 			// In this case the message is from a controller to another controller
 			clockReceived, err := strconv.Atoi(clockReceivedStr)
@@ -68,12 +108,18 @@ func main() {
 				continue
 			}
 			clock = clockAdjustment(clock, clockReceived)
+
+			// Vector clock adjustment if message received from other controller
+			vClockReceived := castStringToVClock(vClockReceivedStr)
+			vClock = vClockAdjustment(vClock, vClockReceived, idVClock)
 			// logInfo("main", "Clock updated, message received from other controller.")
 
 		} else if clockReceivedStr == "" && sender == "A"+name[1:2] { // Filters out messages without a clock from the wrong app.
 			// Incremented if message received from base app
 			clock = clock + 1
+			vClock[idVClock] = vClock[idVClock] + 1
 			// logInfo("main", "Clock updated, message received from local app.")
+
 		} else { // Filters out messages from other controller to their own app
 			// ERROR, ignoring
 			logError("main", "Message from another controller to it's own app (IGNORED) OR UNEXPECTED ERROR.")
@@ -89,7 +135,7 @@ func main() {
 			logInfo("main", "Message sent to local app.")
 		} else {
 			// Sending to other controller
-			fmt.Printf(encodeMessage([]string{"snd", "hlg", "msg"}, []string{name, strconv.Itoa(clock), findValue(keyValTable, "msg")}) + "\n")
+			fmt.Printf(encodeMessage([]string{"snd", "hlg", "vlg", "msg"}, []string{name, strconv.Itoa(clock), vClock, findValue(keyValTable, "msg")}) + "\n")
 			logInfo("main", "Message sent to other controller.")
 		}
 
