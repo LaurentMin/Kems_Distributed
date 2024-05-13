@@ -123,6 +123,7 @@ func main() {
 			case "[GAMESTATE]":
 				fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, messageReceived}) + "\n")
 				logInfo("main", "Gamestate message sent to local app.")
+
 			case "[ACRITICAL]": // Other controller asks for access restriction
 				estampilles[otherSiteNumber].Type = "[ACRITICAL]"
 				estampilles[otherSiteNumber].Clock = clock
@@ -133,6 +134,7 @@ func main() {
 					fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, "[BCRITICAL]"}) + "\n")
 					logInfo("main", "Begin critical section sent to base app.")
 				}
+
 			case "[VCRITICAL]": // Other controller validates request reception
 				// Do not replace an ask by a reception
 				if estampilles[otherSiteNumber].Type != "[ACRITICAL]" {
@@ -146,6 +148,7 @@ func main() {
 					logInfo("main", "Begin critical section sent to base app.")
 				}
 				logInfo("main", "TO DO.")
+
 			case "[ECRITICAL]": // Other controller liberates access restriction
 				estampilles[otherSiteNumber].Type = "[ECRITICAL]"
 				estampilles[otherSiteNumber].Clock = clock
@@ -155,6 +158,7 @@ func main() {
 					fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, "[BCRITICAL]"}) + "\n")
 					logInfo("main", "Begin critical section sent to base app.")
 				}
+
 			default:
 				logError("main", "Wrong message type received (controller sent wrong type) (ignoring) (could be critical for clock).")
 			}
@@ -169,16 +173,19 @@ func main() {
 			case "[GAMESTATE]":
 				fmt.Printf(encodeMessage([]string{"snd", "hlg", "msg"}, []string{name, strconv.Itoa(clock), messageReceived}) + "\n")
 				logInfo("main", "Gamestate message sent to other controller.")
+
 			case "[ACRITICAL]": // Base app asks critical (asking other controllers)
 				estampilles[siteNum].Type = "[ACRITICAL]"
 				estampilles[siteNum].Clock = clock
 				fmt.Printf(encodeMessage([]string{"snd", "hlg", "msg"}, []string{name, strconv.Itoa(clock), "[ACRITICAL]"}) + "\n")
 				logInfo("main", "Asked other controllers for access restriction.")
+
 			case "[ECRITICAL]": // Base app stops critical (liberating other controllers)
 				estampilles[siteNum].Type = "[ECRITICAL]"
 				estampilles[siteNum].Clock = clock
 				fmt.Printf(encodeMessage([]string{"snd", "hlg", "msg"}, []string{name, strconv.Itoa(clock), "[ECRITICAL]"}) + "\n")
 				logInfo("main", "Liberated other controllers from access restriction.")
+
 			default:
 				logError("main", "Wrong message type received (app sent wrong type) (ignoring) (could be critical for clock).")
 			}
