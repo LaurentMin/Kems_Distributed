@@ -9,7 +9,9 @@ import (
 	Reading go routine (sends read data from sdtin through channel)
 */
 func read(ch chan<- string) {
-	ch <- scanUntilNewline()
+	for {
+		ch <- scanUntilNewline()
+	}
 }
 
 /*
@@ -18,7 +20,10 @@ func read(ch chan<- string) {
 */
 func write(ch <-chan string) {
 	for {
-		fmt.Printf(<-ch)
-		time.Sleep(1 * time.Second)
+		select {
+		case message := <-ch:
+			fmt.Printf(message)
+			time.Sleep(1 * time.Second)
+		}
 	}
 }
