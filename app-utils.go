@@ -58,8 +58,8 @@ type GameState struct {
 func getInitSettings() GameSettings {
 	// logMessage("getInitSettings", "Initialising settings")
 	settings := GameSettings{
-		HandSize:     2,
-		DrawPileSize: 2,
+		HandSize:     4,
+		DrawPileSize: 4,
 	}
 	return settings
 }
