@@ -200,6 +200,13 @@ header {
     text-align: center;
 }
 
+#connected {
+    text-align: center;
+    color: green;
+    background-color: lightgreen;
+    border-radius: 10%;
+}
+
 
 .header-status-info-container,
 .header-button-container,

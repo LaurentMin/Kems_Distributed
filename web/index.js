@@ -1,18 +1,38 @@
-const cardBackImgPath = 'cards/BACK.png'
 
-const testCardsDraw = [
-    { id: 1, value: 2, suit: 'Cloves' },
-    { id: 2, value: 3, suit: 'Diamonds' },
-    { id: 3, value: 4, suit: 'Hearts' },
-    { id: 4, value: 5, suit: 'Spades' }
+const drawPileClassName = [
+    '.card-pos-a',
+    '.card-pos-b',
+    '.card-pos-c',
+    '.card-pos-d'
 ]
 
-const testCardsHand = [
-    { id: 5, value: 6, suit: 'Cloves' },
-    { id: 6, value: 9, suit: 'Diamonds' },
-    { id: 7, value: 7, suit: 'Hearts' },
-    { id: 8, value: 8, suit: 'Spades' }
+const handPileClassName = [
+    '.card-pos-a-player',
+    '.card-pos-b-player',
+    '.card-pos-c-player',
+    '.card-pos-d-player'
 ]
+
+const deckClassName = ".card-deck"
+const discardClassName = ".card-discard"
+
+
+
+
+const connectedElem = document.getElementById('connected')
+const playGameButtonElem = document.getElementById('playGame')
+const playGameButtonContainerElem = document.querySelector('.header-button-container')
+const currentGameStatusElem = document.querySelector('.current-status')
+const scoreContainerElem = document.querySelector('.header-score-container')
+const scoreElem = document.querySelector('.score')
+const roundContainerElem = document.querySelector('.header-round-container')
+const roundElem = document.querySelector('.round')
+
+const winColor = "green"
+const loseColor = "red"
+const primaryColor = "black"
+
+
 
 const createAllCardsObject = () => {
     const suits = ['Clubs', 'Diamonds', 'Hearts', 'Spades']
@@ -28,6 +48,151 @@ const createAllCardsObject = () => {
 }
 
 const allCards = createAllCardsObject()
+
+// Web socket connection
+var ws;
+
+document.getElementById("connect").onclick = function (evt) {
+    if (ws) {
+        return false;
+    }
+
+    var host = document.getElementById("host").value;
+    var port = document.getElementById("port").value;
+
+    ws = new WebSocket("ws://" + host + ":" + port + "/ws");
+
+    ws.onopen = function (evt) {
+        console.log("Connection open ...");
+        connectedElem.textContent = "Connected";
+        ws.send("Hello Server!!")
+    };
+
+    ws.onclose = function (evt) {
+        connectedElem.textContent = "";
+        ws = null;
+    }
+
+    ws.onmessage = function (evt) {
+        console.log("Received message: " + evt.data);
+        gameState = JSON.parse(evt.data)
+        updateGame(gameState)
+    }
+
+    ws.onerror = function (evt) {
+        console.log("Connection error ...");
+    }
+
+    return false;
+}
+
+document.getElementById("close").onclick = function (evt) {
+    if (!ws) {
+        return false;
+    }
+    ws.close();
+    return false;
+}
+
+const cardBackImgPath = 'cards/BACK.png'
+
+const getCardWithHTMLId = (cardItem) => {
+    return allCards.find(card => card.value === parseInt(cardItem.value) && card.suit === cardItem.suit)
+}
+
+const updateGame = (gameState) => {
+    console.log("Updating game state", gameState)
+    gameState.drawPile.forEach((cardItem, id) => {
+        cardItemWithHTMLId = getCardWithHTMLId(cardItem)
+        createCard(cardItemWithHTMLId, 'draw', drawPileClassName[id])
+    })
+
+    gameState.hand.forEach((cardItem, id) => {
+        cardItemWithHTMLId = getCardWithHTMLId(cardItem)
+        createCard(cardItemWithHTMLId, 'hand', handPileClassName[id])
+    })
+
+    //Create False card for deck
+    createCard({ id: 99, value: 1, suit: 'Spades' }, 'deck', deckClassName)
+
+    // discardPile might not be in the gameState
+    if (gameState.discardPile) {
+        cardItem = gameState.discardPile[0]
+        cardItemWithHTMLId = getCardWithHTMLId(cardItem)
+        createCard(cardItemWithHTMLId, 'discard', discardClassName)
+    }
+
+    if (gameState.potentialWinner) {
+        playGameButtonElem.style.display = "inline-block";
+        if (gameState.potentialWinner === gameState.playerId) {
+            playGameButtonElem.textContent = 'Kems';
+            playGameButtonElem.addEventListener('click', kems);
+        } else {
+            playGameButtonElem.textContent = 'Counter Kems';
+            playGameButtonElem.addEventListener('click', counterKems);
+        }
+    } else {
+        playGameButtonElem.textContent = 'Swap Cards';
+    }
+
+    playerScore = gameState.scores[gameState.playerId - 1]
+    console.log("Player score", playerScore, gameState.round)
+
+    updateStatusElement(scoreElem, "block", primaryColor, `Score&nbsp;<span class='badge'>${score}</span>`)
+    updateStatusElement(roundElem, "block", primaryColor, `Round&nbsp;<span class='badge'>${gameState.round}</span>`)
+}
+
+function sendAction(action) {
+    if (!ws) {
+        console.error('Websocket not connected')
+        return false;
+    }
+    console.log('Sending action', action)
+    ws.send(JSON.stringify(actionObject))
+}
+
+// game Action
+function newTurn() {
+    actionObject = {
+        action: 'NextTurn',
+    }
+    sendAction(actionObject)
+}
+
+function swapCards(drawCardHtml, handCardHtml) {
+    console.log('Swapping Cards')
+    drawCard = allCards.find(card => card.id === parseInt(drawCardHtml.id))
+    handCard = allCards.find(card => card.id === parseInt(handCardHtml.id))
+    console.log('Draw Card', drawCard, drawCardHtml)
+    console.log('Hand Card', handCard, handCardHtml)
+    actionObject = {
+        action: 'SwapCards',
+        drawCardValue: drawCard.value,
+        drawCardSuit: drawCard.suit,
+        handCardValue: handCard.value,
+        handCardSuit: handCard.suit,
+    }
+    sendAction(actionObject)
+}
+
+function kems() {
+    console.log('Kems')
+    actionObject = {
+        action: 'Kems',
+    }
+    sendAction(actionObject)
+    playGameButtonElem.style.display = "none"
+}
+
+function counterKems() {
+    console.log('Counter Kems')
+    actionObject = {
+        action: 'ContreKems',
+    }
+    sendAction(actionObject)
+    playGameButtonElem.style.display = "none"
+}
+
 
 const getCardValueForFileName = (card) => {
     if (card.value === 0) {
@@ -50,33 +215,6 @@ const getCardValueForFileName = (card) => {
 }
 
 let cardPositions = []
-
-
-const playGameButtonElem = document.getElementById('playGame')
-const currentGameStatusElem = document.querySelector('.current-status')
-const scoreContainerElem = document.querySelector('.header-score-container')
-const scoreElem = document.querySelector('.score')
-const roundContainerElem = document.querySelector('.header-round-container')
-const roundElem = document.querySelector('.round')
-
-const winColor = "green"
-const loseColor = "red"
-const primaryColor = "black"
-
-let roundNum = 1
-let maxRounds = 4
-let score = 0
-
-/* <div class="card">
-<div class="card-inner">
-    <div class="card-front">
-        <img src="/images/card-JackClubs.png" alt="" class="card-img">
-    </div>
-    <div class="card-back">
-        <img src="/images/card-back-Blue.png" alt="" class="card-img">
-    </div>
-</div>
-</div> */
 
 
 function endRound() {
@@ -127,20 +265,6 @@ function swapButtonHandler() {
 }
 
 
-function loadGame() {
-    createCards()
-
-    cards = document.querySelectorAll('.card')
-    console.log(cards)
-
-    playGameButtonElem.textContent = 'Swap Cards';
-
-    updateStatusElement(scoreContainerElem, "0")
-    updateStatusElement(roundContainerElem, "0")
-
-}
-
-
 
 
 function initializeNewRound() {
@@ -165,36 +289,17 @@ function flipCard(card, flipToBack) {
 
 }
 
-const drawPileClassName = [
-    '.card-pos-a',
-    '.card-pos-b',
-    '.card-pos-c',
-    '.card-pos-d'
-]
 
-const handPileClassName = [
-    '.card-pos-a-player',
-    '.card-pos-b-player',
-    '.card-pos-c-player',
-    '.card-pos-d-player'
-]
-
-const deckClassName = ".card-deck"
-const discardClassName = ".card-discard"
-
-// Test
-function createCards() {
-    testCardsDraw.forEach((cardItem, id) => {
-        createCard(cardItem, 'draw', drawPileClassName[id])
-    })
-
-    testCardsHand.forEach((cardItem, id) => {
-        createCard(cardItem, 'hand', handPileClassName[id])
-    })
-
-    createCard({ id: 9, value: 10, suit: 'Spades' }, 'deck', deckClassName)
-}
-
+/* <div class="card">
+<div class="card-inner">
+    <div class="card-front">
+        <img src="/images/card-JackClubs.png" alt="" class="card-img">
+    </div>
+    <div class="card-back">
+        <img src="/images/card-back-Blue.png" alt="" class="card-img">
+    </div>
+</div>
+</div> */
 
 function createCard(cardItem, pile, cardPositionClassName) {
 
@@ -326,20 +431,13 @@ function attatchClickEventHandlerToCard(card, pile) {
             });
             break;
         case 'deck':
-            newTurn()
+            card.addEventListener('click', () => {
+                newTurn()
+            });
             break;
 
     }
 
-}
-
-// Back function
-function newTurn() {
-    console.log('New Turn')
-}
-
-function swapCards(drawCard, handCard) {
-    console.log('Swaxpping Cards')
 }
 
 function createElement(elemType) {
@@ -368,9 +466,6 @@ function addChildElement(parentElem, childElem) {
 function getSerializedObjectAsJSON(obj) {
     return JSON.stringify(obj)
 }
-function getObjectFromJSON(json) {
-    return JSON.parse(json)
-}
 function updateLocalStorageItem(key, value) {
     localStorage.setItem(key, value)
 }
@@ -380,5 +475,3 @@ function removeLocalStorageItem(key) {
 function getLocalStorageItemValue(key) {
     return localStorage.getItem(key)
 }
-
-loadGame()

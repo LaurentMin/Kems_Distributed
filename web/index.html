@@ -24,10 +24,20 @@
             <div class="header-round-container">
                 <h2 class="round">Round&nbsp;<span class="badge">0</span></h2>
             </div>
+            <form>
+                <p>
+                    host : <input id="host" type="text" size="10" value="localhost">
+                    port : <input id="port" type="text" maxlength="5" size="5" value="4444">
+                    <br>
+                    <button id="connect">Connect</button>
+                    <button id="close">Close</button>
+                    &nbsp;&nbsp;<span id="connected"></span>
+                </p>
+            </form>
         </div>
         <div class="header-status-info-container">
             <p class="current-status">
-                Click 'Play Game' button to play game
+                &nbsp;
             </p>
         </div>
     </header>
