@@ -365,8 +365,10 @@ func main() {
 				logSuccess("main", "Gamestate updated, sending game update. (Ended critical access) + (Sent update to display)")
 				fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, gameStateToString(game)}) + "\n")
 				time.Sleep(1 * time.Second)
+				logInfo("main", "Ended critical access message sent.")
 				fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, "[ECRITICAL]"}) + "\n")
 				time.Sleep(1 * time.Second)
+				logInfo("main", "Sent update to display.")
 				sendGameStateToPLayer(game)
 				time.Sleep(1 * time.Second)
 
