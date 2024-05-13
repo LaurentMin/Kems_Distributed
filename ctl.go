@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 ///////////
@@ -56,6 +57,19 @@ func castStringToVClock(strVlg string) []int {
 	return vlg
 }
 
+/*
+	Cast vector clock to string
+*/
+func castVClockToString(vlg []int) string {
+	var strVlg string
+
+	for _, element := range vlg {
+		strVlg += strconv.Itoa(element) + " "
+	}
+
+	return strVlg
+}
+
 //////////
 // MAIN //
 //////////
@@ -73,7 +87,10 @@ func main() {
 	clock := 0
 	vClock := []int{0, 0, 0}
 	// Find the controller number in vClock
-	idVClock := name[len(name):]
+	idVClock, err := strconv.Atoi(name[len(name):])
+	if err != nil {
+		logError("main", "Error converting string to int for idVClock: "+err.Error())
+	}
 
 	// Main loop of the controller, manages message reception and emission and processing
 	for {
@@ -135,7 +152,7 @@ func main() {
 			logInfo("main", "Message sent to local app.")
 		} else {
 			// Sending to other controller
-			fmt.Printf(encodeMessage([]string{"snd", "hlg", "vlg", "msg"}, []string{name, strconv.Itoa(clock), vClock, findValue(keyValTable, "msg")}) + "\n")
+			fmt.Printf(encodeMessage([]string{"snd", "hlg", "vlg", "msg"}, []string{name, strconv.Itoa(clock), castVClockToString(vClock), findValue(keyValTable, "msg")}) + "\n")
 			logInfo("main", "Message sent to other controller.")
 		}
 
