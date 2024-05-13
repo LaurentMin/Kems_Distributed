@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"os"
+	"bufio"
 )
 
 ///////////
@@ -70,6 +72,40 @@ func castVClockToString(vlg []int) string {
 	return strVlg
 }
 
+///////////
+// FILES //
+///////////
+/*
+	Save game in file
+*/
+func saveGame(gameSave string, name string, vClock []int) {
+	logInfo("saveGame", "Saving game in file.")
+	// Open file
+	filename := "gameSave" + name + castVClockToString(vClock) + ".txt"
+	file, err := os.Create(filename)
+	if err != nil {
+		logError("saveGame", "Error creating file: "+err.Error())
+		return
+	}
+	defer file.Close()
+
+	// Write in file
+	writer := bufio.NewWriter(file)
+	_, err = writer.WriteString(gameSave)
+	if err != nil {
+		logError("saveGame", "Error writing in file: "+err.Error())
+		return
+	}
+
+	err = writer.Flush()
+	if err != nil {
+		logError("saveGame", "Error flushing writer: "+err.Error())
+		return
+	}
+
+	logSuccess("saveGame", "Game saved in file.")
+}
+
 //////////
 // MAIN //
 //////////
@@ -95,7 +131,7 @@ func main() {
 
 	// Main loop of the controller, manages message reception and emission and processing
 	for {
-		// logInfo("main", "Waiting for message.")
+		logInfo("main", "Waiting for message.")
 		// Message reception
 		// fmt.Scanln(&messageReceived)
 		// ReadString until '\n' delimiter (instead of Scanln)
@@ -137,6 +173,16 @@ func main() {
 			clock = clock + 1
 			vClock[idVClock] = vClock[idVClock] + 1
 			// logInfo("main", "Clock updated, message received from local app.")
+
+			// Save order received from base app
+			if findValue(keyValTable, "saveOrder") == "true" {
+				gameSave := findValue(keyValTable, "msg")
+				// logInfo("main", "Order saved: "+gameSave)
+				logInfo("main", "Save local game.")
+
+				// Save game in file
+				saveGame(gameSave, name, vClock)
+			}
 
 		} else { // Filters out messages from other controller to their own app
 			// ERROR, ignoring
