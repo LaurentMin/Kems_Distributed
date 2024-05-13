@@ -336,7 +336,7 @@ func main() {
 		messageReceived = findValue(keyValTable, "msg")
 
 		// Filter out wrong messages (just in case)
-		if len(messageReceived) < 11 || (messageReceived[:11] != "[GAMESTATE]" && messageReceived[:11] != "[VCRITICAL]") {
+		if len(messageReceived) < 11 || (messageReceived[:11] != "[GAMESTATE]" && messageReceived[:11] != "[BCRITICAL]") {
 			// logInfo("main", "Wrong message type for app received "+messageReceived+" (ignoring).")
 			logInfo("main", "Wrong message type for app received (ignoring).")
 			messageReceived = ""
@@ -344,7 +344,7 @@ func main() {
 		}
 
 		// Message is an exclusive access grant => handle action
-		if messageReceived[:11] == "[VCRITICAL]" {
+		if messageReceived[:11] == "[BCRITICAL]" {
 			// Error if app is not trying to handle an action
 			if actionToDo == "" {
 				logError("main", "App received access but did not need it anymore (liberating)")
