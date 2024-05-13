@@ -28,6 +28,22 @@ type Request struct {
 	Clock int
 }
 
+//////////////////
+// HELPER FUNCS //
+//////////////////
+/*
+	Returns true if siteN has smallest date in estampilles
+	(called to start a critical section for example)
+*/
+func canGoCritical(estampilles []Request, site int) bool {
+	for i := 0; i < len(estampilles); i++ {
+		if estampilles[site].Clock > estampilles[i].Clock || (estampilles[site].Clock == estampilles[i].Clock && site > i) {
+			return false
+		}
+	}
+	return true
+}
+
 //////////
 // MAIN //
 //////////
@@ -102,16 +118,43 @@ func main() {
 		// Receive from controller
 		// logInfo("main", "Sending message...")
 		if clockReceivedStr != "" && sender[:1] == "C" {
+			otherSiteNumber, _ := strconv.Atoi(sender[1:2])
 			switch messageReceived[:11] {
 			case "[GAMESTATE]":
 				fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, messageReceived}) + "\n")
 				logInfo("main", "Gamestate message sent to local app.")
-			case "[ACRITICAL]": // TO DO ASK CRITICAL
+			case "[ACRITICAL]": // Other controller asks for access restriction
+				estampilles[otherSiteNumber].Type = "[ACRITICAL]"
+				estampilles[otherSiteNumber].Clock = clock
+				fmt.Printf(encodeMessage([]string{"snd", "hlg", "msg"}, []string{name, strconv.Itoa(clock), "[VCRITICAL]"}) + "\n")
+				logInfo("main", "Answered to other controller restriction access demand.")
+				// Check if can start own critical
+				if estampilles[siteNum].Type == "[ACRITICAL]" && canGoCritical(estampilles, siteNum) {
+					fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, "[BCRITICAL]"}) + "\n")
+					logInfo("main", "Begin critical section sent to base app.")
+				}
+			case "[VCRITICAL]": // Other controller validates request reception
+				// Do not replace an ask by a reception
+				if estampilles[otherSiteNumber].Type != "[ACRITICAL]" {
+					estampilles[otherSiteNumber].Type = "[VCRITICAL]"
+					estampilles[otherSiteNumber].Clock = clock
+				}
+				logInfo("main", "Critical section reception was confirmed by other controller.")
+				// Check if can start own critical
+				if estampilles[siteNum].Type == "[ACRITICAL]" && canGoCritical(estampilles, siteNum) {
+					fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, "[BCRITICAL]"}) + "\n")
+					logInfo("main", "Begin critical section sent to base app.")
+				}
 				logInfo("main", "TO DO.")
-			case "[VCRITICAL]": // TO DO VALIDATE CRITICAL
-				logInfo("main", "TO DO.")
-			case "[ECRITICAL]": // TO DO END CRITICAL
-				logInfo("main", "TO DO.")
+			case "[ECRITICAL]": // Other controller liberates access restriction
+				estampilles[otherSiteNumber].Type = "[ECRITICAL]"
+				estampilles[otherSiteNumber].Clock = clock
+				logInfo("main", "Other controller ended restriction access.")
+				// Check if can start own critical
+				if estampilles[siteNum].Type == "[ACRITICAL]" && canGoCritical(estampilles, siteNum) {
+					fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, "[BCRITICAL]"}) + "\n")
+					logInfo("main", "Begin critical section sent to base app.")
+				}
 			default:
 				logError("main", "Wrong message type received (controller sent wrong type) (ignoring) (could be critical for clock).")
 			}
