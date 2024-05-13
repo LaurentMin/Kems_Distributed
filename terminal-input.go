@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -44,7 +45,7 @@ func sendAction(actionType string, actionParamsNames []string, actionParamsValue
 	action := encodeMessage([]string{"typ", "prm"}, []string{actionType, params})
 
 	logInfo("sendAction", "Sending action "+action)
-	outChan <- encodeMessage([]string{"snd", "msg"}, []string{"P" + name, action}) + "\n"
+	fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{"P" + name, action}) + "\n")
 }
 
 func main() {
@@ -62,9 +63,6 @@ func main() {
 	sendAction("InitPlayer", []string{"newPlayer"}, []string{name})
 	// logInfo("main", "Launching player...")
 	playerInput := ""
-	// Go routines to read and write input / output
-	outChan := make(chan string, 10)
-	go write(outChan)
 
 	for {
 		// Message reception
