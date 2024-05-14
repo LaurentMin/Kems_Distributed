@@ -1,11 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"flag"
+	"os"
 	"strconv"
 	"strings"
-	"os"
-	"bufio"
 )
 
 ///////////
@@ -42,18 +42,18 @@ func vClockAdjustment(x, y []int, ind int) []int {
 	Cast string to vector clock*
 */
 func castStringToVClock(strVlg string) []int {
-    strVlg = strings.Trim(strVlg, "[]")
-    elements := strings.Split(strVlg, " ")
+	strVlg = strings.Trim(strVlg, "[]")
+	elements := strings.Split(strVlg, " ")
 
-    var vlg []int
+	var vlg []int
 
 	for _, element := range elements {
-        num, err := strconv.Atoi(element)
-        if err != nil {
-            panic(err)
-        }
-        vlg = append(vlg, num)
-    }
+		num, err := strconv.Atoi(element)
+		if err != nil {
+			panic(err)
+		}
+		vlg = append(vlg, num)
+	}
 
 	return vlg
 }

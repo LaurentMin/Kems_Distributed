@@ -7,6 +7,13 @@ import (
 )
 
 /*
+	Setting chans as global so functions can ouput
+	(needed for saving message)
+*/
+var inChan chan string
+var outChan chan string
+
+/*
 	Reading go routine (sends read data from sdtin through channel)
 */
 func read(ch chan<- string) {
