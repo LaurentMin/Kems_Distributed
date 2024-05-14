@@ -129,6 +129,17 @@ func main() {
 			otherSiteNumber -= 1
 			switch messageReceived[:11] {
 			case "[GAMESTATE]":
+				// Do not replace an ask by a gamestate
+				if estampilles[otherSiteNumber].Type != "[ACRITICAL]" {
+					estampilles[otherSiteNumber].Type = "[GAMESTATE]"
+					estampilles[otherSiteNumber].Clock = clock
+				}
+				// Check if can start own critical
+				if estampilles[siteNum].Type == "[ACRITICAL]" && canGoCritical(estampilles, siteNum) {
+					outChan <- encodeMessage([]string{"snd", "msg"}, []string{name, "[BCRITICAL]"}) + "\n"
+					logInfo("main", "Begin critical section sent to base app.")
+				}
+				// Send gamestate to app
 				outChan <- encodeMessage([]string{"snd", "msg"}, []string{name, messageReceived}) + "\n"
 				logInfo("main", "Gamestate message sent to local app.")
 
@@ -178,6 +189,11 @@ func main() {
 		if clockReceivedStr == "" && sender == "A"+name[1:2] {
 			switch messageReceived[:11] {
 			case "[GAMESTATE]":
+				// Do not replace an ask by a gamestate
+				if estampilles[siteNum].Type != "[ACRITICAL]" {
+					estampilles[siteNum].Type = "[GAMESTATE]"
+					estampilles[siteNum].Clock = clock
+				}
 				outChan <- encodeMessage([]string{"snd", "hlg", "msg"}, []string{name, strconv.Itoa(clock), messageReceived}) + "\n"
 				logInfo("main", "Gamestate message sent to other controller.")
 
