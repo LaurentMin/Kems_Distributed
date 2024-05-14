@@ -23,3 +23,7 @@ Chaque application a donc un réplicat de la donnée partagée. La cohérence de
 <br>
 
 Dans notre système, nous avons décidé que dans le cas où l'application reçoit une action `a1`, puis fait une demande de modification; mais reçoit une action `a2` avant d'avoir pu appliquer `a1`, elle oublie `a1` et applique `a2` lorsqu'elle obtient le droit de modification. Comme en principe, l'application est plus rapide que l'utilisateur cette situation n'arrive jamais. Et dans le cas où le système est surchargée, il n'est pas une bonne idée de lui faire faire plus d'actions.
+
+## Sauvegarde
+
+Une application peut recevoir une demande de sauvegarde soit de son propre utilisateur, soit du contrôleur. Dans le premier cas, l'application envoie une demande de sauvegarde au contrôleur avec l'état du jeu en se désignant comme initiateur. Dans le second cas, elle envoie l'état du jeu au controleur.
