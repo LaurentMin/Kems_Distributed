@@ -52,7 +52,7 @@ func castStringToVClock(strVlg string) []int {
 		if element != "" {
 			num, err := strconv.Atoi(element)
 			if err != nil {
-				panic(err)
+				logError("castStringToVClock", "Error converting string to int: "+err.Error())
 			}
 			vlg = append(vlg, num)
 		}
