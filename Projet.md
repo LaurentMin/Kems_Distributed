@@ -13,8 +13,8 @@
 
 [moodle](https://moodle.utc.fr/mod/page/view.php?id=155900)
 
-- L'application répartie utilise une donnée partagée entre les sites  
-  - Définir un scénario qui nécessite le partage d'au moins une donnée entre plusieurs "sites" : les instances de l'application réparties s'exécutant sur chaque site travaillent sur des *réplicats* qui sont des copies locales de la donnée partagée.
+- L'application répartie utilise une donnée partagée entre les sites
+  - Définir un scénario qui nécessite le partage d'au moins une donnée entre plusieurs "sites" : les instances de l'application réparties s'exécutant sur chaque site travaillent sur des _réplicats_ qui sont des copies locales de la donnée partagée.
 - Les réplicats restent cohérents
   - N'autoriser qu'une seule modification de réplicat à la fois et propager les modifications aux autres réplicats.
   - Implémenter pour cela l'algorithme de la file d'attente répartie qui organise une exclusion mutuelle. La section critique correspond à l'accès exclusif à la donnée. À vous de voir s'il faut une exclusion mutuelle pour l'écriture et la lecture de la donnée partagée. À vous de voir comment adapter l'algorithme pour diffuser la mise à jour de la donnée partagée.
