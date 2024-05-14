@@ -154,6 +154,9 @@ func main() {
 		logError("main", "Error converting string to int for idVClock: "+err.Error())
 	}
 
+	// Save state
+	saveState := false
+
 	estampilles := []Request{Request{"[ECRITICAL]", 0}, Request{"[ECRITICAL]", 0}, Request{"[ECRITICAL]", 0}} // Index 0..2 corresponds to controllers 1..3
 	siteNum, _ := strconv.Atoi(name[1:2])                                                                     // Ok if this makes app crash (name must be defined)
 	siteNum -= 1
@@ -247,12 +250,18 @@ func main() {
 				logInfo("main", "Gamestate message sent to local app.")
 			
 			case "[SAVEORDER]":
-				// TODO: Save order received from other controller
+				// Save order received from other controller
+				if strconv.FormatBool(saveState) != messageReceived[11:] {
+					outChan <- encodeMessage([]string{"snd", "msg"}, []string{name, messageReceived}) + "\n"
+					outChan <- encodeMessage([]string{"snd", "hlg", "vlg", "msg"}, []string{name, strconv.Itoa(clock), castVClockToString(vClock), messageReceived}) + "\n"
+					saveState = !saveState
+					logInfo("main", "Save order received from other controller and send to local app.")
+				}
 
 			case "[ACRITICAL]": // Other controller asks for access restriction
 				estampilles[otherSiteNumber].Type = "[ACRITICAL]"
 				estampilles[otherSiteNumber].Clock = clock
-				outChan <- encodeMessage([]string{"snd", "hlg", "msg"}, []string{name, strconv.Itoa(clock), "[VCRITICAL]"}) + "\n"
+				outChan <- encodeMessage([]string{"snd", "hlg", "vlg", "msg"}, []string{name, strconv.Itoa(clock), castVClockToString(vClock), "[VCRITICAL]"}) + "\n"
 				logInfo("main", "Answered to other controller restriction access demand.")
 				// Check if can start own critical
 				if estampilles[siteNum].Type == "[ACRITICAL]" && canGoCritical(estampilles, siteNum) {
@@ -305,16 +314,26 @@ func main() {
 
 			case "[SAVEORDER]":
 				// Save order received from base app
-				if findValue(keyValTable, "saveOrder") == "true" {
+				if findValue(keyValTable, "saveOrder") == "1" {
 					gameSave := findValue(keyValTable, "msg")
+					gameSave = gameSave[11:]
 					// logInfo("main", "Order saved: "+gameSave)
 					logInfo("main", "Save local game.")
 
 					// Save game in file
 					saveGame(gameSave, name, vClock)
+					saveState = !saveState
 
 					// Send save order to other controllers
-					outChan <- encodeMessage([]string{"snd", "hlg", "vlg", "msg"}, []string{name, strconv.Itoa(clock), castVClockToString(vClock), "[SAVEORDER]"}) + "\n"
+					outChan <- encodeMessage([]string{"snd", "hlg", "vlg", "msg"}, []string{name, strconv.Itoa(clock), castVClockToString(vClock), "[SAVEORDER]" + strconv.FormatBool(saveState)}) + "\n"
+				
+				} else if findValue(keyValTable, "saveOrder") == "0" {
+					// made save
+					gameSave := findValue(keyValTable, "msg")
+					gameSave = gameSave[11:]
+
+					// Save game in file
+					saveGame(gameSave, name, vClock)
 				}
 
 			case "[ACRITICAL]": // Base app asks critical (asking other controllers)
