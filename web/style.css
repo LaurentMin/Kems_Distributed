@@ -1,0 +1,417 @@
+@import url('https://fonts.googleapis.com/css2?family=Quicksand&display=swap');
+
+:root {
+    --card-width-lg: 110px;
+    --card-height-lg: 150px;
+
+    --card-width-sm: 90px;
+    --card-height-sm: 140px;
+
+    --num-cards: 4;
+
+    --card-horizontal-space-lg: 100px;
+    --card-horizontal-space-sm: 50px;
+
+    --badge-bg-color: darkgrey;
+    --primary-color: black;
+    --secondary-color: #ffffff;
+
+    --primary-font: 'Quicksand', sans-serif;
+}
+
+body {
+    height: 100vh;
+    font-family: var(--primary-font);
+}
+
+main {
+    height: 70%;
+    display: flex;
+    width: 100%;
+}
+
+
+.board-row {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-around;
+    flex-direction: row;
+    height: 100%;
+}
+
+.board-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    height: 100%;
+}
+
+.deck-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    height: 100%;
+}
+
+
+.card-container-player,
+.card-container {
+    margin-top: 50px;
+    position: relative;
+    height: 160px;
+    width: calc(var(--card-width-lg) * (var(--num-cards)) + var(--card-horizontal-space-lg));
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    grid-template-rows: 1fr;
+    grid-template-areas: "a b c d";
+}
+
+.card-container-player {
+    padding-top: 60px;
+}
+
+.card-container {
+    margin-top: 0;
+    padding: 15px;
+    background-color: aquamarine;
+    border-radius: 10px;
+}
+
+.card-pos-a-player,
+.card-pos-a {
+    grid-area: a;
+    /* background-color: gray; */
+}
+
+.card-pos-b-player,
+.card-pos-b {
+    grid-area: b;
+    /* background-color: goldenrod; */
+}
+
+.card-pos-c-player,
+.card-pos-c {
+    grid-area: c;
+    /* background-color: rosybrown; */
+}
+
+.card-pos-d-player,
+.card-pos-d {
+    grid-area: d;
+    /* background-color: darkcyan; */
+}
+
+
+
+.card-pos-a-player,
+.card-pos-b-player,
+.card-pos-c-player,
+.card-pos-d-player,
+.card-pos-a,
+.card-pos-b,
+.card-pos-c,
+.card-pos-d {
+    display: flex;
+
+    justify-content: center;
+    align-items: center;
+}
+
+.card {
+    position: absolute;
+    height: var(--card-height-lg);
+    width: var(--card-width-lg);
+    perspective: 1000px;
+    cursor: pointer;
+    transition: transform 0.6s ease-in-out
+}
+
+.card:hover {
+    transform: scale(1.1);
+
+}
+
+.card.selected {
+    box-shadow: 0 0 10px 5px lightblue;
+    transform: scale(1.1);
+    z-index: 100;
+}
+
+
+.card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+}
+
+.card-front,
+.card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+}
+
+.card-img {
+    height: 100%;
+}
+
+.card-back {
+    transform: rotateY(180deg);
+}
+
+.card-inner.flip-it {
+    transform: rotateY(180deg);
+}
+
+.playerCardText {
+    padding-top: 40px;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--primary-color);
+
+}
+
+header {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 10px;
+}
+
+.header-title-container {
+    display: flex;
+    justify-content: center;
+}
+
+.header-round-info-container {
+    display: flex;
+    justify-content: space-evenly;
+}
+
+.current-status {
+    font-size: 1rem;
+    text-align: center;
+}
+
+#connected {
+    text-align: center;
+    color: green;
+    background-color: lightgreen;
+    border-radius: 10%;
+}
+
+.button {
+    background-color: green;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.header-status-info-container,
+.header-button-container,
+.header-score-container,
+.header-round-container,
+.header-img-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.current-status,
+.header-status-info-container {
+    margin-top: 0;
+}
+
+.header-score-container,
+.header-round-container,
+.header-img-container {
+    width: 80px;
+}
+
+.header-img {
+    height: 50px;
+    position: absolute;
+    border-radius: 5px;
+    border: 1px solid black;
+    padding: 5px;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+    transform: rotate(-3deg);
+}
+
+.badge {
+    background-color: var(--badge-bg-color);
+    color: var(--secondary-color);
+    padding: 2px 10px 3px;
+    border-radius: 15px;
+}
+
+.game-play-button-container {
+    margin-top: 20px;
+    width: 150px;
+    height: 70px;
+}
+
+/* CSS */
+#playGame {
+    display: none;
+    appearance: none;
+    background-color: transparent;
+    border: 2px solid #1A1A1A;
+    border-radius: 15px;
+    box-sizing: border-box;
+    color: #3B3B3B;
+    cursor: pointer;
+    font-family: var(--primary-font);
+    font-size: 16px;
+    font-weight: 600;
+    line-height: normal;
+    margin: 0;
+    min-height: 60px;
+    min-width: 0;
+    outline: none;
+    padding: 16px 24px;
+    text-align: center;
+    text-decoration: none;
+    transition: all 300ms cubic-bezier(.23, 1, 0.32, 1);
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    width: 100%;
+    will-change: transform;
+    animation: game-play-button-fade-in 10s 1;
+}
+
+#playGame:disabled {
+    pointer-events: none;
+}
+
+#playGame:hover {
+    color: #fff;
+    background-color: #1A1A1A;
+    box-shadow: rgba(0, 0, 0, 0.25) 0 8px 15px;
+    transform: translateY(-2px);
+}
+
+#playGame:active {
+    box-shadow: none;
+    transform: translateY(0);
+}
+
+@keyframes game-play-button-fade-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+
+.card.shuffle-left {
+    transform: translateX(300px) translateY(40px);
+}
+
+.card.shuffle-right {
+    transform: translateX(-350px) translateY(-40px);
+}
+
+.card.fly-in {
+    transform: translateY(-1000px) translateX(-600px) rotate(45deg);
+}
+
+@media screen and (max-width:600px) {
+    .card {
+        width: var(--card-width-sm);
+        height: var(--card-height-sm);
+    }
+
+    .card-container {
+        width: calc(var(--card-width-sm) * (var(--num-cards)) + var(--card-horizontal-space-sm));
+    }
+
+    .card-container-player {
+        width: calc(var(--card-width-sm) * (var(--num-cards)) + var(--card-horizontal-space-sm));
+    }
+
+    main {
+        height: 50%;
+    }
+
+    .current-status {
+        font-size: 1.2rem;
+    }
+
+    .game-play-button-container {
+        width: 120px;
+        height: 40px;
+    }
+
+    #playGame {
+        padding: 6px 8px;
+        font-size: 12px;
+        min-height: 40px;
+    }
+
+    .header-img {
+        height: 40px;
+    }
+}
+
+/* The Modal (background) */
+.modal {
+    display: none;
+    /* Hidden by default */
+    position: fixed;
+    /* Stay in place */
+    z-index: 1;
+    /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%;
+    /* Full width */
+    height: 100%;
+    /* Full height */
+    overflow: auto;
+    /* Enable scroll if needed */
+    background-color: rgb(0, 0, 0);
+    /* Fallback color */
+    background-color: rgba(0, 0, 0, 0.4);
+    /* Black w/ opacity */
+}
+
+/* Modal Content/Box */
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    /* 15% from the top and centered */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    /* Could be more or less, depending on screen size */
+}
+
+/* The Close Button */
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
