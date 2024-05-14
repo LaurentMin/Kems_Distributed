@@ -154,14 +154,14 @@ document.getElementById("connect").onclick = function (evt) {
     var host = "localhost";
     var port
     switch (selectedPlayer) {
-        case '1':
+        case 1:
             port = 4444;
             break;
-        case '2':
+        case 2:
             port = 5555;
             break;
-        case '3':
-            port = 6666;
+        case 3:
+            port = 5000;
             break;
     }
 

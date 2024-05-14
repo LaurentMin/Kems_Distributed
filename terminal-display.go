@@ -147,6 +147,7 @@ func main() {
 	for {
 		logInfo("main", "Waiting for next state...")
 		messageReceived = <-inChan
+		logInfo("main", "Message received: "+messageReceived)
 
 		// Ignore message not for display
 		if len(messageReceived) < 11 || messageReceived[:11] != "[GAMESTATE]" {
