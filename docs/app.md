@@ -18,7 +18,7 @@ Ainsi, peu importe la modification apportée à l'état du jeu, il suffit d'envo
 
 ## Cohérence des réplicats
 
-Chaque application a donc un réplicat de la donnée partagée. La cohérence de cette donnée est assurée par le contrôleur. Avant chaque modification de la donnée, l'application attend d'avoir l'autorisation du contrôleur pour la modifier.
+Chaque application a donc un réplicat de la donnée partagée. La cohérence de cette donnée est assurée par le contrôleur. Avant chaque modification de la donnée, l'application attend d'avoir l'autorisation du contrôleur pour la modifier. Une application ne peut donc modifier sa donnée que pendant une section critique et les contrôleurs assurent qu'il n'y en a qu'un à la fois. Avant de mettre fin à son accès exclusif, l'application envoi sa donnée mise à jour.
 
 <br>
 
