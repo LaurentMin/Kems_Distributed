@@ -34,7 +34,7 @@ func vClockAdjustment(x, y []int, ind int) []int {
 			x[i] = x[i]
 		}
 	}
-	x[ind-1] = x[ind-1] + 1
+	x[ind] = x[ind] + 1
 	return x
 }
 
@@ -152,19 +152,16 @@ func main() {
 	clock := 0
 
 	vClock := []int{0, 0, 0}
-	// Find the controller number in vClock
-	idVClock, err := strconv.Atoi(name[len(name)-1:])
-	logInfo("main", "idVClock: "+strconv.Itoa(idVClock))
-	if err != nil {
-		logError("main", "Error converting string to int for idVClock: "+err.Error())
-	}
-
 	// Save state
 	saveState := false
 
 	estampilles := []Request{Request{"[ECRITICAL]", 0}, Request{"[ECRITICAL]", 0}, Request{"[ECRITICAL]", 0}} // Index 0..2 corresponds to controllers 1..3
 	siteNum, _ := strconv.Atoi(name[1:2])                                                                     // Ok if this makes app crash (name must be defined)
 	siteNum -= 1
+
+	// Find the controller number in vClock
+	idVClock := siteNum
+
 	// Go routines to read and write input / output
 	inChan := make(chan string, 10)
 	outChan := make(chan string, 10)
