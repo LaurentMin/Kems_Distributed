@@ -29,11 +29,55 @@
                     host : <input id="host" type="text" size="10" value="localhost">
                     port : <input id="port" type="text" maxlength="5" size="5" value="4444">
                     <br>
-                    <button id="connect">Connect</button>
-                    <button id="close">Close</button>
+                    <button id="connect" class="button">Connect</button>
+                    <button id="close" class="button">Close</button>
                     &nbsp;&nbsp;<span id="connected"></span>
                 </p>
             </form>
+
+            <!-- The Modal -->
+            <div id="myModal" class="modal">
+
+                <!-- Modal content -->
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <button id="reset-game" class="button">Force reset game</button>
+                    <h2>Welcome to KEMS - Card Game of Rapidity!</h2>
+                    <p>
+                        In this card game, each player is dealt a hand of 4 cards. Four cards are placed face down on
+                        the table as the common cards.
+                        The goal is to collect four cards of the same rank in your hand.
+                    </p>
+                    <p>
+                        Players can exchange one card from their hand with one card from the common cards at any time,
+                        multiple times if they want to. <br>
+                        You have the power to discard the common cards and replaced them by 4 others cards from the
+                        deck. If there is no card left, the discard pile is shuffled and used as the deck.
+                        When you collect four cards of the same rank, press the "KEMS" button to declare victory.
+                        Other players can counter by pressing "KEMS" before the first player to block the win.
+                        The first player to press "KEMS" wins a point, while the countered player loses a point.
+                    </p>
+                </div>
+
+            </div>
+
+            <div id="scoreModal" class="modal">
+
+                <!-- Modal content -->
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h2>Score :</h2>
+                    <p id="scoreModalContent"></p>
+                    <span id="winner"></span>
+
+
+                </div>
+
+            </div>
+
+
+            <!-- Trigger/Open The Modal -->
+            <button id="openModal" class="button">Open rules</button>
         </div>
         <div class="header-status-info-container">
             <p class="current-status">

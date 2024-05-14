@@ -1,3 +1,81 @@
+// Get the modal
+var modal = document.getElementById("myModal");
+
+// Get the button that opens the modal
+var btn = document.getElementById("openModal");
+
+// Get the <span> element that closes the modal
+var span = document.getElementsByClassName("close")[0];
+
+// When the user clicks the button, open the modal 
+btn.onclick = function () {
+    modal.style.display = "block";
+}
+
+var hardResetButton = document.getElementById('reset-game');
+hardResetButton.onclick = function () {
+    actionObject = {
+        action: 'ResetGame',
+    }
+    sendAction(actionObject)
+    modal.style.display = "none";
+}
+
+// When the user clicks on <span> (x), close the modal
+span.onclick = function () {
+    modal.style.display = "none";
+}
+
+var scoreModalContent = document.getElementById('scoreModal');
+
+var span2 = document.getElementsByClassName("close")[1];
+span2.onclick = function () {
+    scoreModalContent.style.display = "none";
+}
+window.onclick = function (event) {
+    if (event.target == scoreModalContent) {
+        scoreModalContent.style.display = "none";
+    }
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+}
+
+// When the user clicks anywhere outside of the modal, close it
+window.onclick = function (event) {
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+}
+
+
+
+// Function to update the score modal
+function updateScoreModal(scores) {
+    const scoreElem = document.getElementById('scoreModalContent');
+
+    // Clear the current content
+    scoreElem.innerHTML = '';
+
+    // Add the scores
+    maxScore = 0;
+    winnerId = 0;
+    gameState.scores.forEach((score, id) => {
+        const scoreElement = document.createElement('p');
+        scoreElement.textContent = `Player ${id + 1}: ${score}`;
+        if (score > maxScore) {
+            maxScore = score;
+            winnerId = id + 1;
+        }
+        scoreElem.appendChild(scoreElement);
+    });
+    // Display current winner
+    const winnerElement = document.getElementById('winner');
+    winnerElement.textContent = `Player ${winnerId} is winning!`;
+
+    scoreModalContent.style.display = "block";
+
+}
 
 const drawPileClassName = [
     '.card-pos-a',
@@ -39,10 +117,18 @@ const createAllCardsObject = () => {
     const cards = []
     let htmlId = 0
     suits.forEach((suit, id) => {
-        for (let i = 1; i <= 13; i++) {
-            cards.push({ id: htmlId, value: i, suit: suit })
+        cards.push({ id: htmlId, value: 'A', suit: suit })
+        htmlId++
+        for (let i = 2; i <= 10; i++) {
+            cards.push({ id: htmlId, value: `${i}`, suit: suit })
             htmlId++
         }
+        cards.push({ id: htmlId, value: 'J', suit: suit })
+        htmlId++
+        cards.push({ id: htmlId, value: 'Q', suit: suit })
+        htmlId++
+        cards.push({ id: htmlId, value: 'K', suit: suit })
+        htmlId++
     })
     return cards
 }
@@ -97,7 +183,11 @@ document.getElementById("close").onclick = function (evt) {
 const cardBackImgPath = 'cards/BACK.png'
 
 const getCardWithHTMLId = (cardItem) => {
-    return allCards.find(card => card.value === parseInt(cardItem.value) && card.suit === cardItem.suit)
+    test = allCards.find(card => card.value === cardItem.value && card.suit === cardItem.suit)
+    if (!test) {
+        console.error("ERROR Card not found", cardItem)
+    }
+    return allCards.find(card => card.value === cardItem.value && card.suit === cardItem.suit)
 }
 
 const updateGame = (gameState) => {
@@ -120,6 +210,9 @@ const updateGame = (gameState) => {
         cardItem = gameState.discardPile[0]
         cardItemWithHTMLId = getCardWithHTMLId(cardItem)
         createCard(cardItemWithHTMLId, 'discard', discardClassName)
+    }
+    if (gameState.newRound) {
+        updateScoreModal(gameState.scores)
     }
 
     if (gameState.potentialWinner) {
@@ -167,9 +260,9 @@ function swapCards(drawCardHtml, handCardHtml) {
     console.log('Hand Card', handCard, handCardHtml)
     actionObject = {
         action: 'SwapCards',
-        drawCardValue: drawCard.value,
+        drawCardValue: `${drawCard.value}`,
         drawCardSuit: drawCard.suit,
-        handCardValue: handCard.value,
+        handCardValue: `${handCard.value}`,
         handCardSuit: handCard.suit,
     }
     sendAction(actionObject)
