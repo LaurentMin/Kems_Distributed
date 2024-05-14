@@ -269,7 +269,7 @@ func handleAction(fullAction string, game GameState) GameState {
 
 	case "SavePoint": // CONTROLS -> Saves the current game state
 		// Save the game state
-		logMessage("handleAction", "Save order from base app.")
+		logInfo("handleAction", "Send order received from base app, gamestate saved, sending to controller.")
 		outChan <- encodeMessage([]string{"snd", "msg", "saveOrder"}, []string{name, gameStateToString(game), "true"}) + "\n"
 		return game
 
@@ -302,8 +302,8 @@ func main() {
 	game = renewPlayerHands(game)
 	game = renewDrawPile(game)
 	// Go routines to read and write input / output
-	inChan := make(chan string, 10)
-	outChan := make(chan string, 10)
+	inChan = make(chan string, 10)
+	outChan = make(chan string, 10)
 	go read(inChan)
 	go write(outChan)
 
