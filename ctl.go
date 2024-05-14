@@ -3,6 +3,9 @@ package main
 import (
 	"flag"
 	"strconv"
+	"strings"
+	"os"
+	"bufio"
 )
 
 ///////////
@@ -17,6 +20,89 @@ func clockAdjustment(x, y int) int {
 		return y + 1
 	}
 	return x + 1
+}
+
+/*
+	Vector clock adjustment
+*/
+func vClockAdjustment(x, y []int, ind int) []int {
+	// logMessage("vClockAdjustment", "Adjusting vector clock to max(local,received) + 1.")
+	for i := 0; i < len(x); i++ {
+		if x[i] < y[i] {
+			x[i] = y[i]
+		} else {
+			x[i] = x[i]
+		}
+	}
+	x[ind] = x[ind] + 1
+	return x
+}
+
+/*
+	Cast string to vector clock*
+*/
+func castStringToVClock(strVlg string) []int {
+    strVlg = strings.Trim(strVlg, "[]")
+    elements := strings.Split(strVlg, " ")
+
+    var vlg []int
+
+	for _, element := range elements {
+        num, err := strconv.Atoi(element)
+        if err != nil {
+            panic(err)
+        }
+        vlg = append(vlg, num)
+    }
+
+	return vlg
+}
+
+/*
+	Cast vector clock to string
+*/
+func castVClockToString(vlg []int) string {
+	var strVlg string
+
+	for _, element := range vlg {
+		strVlg += strconv.Itoa(element) + " "
+	}
+
+	return strVlg
+}
+
+///////////
+// FILES //
+///////////
+/*
+	Save game in file
+*/
+func saveGame(gameSave string, name string, vClock []int) {
+	logInfo("saveGame", "Saving game in file.")
+	// Open file
+	filename := "gameSave" + name + castVClockToString(vClock) + ".txt"
+	file, err := os.Create(filename)
+	if err != nil {
+		logError("saveGame", "Error creating file: "+err.Error())
+		return
+	}
+	defer file.Close()
+
+	// Write in file
+	writer := bufio.NewWriter(file)
+	_, err = writer.WriteString(gameSave)
+	if err != nil {
+		logError("saveGame", "Error writing in file: "+err.Error())
+		return
+	}
+
+	err = writer.Flush()
+	if err != nil {
+		logError("saveGame", "Error flushing writer: "+err.Error())
+		return
+	}
+
+	logSuccess("saveGame", "Game saved in file.")
 }
 
 /*
@@ -59,6 +145,15 @@ func main() {
 	messageReceived := ""
 	keyValTable := []string{}
 	clock := 0
+
+	vClock := []int{0, 0, 0}
+	// Find the controller number in vClock
+	idVClock, err := strconv.Atoi(name[len(name)-1:])
+	logInfo("main", "idVClock: "+strconv.Itoa(idVClock))
+	if err != nil {
+		logError("main", "Error converting string to int for idVClock: "+err.Error())
+	}
+
 	estampilles := []Request{Request{"[ECRITICAL]", 0}, Request{"[ECRITICAL]", 0}, Request{"[ECRITICAL]", 0}} // Index 0..2 corresponds to controllers 1..3
 	siteNum, _ := strconv.Atoi(name[1:2])                                                                     // Ok if this makes app crash (name must be defined)
 	siteNum -= 1
@@ -70,7 +165,7 @@ func main() {
 
 	// Main loop of the controller, manages message reception and emission and processing
 	for {
-		// logInfo("main", "Waiting for message.")
+		logInfo("main", "Waiting for message.")
 		// Message reception
 		messageReceived = <-inChan
 		logInfo("main", "Message received "+messageReceived)
@@ -90,7 +185,9 @@ func main() {
 
 		// logInfo("main", "Clock updating...")
 		clockReceivedStr := findValue(keyValTable, "hlg")
-		if clockReceivedStr != "" && sender[:1] == "C" { // Filters out messages from an app with a clock (should never happen)
+		vClockReceivedStr := findValue(keyValTable, "vlg")
+		if clockReceivedStr != "" && vClockReceivedStr != "" && sender[:1] == "C" { // Filters out messages from an app with a clock (should never happen)
+
 			// Clock adjustment if message received from other controller
 			clockReceived, err := strconv.Atoi(clockReceivedStr)
 			if err != nil {
@@ -98,12 +195,28 @@ func main() {
 				continue
 			}
 			clock = clockAdjustment(clock, clockReceived)
+
+			// Vector clock adjustment if message received from other controller
+			vClockReceived := castStringToVClock(vClockReceivedStr)
+			vClock = vClockAdjustment(vClock, vClockReceived, idVClock)
 			// logInfo("main", "Clock updated, message received from other controller.")
 
 		} else if clockReceivedStr == "" && sender == "A"+name[1:2] { // Filters out messages without a clock from the wrong app or a controller.
 			// Incremented if message received from app
 			clock = clock + 1
+			vClock[idVClock] = vClock[idVClock] + 1
 			// logInfo("main", "Clock updated, message received from local app.")
+
+			// Save order received from base app
+			if findValue(keyValTable, "saveOrder") == "true" {
+				gameSave := findValue(keyValTable, "msg")
+				// logInfo("main", "Order saved: "+gameSave)
+				logInfo("main", "Save local game.")
+
+				// Save game in file
+				saveGame(gameSave, name, vClock)
+			}
+
 		} else { // Filters out messages from other controller to their own app or other errors
 			// ERROR, ignoring
 			logWarning("main", "Message from another controller to it's own app (IGNORED) OR UNEXPECTED ERROR.")
@@ -194,19 +307,19 @@ func main() {
 					estampilles[siteNum].Type = "[GAMESTATE]"
 					estampilles[siteNum].Clock = clock
 				}
-				outChan <- encodeMessage([]string{"snd", "hlg", "msg"}, []string{name, strconv.Itoa(clock), messageReceived}) + "\n"
+				outChan <- encodeMessage([]string{"snd", "hlg", "vlg", "msg"}, []string{name, strconv.Itoa(clock), castVClockToString(vClock), messageReceived}) + "\n"
 				logInfo("main", "Gamestate message sent to other controller.")
 
 			case "[ACRITICAL]": // Base app asks critical (asking other controllers)
 				estampilles[siteNum].Type = "[ACRITICAL]"
 				estampilles[siteNum].Clock = clock
-				outChan <- encodeMessage([]string{"snd", "hlg", "msg"}, []string{name, strconv.Itoa(clock), "[ACRITICAL]"}) + "\n"
+				outChan <- encodeMessage([]string{"snd", "hlg", "vlg", "msg"}, []string{name, strconv.Itoa(clock), castVClockToString(vClock), "[ACRITICAL]"}) + "\n"
 				logInfo("main", "Asked other controllers for access restriction.")
 
 			case "[ECRITICAL]": // Base app stops critical (liberating other controllers)
 				estampilles[siteNum].Type = "[ECRITICAL]"
 				estampilles[siteNum].Clock = clock
-				outChan <- encodeMessage([]string{"snd", "hlg", "msg"}, []string{name, strconv.Itoa(clock), "[ECRITICAL]"}) + "\n"
+				outChan <- encodeMessage([]string{"snd", "hlg", "vlg", "msg"}, []string{name, strconv.Itoa(clock), castVClockToString(vClock), "[ECRITICAL]"}) + "\n"
 				logInfo("main", "Liberated other controllers from access restriction.")
 
 			default:

@@ -267,6 +267,12 @@ func handleAction(fullAction string, game GameState) GameState {
 		// Update gamestate
 		game = swapCard(game.Players[playerIndex].Hand[playerCardIndex], game.DrawPile[drawPileCardIndex], game.Players[playerIndex], game)
 
+	case "SavePoint": // CONTROLS -> Saves the current game state
+		// Save the game state
+		logMessage("handleAction", "Save order from base app.")
+		outChan <- encodeMessage([]string{"snd", "msg", "saveOrder"}, []string{name, gameStateToString(game), "true"}) + "\n"
+		return game
+
 	default: // Uknown action, ERROR
 		// Action not recognized, send same game state (app should not share it)
 		logError("handleAction", "Uknown action, (ignored) "+actionType)
