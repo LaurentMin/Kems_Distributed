@@ -25,4 +25,4 @@
 go.work
 
 # My test file
-test.go
+test*
