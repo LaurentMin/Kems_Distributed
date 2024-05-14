@@ -34,7 +34,7 @@ func vClockAdjustment(x, y []int, ind int) []int {
 			x[i] = x[i]
 		}
 	}
-	x[ind] = x[ind] + 1
+	x[ind-1] = x[ind-1] + 1
 	return x
 }
 
@@ -48,11 +48,14 @@ func castStringToVClock(strVlg string) []int {
 	var vlg []int
 
 	for _, element := range elements {
-		num, err := strconv.Atoi(element)
-		if err != nil {
-			panic(err)
+		//logInfo("castStringToVClock", "Element: "+element)
+		if element != "" {
+			num, err := strconv.Atoi(element)
+			if err != nil {
+				panic(err)
+			}
+			vlg = append(vlg, num)
 		}
-		vlg = append(vlg, num)
 	}
 
 	return vlg
