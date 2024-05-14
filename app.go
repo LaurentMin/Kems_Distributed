@@ -269,8 +269,8 @@ func handleAction(fullAction string, game GameState) GameState {
 
 	case "SavePoint": // CONTROLS -> Saves the current game state
 		// Save the game state
-		logMessage("handleAction", "Save order from base app.")
-		outChan <- encodeMessage([]string{"snd", "msg", "saveOrder"}, []string{name, gameStateToString(game), "true"}) + "\n"
+		//logMessage("handleAction", "Save order from base app.")
+		outChan <- encodeMessage([]string{"snd", "msg", "saveOrder"}, []string{name, "[SAVEORDER]" + gameStateToString(game), "true"}) + "\n"
 		return game
 
 	default: // Uknown action, ERROR

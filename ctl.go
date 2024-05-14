@@ -207,16 +207,6 @@ func main() {
 			vClock[idVClock] = vClock[idVClock] + 1
 			// logInfo("main", "Clock updated, message received from local app.")
 
-			// Save order received from base app
-			if findValue(keyValTable, "saveOrder") == "true" {
-				gameSave := findValue(keyValTable, "msg")
-				// logInfo("main", "Order saved: "+gameSave)
-				logInfo("main", "Save local game.")
-
-				// Save game in file
-				saveGame(gameSave, name, vClock)
-			}
-
 		} else { // Filters out messages from other controller to their own app or other errors
 			// ERROR, ignoring
 			logWarning("main", "Message from another controller to it's own app (IGNORED) OR UNEXPECTED ERROR.")
@@ -255,6 +245,9 @@ func main() {
 				// Send gamestate to app
 				outChan <- encodeMessage([]string{"snd", "msg"}, []string{name, messageReceived}) + "\n"
 				logInfo("main", "Gamestate message sent to local app.")
+			
+			case "[SAVEORDER]":
+				// TODO: Save order received from other controller
 
 			case "[ACRITICAL]": // Other controller asks for access restriction
 				estampilles[otherSiteNumber].Type = "[ACRITICAL]"
@@ -309,6 +302,20 @@ func main() {
 				}
 				outChan <- encodeMessage([]string{"snd", "hlg", "vlg", "msg"}, []string{name, strconv.Itoa(clock), castVClockToString(vClock), messageReceived}) + "\n"
 				logInfo("main", "Gamestate message sent to other controller.")
+
+			case "[SAVEORDER]":
+				// Save order received from base app
+				if findValue(keyValTable, "saveOrder") == "true" {
+					gameSave := findValue(keyValTable, "msg")
+					// logInfo("main", "Order saved: "+gameSave)
+					logInfo("main", "Save local game.")
+
+					// Save game in file
+					saveGame(gameSave, name, vClock)
+
+					// Send save order to other controllers
+					outChan <- encodeMessage([]string{"snd", "hlg", "vlg", "msg"}, []string{name, strconv.Itoa(clock), castVClockToString(vClock), "[SAVEORDER]"}) + "\n"
+				}
 
 			case "[ACRITICAL]": // Base app asks critical (asking other controllers)
 				estampilles[siteNum].Type = "[ACRITICAL]"
