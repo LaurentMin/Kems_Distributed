@@ -4,6 +4,8 @@ Geffrelot Elouan, Huichalaf Kilapang, Minatchy Laurent
 
 ## Démarrage rapide (interface terminal)
 
+Plus d'infos sur l'[interface terminal](./docs/terminal_interface.md)
+
 ### Mise en place
 
 1. Se rendre dans la racine du projet `cd projet_sr05/`
@@ -29,3 +31,5 @@ Geffrelot Elouan, Huichalaf Kilapang, Minatchy Laurent
 12. Exécuter le clear script `./clearScript.sh` (cela met fin à tous les processus)
 
 ## Démarrage rapide (interface graphique)
+
+Plus d'infos sur l'[interface graphique](./docs/graphical_interface.md)
