@@ -33,3 +33,15 @@ Plus d'infos sur l'[interface terminal](./docs/terminal_interface.md)
 ## Démarrage rapide (interface graphique)
 
 Plus d'infos sur l'[interface graphique](./docs/graphical_interface.md)
+
+## Fonctionnement
+
+### L'application
+
+Plus d'infos sur l'[application](./docs/app.md)
+
+### Le contrôleur
+
+Plus d'infos sur l'[application](./docs/app.md)
+
+### Le réseau
