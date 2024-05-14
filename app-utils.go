@@ -57,8 +57,8 @@ type GameState struct {
 func getInitSettings() GameSettings {
 	// logMessage("getInitSettings", "Initialising settings")
 	settings := GameSettings{
-		HandSize:     2,
-		DrawPileSize: 2,
+		HandSize:     4,
+		DrawPileSize: 4,
 	}
 	return settings
 }
@@ -72,10 +72,8 @@ func getInitDeck() []Card {
 	deck := []Card{}
 
 	// Setting the deck building parameters
-	//values := []string{"2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"}
-	//suits := []string{"Clubs", "Diamonds", "Hearts", "Spades"}
-	values := []string{"2", "3", "4", "5", "6", "7", "8", "9", "10"}
-	suits := []string{"Clubs", "Diamonds"}
+	values := []string{"2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"}
+	suits := []string{"Clubs", "Diamonds", "Hearts", "Spades"}
 
 	// Building the deck
 	for _, suit := range suits {

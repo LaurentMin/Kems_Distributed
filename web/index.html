@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header>
+        <div class="header-title-container">
+            <h1>Kems</h1>
+            <div class="header-img-container">
+                <img src="images/AceSpades.png" alt="" class="header-img">
+            </div>
+        </div>
+        <div class="header-round-info-container">
+            <div class="header-score-container">
+                <h2 class="score">Score&nbsp;<span class="badge">0</span></h2>
+            </div>
+            <div class="header-round-container">
+                <h2 class="round">Round&nbsp;<span class="badge">0</span></h2>
+            </div>
+            <form>
+                <p>
+                <div id="player-selection">
+                    <input type="radio" id="player1" name="player" value="1" checked>
+                    <label for="player1">Player 1</label>
+                    <input type="radio" id="player2" name="player" value="2">
+                    <label for="player2">Player 2</label>
+                    <input type="radio" id="player3" name="player" value="3">
+                    <label for="player3">Player 3</label>
+                </div>
+                <button id="connect" class="button">Connect</button>
+                <button id="close" class="button">Close</button>
+                &nbsp;&nbsp;<span id="connected"></span>
+                </p>
+            </form>
+
+            <!-- The Modal -->
+            <div id="myModal" class="modal">
+
+                <!-- Modal content -->
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <button id="reset-game" class="button">Force reset game</button>
+                    <h2>Welcome to KEMS - Card Game of Rapidity!</h2>
+                    <p>
+                        In this card game, each player is dealt a hand of 4 cards. Four cards are placed face down on
+                        the table as the common cards.
+                        The goal is to collect four cards of the same rank in your hand.
+                    </p>
+                    <p>
+                        Players can exchange one card from their hand with one card from the common cards at any time,
+                        multiple times if they want to. <br>
+                        You have the power to discard the common cards and replaced them by 4 others cards from the
+                        deck. If there is no card left, the discard pile is shuffled and used as the deck.
+                        When you collect four cards of the same rank, press the "KEMS" button to declare victory.
+                        Other players can counter by pressing "KEMS" before the first player to block the win.
+                        The first player to press "KEMS" wins a point, while the countered player loses a point.
+                    </p>
+                </div>
+
+            </div>
+
+            <div id="scoreModal" class="modal">
+
+                <!-- Modal content -->
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h2>Score :</h2>
+                    <p id="scoreModalContent"></p>
+                    <span id="winner"></span>
+
+
+                </div>
+
+            </div>
+
+
+            <!-- Trigger/Open The Modal -->
+            <button id="openModal" class="button">Open rules</button>
+        </div>
+        <div class="header-status-info-container">
+            <p class="current-status">
+                &nbsp;
+            </p>
+        </div>
+    </header>
+    <main>
+        <div class="board-row">
+
+            <div class="deck-container">
+                <div class="card-deck"> </div>
+            </div>
+
+            <div class="board-center">
+
+                <div class="card-container">
+                    <div class="card-pos-a"> </div>
+                    <div class="card-pos-b"> </div>
+                    <div class="card-pos-c"> </div>
+                    <div class="card-pos-d"> </div>
+                </div>
+
+                <div class="card-container-player">
+                    <div class="card-pos-a-player"> </div>
+                    <div class="card-pos-b-player"> </div>
+                    <div class="card-pos-c-player"> </div>
+                    <div class="card-pos-d-player"> </div>
+                </div>
+                <span class="playerCardText"> Your cards</span>
+
+
+                <div class="header-button-container">
+                    <div class="game-play-button-container">
+                        <button id="playGame" class="play-game">Swap cards</button>
+                    </div>
+                </div>
+
+            </div>
+
+
+            <div class="discard-container">
+                <div class="discard">
+                    <div class="card-discard"> </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+    <script src="index.js"></script>
+</body>
+
+</html>
