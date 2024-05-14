@@ -133,22 +133,24 @@ func main() {
 	flag.Parse()
 	name = "display"
 
-	// Setting app name (usefull for debug)
-
+	// Initialising important variables
 	messageReceived := ""
 	state := GameState{}
 	inputFile := *pfile
 	logInfo("main", "Displaying with input file "+inputFile)
+	// Go routines to read input
+	inChan := make(chan string, 10)
+	go read(inChan)
 
 	displayKemsRules()
-	time.Sleep(5 * time.Second)
+	// time.Sleep(5 * time.Second)
 	for {
 		logInfo("main", "Waiting for next state...")
-		messageReceived = scanUntilNewline()
+		messageReceived = <-inChan
 
 		// Ignore message not for display
 		if len(messageReceived) < 11 || messageReceived[:11] != "[GAMESTATE]" {
-			logInfo("main", "Message received not destinated to display.")
+			logWarning("main", "Message received not destinated to display.")
 			messageReceived = ""
 			continue
 		}
@@ -162,7 +164,7 @@ func main() {
 			if winner != -1 {
 				clearScreen()
 				fmt.Println("KEMS !!\n")
-				fmt.Println("Player " + strconv.Itoa(winner) + " has won a point!\n")
+				fmt.Println("Player " + strconv.Itoa(winner+1) + " has won a point!\n")
 				displayPlayerHand(state.Players[winner])
 				fmt.Println()
 				displayScore(newState)
@@ -176,7 +178,7 @@ func main() {
 			loser := checkIfLoser(state, newState)
 			if loser != -1 {
 				clearScreen()
-				fmt.Println("KEMS for the player " + strconv.Itoa(loser) + " ... Almost! Counter KEMS!\n")
+				fmt.Println("KEMS for the player " + strconv.Itoa(loser+1) + " ... Almost! Counter KEMS!\n")
 				fmt.Println("Player " + strconv.Itoa(loser) + " has lost a point!\n")
 				displayPlayerHand(state.Players[loser])
 				fmt.Println()

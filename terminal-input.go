@@ -33,6 +33,9 @@ func handleUserInput(input string, playerIndex string) {
 			otherPlayerIndex := int(input[1]) - '0'
 			sendAction("ContreKems", []string{"playerIndex"}, []string{strconv.Itoa(otherPlayerIndex)})
 		}
+	case 'i':
+		// To create a save point
+		sendAction("SavePoint", []string{"playerIndex"}, []string{playerIndex})
 
 	default:
 		logError("Input terminal", "Invalid input "+input)

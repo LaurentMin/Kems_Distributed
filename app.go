@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"math/rand"
 	"strconv"
 	"time"
@@ -177,13 +176,13 @@ func handleAction(fullAction string, game GameState) GameState {
 		// Check new player validity
 		if newPlayer != "1" && newPlayer != "2" && newPlayer != "3" {
 			// Player not valid (ignore)
-			logError("handleAction", "Player Disconnected OR Player not valid (player reset)")
+			logWarning("handleAction", "Player Disconnected OR Player not valid (player reset)")
 			lastConnectedPlayer = ""
 			return game
 		} else {
 			// Valid player : updates
 			lastConnectedPlayer = newPlayer
-			logInfo("handleAction", "App player set to "+lastConnectedPlayer+" game was reset.")
+			// logInfo("handleAction", "App player set to "+lastConnectedPlayer+" game was reset.")
 			// Game resets when player connects
 			game = GameState{}
 			game = getInitState()
@@ -268,6 +267,12 @@ func handleAction(fullAction string, game GameState) GameState {
 		// Update gamestate
 		game = swapCard(game.Players[playerIndex].Hand[playerCardIndex], game.DrawPile[drawPileCardIndex], game.Players[playerIndex], game)
 
+	case "SavePoint": // CONTROLS -> Saves the current game state
+		// Save the game state
+		logMessage("handleAction", "Save order from base app.")
+		outChan <- encodeMessage([]string{"snd", "msg", "saveOrder"}, []string{name, gameStateToString(game), "true"}) + "\n"
+		return game
+
 	default: // Uknown action, ERROR
 		// Action not recognized, send same game state (app should not share it)
 		logError("handleAction", "Uknown action, (ignored) "+actionType)
@@ -292,58 +297,89 @@ func main() {
 	// Initialising key variables for app
 	messageReceived := ""
 	keyValTable := []string{}
+	actionToDo := ""
 	game := getInitState()
 	game = renewPlayerHands(game)
 	game = renewDrawPile(game)
+	// Go routines to read and write input / output
+	inChan := make(chan string, 10)
+	outChan := make(chan string, 10)
+	go read(inChan)
+	go write(outChan)
 
 	// Main loop of the app, manages message reception and emission and processing
 	for {
 		// logInfo("main", "Waiting for message.")
 		// Message reception
-		messageReceived = scanUntilNewline()
+		messageReceived = <-inChan
 		logInfo("main", "Message received. "+messageReceived)
 
 		// Determine message type for processing
 		keyValTable = decodeMessage(messageReceived)
 		sender := findValue(keyValTable, "snd")
-		// Filter out random messages
+
+		// Filter out obviously wrong messages that an app should not receive
 		if len(sender) != 2 || len(name) != 2 || (sender != "C"+name[1:2] && sender[:1] != "P") {
 			logError("main", "Message invalid sender OR invalid app name (ignored) - CAN BE FATAL!")
 			messageReceived = ""
 			continue
 		}
 
-		// The message is from a player EXCLUSION MUTUELLE
+		// PLAYER sent message (ask for exclusive access)
 		if sender == "P"+lastConnectedPlayer || (sender[:1] == "P" && lastConnectedPlayer == "") {
-			action := findValue(keyValTable, "msg")
-			oldGame := gameStateToString(game)
-			game = handleAction(action, game)
-			if oldGame == gameStateToString(game) {
-				logWarning("main", "Action did not change game state, no update required.")
-			} else {
-				logSuccess("main", "Gamestate updated, sending game update.")
-				fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, gameStateToString(game)}) + "\n")
-			}
-
+			actionToDo = findValue(keyValTable, "msg")
+			// Ask for exclusive access
+			outChan <- encodeMessage([]string{"snd", "msg"}, []string{name, "[ACRITICAL]"}) + "\n"
+			logInfo("main", "Asked for exclusive access.")
 			messageReceived = ""
 			continue
 		}
 
-		// The message is from app Controller
+		// CONTROLLER sent message
 		// Filter out messages from our controller to other controllers
 		if findValue(keyValTable, "hlg") != "" {
-			logError("main", "Message from own controller to other controllers, (ignored).")
+			logWarning("main", "Message from own controller to other controllers, (ignored).")
+			messageReceived = ""
+			continue
+		}
+		// Getting message
+		messageReceived = findValue(keyValTable, "msg")
+
+		// Filter out wrong messages (just in case)
+		if len(messageReceived) < 11 || (messageReceived[:11] != "[GAMESTATE]" && messageReceived[:11] != "[BCRITICAL]") {
+			// logInfo("main", "Wrong message type for app received "+messageReceived+" (ignoring).")
+			logInfo("main", "Wrong message type for app received (ignoring).")
 			messageReceived = ""
 			continue
 		}
 
-		// CONTROLLER EXCLUSION MUTUELLE CONFIRMATION
+		// Message is an exclusive access grant => handle action
+		if messageReceived[:11] == "[BCRITICAL]" {
+			// Error if app is not trying to handle an action
+			if actionToDo == "" {
+				logError("main", "App received access but did not need it anymore (liberating)")
+				outChan <- encodeMessage([]string{"snd", "msg"}, []string{name, "[ECRITICAL]"}) + "\n"
+				messageReceived = ""
+				continue
+			}
 
-		messageReceived = findValue(keyValTable, "msg")
-		// Message is not a game state (ignore)
-		if len(messageReceived) < 11 || messageReceived[:11] != "[GAMESTATE]" {
-			// logInfo("main", "Wrong message type for app received "+messageReceived+" (ignoring).")
-			logInfo("main", "Wrong message type for app received (ignoring).")
+			oldGame := gameStateToString(game)
+			game = handleAction(actionToDo, game)
+			if oldGame == gameStateToString(game) {
+				logWarning("main", "Action did not change game state, no update required. (Ended critical access)")
+				outChan <- encodeMessage([]string{"snd", "msg"}, []string{name, "[ECRITICAL]"}) + "\n"
+			} else {
+				logSuccess("main", "Gamestate updated, sending game update. (Ended critical access) + (Sent update to display)")
+				outChan <- encodeMessage([]string{"snd", "msg"}, []string{name, gameStateToString(game)}) + "\n"
+				logInfo("main", "Ended critical access message sent.")
+				outChan <- encodeMessage([]string{"snd", "msg"}, []string{name, "[ECRITICAL]"}) + "\n"
+				logInfo("main", "Sent update to display.")
+				outChan <- gameStateToString(game) + "\n"
+
+			}
+			// Reset action (it has been processed)
+			actionToDo = ""
+
 			messageReceived = ""
 			continue
 		}
@@ -351,17 +387,22 @@ func main() {
 		// Message is a game state (process)
 		// logInfo("main", "Processing game state... "+messageReceived)
 		// Replace game state if an update was received
-		if gameStateToString(game) != messageReceived {
-			game = stringToGameState(messageReceived)
+		if messageReceived[:11] == "[GAMESTATE]" {
+			if gameStateToString(game) != messageReceived {
+				game = stringToGameState(messageReceived)
+				// Updated game state not sent anymore when update is received
+				// outChan <- encodeMessage([]string{"snd", "msg"}, []string{name, gameStateToString(game)}) + "\n"
+				logInfo("main", "Updated game state (but did not diffuse the update) (update not sent to display).")
+				// outChan <- gameStateToString(game) + "\n" // Updating interface just in case went wrong last time
+			} else {
+				logSuccess("main", "Game state is already up to date, all apps up to date. (should not happen anymore)")
+			}
 
-			// Sending update to apps (through controllers)
-			fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{name, gameStateToString(game)}) + "\n")
-			logInfo("main", "Sent updated game state to all apps through controller.")
-		} else {
-			logSuccess("main", "Game state is already up to date, all apps up to date. (updating display if there is one)")
-			sendGameStateToPLayer(game)
+			messageReceived = ""
+			continue
 		}
 
+		logError("main", "CRITICAL ERROR, MESSAGE TREATMENT WAS NOT IMPLEMENTED (should never happen)")
 		messageReceived = ""
 	}
 }
