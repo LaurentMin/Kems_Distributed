@@ -40,9 +40,6 @@ func do_webserver(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Bonjour depuis le serveur web en Go !")
 }
 
-func parseJSONactionType(jsonAction string) {
-}
-
 func do_websocket(w http.ResponseWriter, r *http.Request) {
 	var upgrader = websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool { return true },
@@ -67,14 +64,12 @@ func do_websocket(w http.ResponseWriter, r *http.Request) {
 		// Declared an empty interface
 		var result map[string]interface{}
 
-		// test if is a valid JSON
-		if err := json.Unmarshal([]byte(message), &result); err != nil {
+		// Unmarshal or Decode the JSON to the interface
+		err = json.Unmarshal([]byte(message), &result)
+		if err != nil {
 			logError("Web proxy", "Error unmarshalling JSON: "+err.Error())
 			continue
 		}
-
-		// Unmarshal or Decode the JSON to the interface
-		json.Unmarshal([]byte(message), &result)
 
 		actionType := result["action"].(string)
 
