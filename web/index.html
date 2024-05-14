@@ -26,12 +26,17 @@
             </div>
             <form>
                 <p>
-                    host : <input id="host" type="text" size="10" value="localhost">
-                    port : <input id="port" type="text" maxlength="5" size="5" value="4444">
-                    <br>
-                    <button id="connect" class="button">Connect</button>
-                    <button id="close" class="button">Close</button>
-                    &nbsp;&nbsp;<span id="connected"></span>
+                <div id="player-selection">
+                    <input type="radio" id="player1" name="player" value="1" checked>
+                    <label for="player1">Player 1</label>
+                    <input type="radio" id="player2" name="player" value="2">
+                    <label for="player2">Player 2</label>
+                    <input type="radio" id="player3" name="player" value="3">
+                    <label for="player3">Player 3</label>
+                </div>
+                <button id="connect" class="button">Connect</button>
+                <button id="close" class="button">Close</button>
+                &nbsp;&nbsp;<span id="connected"></span>
                 </p>
             </form>
 
