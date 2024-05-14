@@ -347,7 +347,7 @@ func main() {
 		messageReceived = findValue(keyValTable, "msg")
 
 		// Filter out wrong messages (just in case)
-		if len(messageReceived) < 11 || (messageReceived[:11] != "[GAMESTATE]" && messageReceived[:11] != "[BCRITICAL]") {
+		if len(messageReceived) < 11 || (messageReceived[:11] != "[GAMESTATE]" && messageReceived[:11] != "[BCRITICAL]" && messageReceived[:11] != "[SAVEORDER]") {
 			// logInfo("main", "Wrong message type for app received "+messageReceived+" (ignoring).")
 			logInfo("main", "Wrong message type for app received (ignoring).")
 			messageReceived = ""
@@ -405,7 +405,7 @@ func main() {
 
 		// Message of save order from controller
 		if messageReceived[:11] == "[SAVEORDER]" {
-			// logMessage("main", "Save order received, saving game state.")
+			logInfo("main", "Save order received, saving game state.")
 			outChan <- encodeMessage([]string{"snd", "msg", "saveOrder"}, []string{name, "[SAVEORDER]" + gameStateToString(game), "0"}) + "\n"
 		}
 
