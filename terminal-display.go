@@ -149,7 +149,7 @@ func checkIfLoser(oldGame GameState, newGame GameState) int {
 	}
 	for i := 0; i < len(newGame.Players); i++ {
 		if newGame.Players[i].Score < oldGame.Players[i].Score {
-			return i
+			return i + 1
 		}
 	}
 	return -1
