@@ -248,12 +248,12 @@ func main() {
 				// Send gamestate to app
 				outChan <- encodeMessage([]string{"snd", "msg"}, []string{name, messageReceived}) + "\n"
 				logInfo("main", "Gamestate message sent to local app.")
-			
+
 			case "[SAVEORDER]":
 				// Save order received from other controller
 				if strconv.FormatBool(saveState) != messageReceived[11:] {
 					outChan <- encodeMessage([]string{"snd", "msg"}, []string{name, messageReceived}) + "\n"
-					outChan <- encodeMessage([]string{"snd", "hlg", "vlg", "msg"}, []string{name, strconv.Itoa(clock), castVClockToString(vClock), messageReceived}) + "\n"
+					// outChan <- encodeMessage([]string{"snd", "hlg", "vlg", "msg"}, []string{name, strconv.Itoa(clock), castVClockToString(vClock), messageReceived}) + "\n"
 					saveState = !saveState
 					logInfo("main", "Save order received from other controller and send to local app.")
 				}
@@ -314,19 +314,25 @@ func main() {
 
 			case "[SAVEORDER]":
 				// Save order received from base app
+				// Do not replace an ask by a gamestate
+				if estampilles[siteNum].Type != "[ACRITICAL]" {
+					estampilles[siteNum].Type = "[SAVEORDER]"
+					estampilles[siteNum].Clock = clock
+				}
+
 				if findValue(keyValTable, "saveOrder") == "1" {
 					gameSave := findValue(keyValTable, "msg")
 					gameSave = gameSave[11:]
 					// logInfo("main", "Order saved: "+gameSave)
-					logInfo("main", "Save local game.")
+					// logInfo("main", "Save local game.")
 
 					// Save game in file
 					saveGame(gameSave, name, vClock)
 					saveState = !saveState
 
-					// Send save order to other controllers
+					logInfo("main", "Sent save order to other controllers.")
 					outChan <- encodeMessage([]string{"snd", "hlg", "vlg", "msg"}, []string{name, strconv.Itoa(clock), castVClockToString(vClock), "[SAVEORDER]" + strconv.FormatBool(saveState)}) + "\n"
-				
+
 				} else if findValue(keyValTable, "saveOrder") == "0" {
 					// made save
 					gameSave := findValue(keyValTable, "msg")
