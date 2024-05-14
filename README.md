@@ -38,7 +38,7 @@ Plus d'infos sur l'[interface graphique](./docs/graphical_interface.md)
 9. Dans un nouveau terminal se rendre dans le dossier web : `cd web/`
 10. Maintenant il faut lancer le site web pour cela 2 solutions:
     - Ouvrir dans son navigateur un lien vers le fichier `index.html` : `readlink -f index.html` donne le full path du fichier  `file:///home/user/projet_sr05/web/index.html`
-    - Faire tourner le site sur un serveur HTTP local : `python3 -m http.server` puis acceder au site sur [localhost:8000](http://localhost:8000/?player=1)
+    - Faire tourner le site sur un serveur HTTP local : `python3 -m http.server` puis acceder au site sur [localhost:8000](http://localhost:8000/)
 10. Il est maintenant possible de jouer :
     - En se connectant à un joueur via le bouton **connect**
     - Les cartes sont affichées, et il est possible de commencer à jouer (un rappel des règles est disponible)
