@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"strconv"
+	"time"
 )
 
 func clearScreen() {
@@ -200,7 +201,7 @@ func main() {
 				displayPlayerHand(state.Players[winner])
 				fmt.Println()
 				displayScore(newState)
-				// time.Sleep(10 * time.Second) // Pas ouf ça faudrait peut-être une variable pour être sûr que tt le monde est prêt
+				time.Sleep(10 * time.Second) // Pas ouf ça faudrait peut-être une variable pour être sûr que tt le monde est prêt
 				displayGameBoard(newState)
 
 				state = newState
@@ -215,7 +216,7 @@ func main() {
 				displayPlayerHand(state.Players[loser])
 				fmt.Println()
 				displayScore(newState)
-				// time.Sleep(10 * time.Second) // Pas ouf ça faudrait peut-être une variable pour être sûr que tt le monde est prêt
+				time.Sleep(10 * time.Second) // Pas ouf ça faudrait peut-être une variable pour être sûr que tt le monde est prêt
 				displayGameBoard(newState)
 
 				state = newState
