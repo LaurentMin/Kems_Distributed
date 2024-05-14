@@ -270,7 +270,7 @@ func handleAction(fullAction string, game GameState) GameState {
 	case "SavePoint": // CONTROLS -> Saves the current game state
 		// Save the game state
 
-		//logMessage("handleAction", "Save order from base app.")
+		logInfo("handleAction", "Send order received from base app, gamestate saved, sending to controller.")
 		outChan <- encodeMessage([]string{"snd", "msg", "saveOrder"}, []string{name, "[SAVEORDER]" + gameStateToString(game), "1"}) + "\n"
 		return game
 
