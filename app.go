@@ -386,8 +386,8 @@ func main() {
 				game = stringToGameState(messageReceived)
 				// Updated game state not sent anymore when update is received
 				// outChan <- encodeMessage([]string{"snd", "msg"}, []string{name, gameStateToString(game)}) + "\n"
-				logInfo("main", "Updated game state (but did not diffuse the update nor display.")
-				// outChan <- gameStateToString(game) + "\n" // Updating interface just in case went wrong last time
+				logInfo("main", "Updated game state (but did not diffuse the update) (sent update to display).")
+				outChan <- gameStateToString(game) + "\n" // Updating interface just in case went wrong last time
 			} else {
 				logSuccess("main", "Game state is already up to date, all apps up to date. (should not happen anymore)")
 			}
