@@ -202,6 +202,7 @@ func main() {
 	var port = flag.String("p", "4444", "n° de port")
 	var addr = flag.String("a", "localhost", "nom/adresse machine")
 	var playerName = flag.String("n", "1", "nom du joueur (1,2,3)")
+	flag.Parse()
 	name = *playerName
 
 	var err error
@@ -210,8 +211,6 @@ func main() {
 		logError("Web proxy", "Error converting player name to int: "+err.Error())
 		return
 	}
-
-	flag.Parse()
 
 	go listenAppUpdateAndTransmit(playerId)
 
