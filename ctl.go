@@ -170,7 +170,7 @@ func main() {
 
 	// Main loop of the controller, manages message reception and emission and processing
 	for {
-		logInfo("main", "Waiting for message.")
+		// logInfo("main", "Waiting for message.")
 		// Message reception
 		messageReceived = <-inChan
 		logInfo("main", "Message received "+messageReceived)
@@ -252,6 +252,18 @@ func main() {
 				logInfo("main", "Gamestate message sent to local app.")
 
 			case "[SAVEORDER]":
+				// Do not replace an ask by a reception
+				if estampilles[otherSiteNumber].Type != "[ACRITICAL]" {
+					estampilles[otherSiteNumber].Type = "[SAVEORDER]"
+					estampilles[otherSiteNumber].Clock = clock
+				}
+
+				// Check if can start own critical
+				if estampilles[siteNum].Type == "[ACRITICAL]" && canGoCritical(estampilles, siteNum) {
+					outChan <- encodeMessage([]string{"snd", "msg"}, []string{name, "[BCRITICAL]"}) + "\n"
+					logInfo("main", "Begin critical section sent to base app.")
+				}
+
 				// Save order received from other controller
 				if strconv.FormatBool(saveState) != messageReceived[11:] {
 					outChan <- encodeMessage([]string{"snd", "msg"}, []string{name, messageReceived}) + "\n"
