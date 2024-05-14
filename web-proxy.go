@@ -98,7 +98,12 @@ func do_websocket(w http.ResponseWriter, r *http.Request) {
 		case "Kems":
 			sendAction("Kems", []string{"playerIndex"}, []string{name})
 		case "ContreKems":
-			otherPlayerId := checkIfKems(state)
+			otherPlayerId := -1
+			for otherPlayerId == -1 {
+				otherPlayerId = checkIfKems(state)
+			}
+			otherPlayerId++
+
 			sendAction("ContreKems", []string{"playerIndex"}, []string{strconv.Itoa(otherPlayerId)})
 		case "ResetGame":
 			sendAction("ResetGame", []string{"playerIndex"}, []string{name})
