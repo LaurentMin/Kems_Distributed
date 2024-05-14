@@ -172,7 +172,6 @@ document.getElementById("connect").onclick = function (evt) {
         console.error("Error connecting to websocket", err)
         return false;
     }
-    // ws = new WebSocket("ws://" + host + ":" + port + "/ws");
 
     ws.onopen = function (evt) {
         console.log("Connection open ...");
