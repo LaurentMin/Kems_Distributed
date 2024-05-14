@@ -62,11 +62,13 @@ func castStringToVClock(strVlg string) []int {
 	Cast vector clock to string
 */
 func castVClockToString(vlg []int) string {
-	var strVlg string
+	var strVlg string = "["
 
 	for _, element := range vlg {
 		strVlg += strconv.Itoa(element) + " "
 	}
+
+	strVlg += "]"
 
 	return strVlg
 }
