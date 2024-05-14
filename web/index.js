@@ -137,7 +137,7 @@ const allCards = createAllCardsObject()
 
 // Web socket connection
 var ws;
-let selectedPlayer = 1; // Default to player 1
+let selectedPlayer = '1'; // Default to player 1
 
 // Listen for changes on the radio buttons
 document.querySelectorAll('input[name="player"]').forEach((elem) => {
@@ -152,20 +152,27 @@ document.getElementById("connect").onclick = function (evt) {
     }
 
     var host = "localhost";
-    var port
+    let port
     switch (selectedPlayer) {
-        case 1:
+        case '1':
             port = 4444;
             break;
-        case 2:
+        case '2':
             port = 5555;
             break;
-        case 3:
+        case '3':
             port = 5000;
             break;
     }
 
-    ws = new WebSocket("ws://" + host + ":" + port + "/ws");
+    try {
+        ws = new WebSocket("ws://" + host + ":" + port + "/ws");
+    }
+    catch (err) {
+        console.error("Error connecting to websocket", err)
+        return false;
+    }
+    // ws = new WebSocket("ws://" + host + ":" + port + "/ws");
 
     ws.onopen = function (evt) {
         console.log("Connection open ...");
