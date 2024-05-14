@@ -150,7 +150,7 @@ func checkIfLoser(oldGame GameState, newGame GameState) int {
 	}
 	for i := 0; i < len(newGame.Players); i++ {
 		if newGame.Players[i].Score < oldGame.Players[i].Score {
-			return i + 1
+			return i
 		}
 	}
 	return -1
@@ -197,7 +197,7 @@ func main() {
 			if winner != -1 {
 				clearScreen()
 				fmt.Println("KEMS !!\n")
-				fmt.Println("Player " + strconv.Itoa(winner) + " has won a point!\n")
+				fmt.Println("Player " + strconv.Itoa(winner+1) + " has won a point!\n")
 				displayPlayerHand(state.Players[winner])
 				fmt.Println()
 				displayScore(newState)
@@ -211,7 +211,7 @@ func main() {
 			loser := checkIfLoser(state, newState)
 			if loser != -1 {
 				clearScreen()
-				fmt.Println("KEMS for the player " + strconv.Itoa(loser) + " ... Almost! Counter KEMS!\n")
+				fmt.Println("KEMS for the player " + strconv.Itoa(loser+1) + " ... Almost! Counter KEMS!\n")
 				fmt.Println("Player " + strconv.Itoa(loser) + " has lost a point!\n")
 				displayPlayerHand(state.Players[loser])
 				fmt.Println()
