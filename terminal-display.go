@@ -150,7 +150,7 @@ func checkIfLoser(oldGame GameState, newGame GameState) int {
 	}
 	for i := 0; i < len(newGame.Players); i++ {
 		if newGame.Players[i].Score < oldGame.Players[i].Score {
-			return i
+			return i + 1
 		}
 	}
 	return -1
@@ -166,22 +166,24 @@ func main() {
 	flag.Parse()
 	name = "display"
 
-	// Setting app name (usefull for debug)
-
+	// Initialising important variables
 	messageReceived := ""
 	state := GameState{}
 	inputFile := *pfile
 	logInfo("main", "Displaying with input file "+inputFile)
+	// Go routines to read input
+	inChan := make(chan string, 10)
+	go read(inChan)
 
 	displayKemsRules()
-	time.Sleep(5 * time.Second)
+	// time.Sleep(5 * time.Second)
 	for {
 		logInfo("main", "Waiting for next state...")
-		messageReceived = scanUntilNewline()
+		messageReceived = <-inChan
 
 		// Ignore message not for display
 		if len(messageReceived) < 11 || messageReceived[:11] != "[GAMESTATE]" {
-			logInfo("main", "Message received not destinated to display.")
+			logWarning("main", "Message received not destinated to display.")
 			messageReceived = ""
 			continue
 		}
