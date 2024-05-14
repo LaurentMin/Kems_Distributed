@@ -269,8 +269,9 @@ func handleAction(fullAction string, game GameState) GameState {
 
 	case "SavePoint": // CONTROLS -> Saves the current game state
 		// Save the game state
+
 		logInfo("handleAction", "Send order received from base app, gamestate saved, sending to controller.")
-		outChan <- encodeMessage([]string{"snd", "msg", "saveOrder"}, []string{name, gameStateToString(game), "true"}) + "\n"
+		outChan <- encodeMessage([]string{"snd", "msg", "saveOrder"}, []string{name, "[SAVEORDER]" + gameStateToString(game), "1"}) + "\n"
 		return game
 
 	default: // Uknown action, ERROR
@@ -400,6 +401,12 @@ func main() {
 
 			messageReceived = ""
 			continue
+		}
+
+		// Message of save order from controller
+		if messageReceived[:11] == "[SAVEORDER]" {
+			// logMessage("main", "Save order received, saving game state.")
+			outChan <- encodeMessage([]string{"snd", "msg", "saveOrder"}, []string{name, "[SAVEORDER]" + gameStateToString(game), "0"}) + "\n"
 		}
 
 		logError("main", "CRITICAL ERROR, MESSAGE TREATMENT WAS NOT IMPLEMENTED (should never happen)")
