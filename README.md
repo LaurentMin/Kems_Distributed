@@ -38,15 +38,15 @@ Plus d'infos sur l'[interface graphique](./docs/graphical_interface.md)
 
 ### L'application
 
-L'application est en charge de recevoir les entrées utilisateur puis de calculer l'état suivant de jeu. Elle demande au contrôleur l'accès exclusif à la donnée avant de la modifier. Ensuite elle diffuse sa donnée via son contrôleur. Enfin elle envoi sa donnée à l'affichage afin qu'il se mette aussi à jour.
+L'application s'occupe des fonctionnalités applicatives. Elle est en charge de recevoir les entrées utilisateur puis de calculer l'état suivant de jeu. Elle demande au contrôleur l'accès exclusif à la donnée avant de la modifier. Ensuite elle diffuse sa donnée via son contrôleur. Enfin elle envoi sa donnée à l'affichage afin qu'il se mette aussi à jour.
 
 Plus d'infos sur l'[application](./docs/app.md)
 
 ### Le contrôleur
 
-Le contrôleur est en charge de demander les accès exclusifs aux autres contrôleurs puis de l'attribuer à son application. Elle transmet aussi les nouveaux états de son application aux autres contrôleurs afin qu'ils les envoient à leurs propres applications afin qu'elles se mettent à jour.
+Le contrôleur gère le contrôle (comme son nom l'indique). Il est en charge de demander les accès exclusifs aux autres contrôleurs puis de l'attribuer à son application. Elle transmet aussi les nouveaux états de son application aux autres contrôleurs afin qu'ils les envoient à leurs propres applications afin qu'elles se mettent à jour.
 
-Plus d'infos sur l'[application](./docs/app.md)
+Plus d'infos sur le [contrôleur](./docs/ctl.md)
 
 ### Le réseau
 
