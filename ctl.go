@@ -266,7 +266,7 @@ func main() {
 			case "[ACRITICAL]": // Other controller asks for access restriction
 				estampilles[otherSiteNumber].Type = "[ACRITICAL]"
 				estampilles[otherSiteNumber].Clock = clock
-				outChan <- encodeMessage([]string{"snd", "hlg", "vlg", "msg"}, []string{name, strconv.Itoa(clock), castVClockToString(vClock), "[VCRITICAL]"}) + "\n"
+				outChan <- encodeMessage([]string{"snd", "hlg", "vlg", "msg"}, []string{name, strconv.Itoa(clock), castVClockToString(vClock), "[VCRITICAL]" + sender}) + "\n"
 				logInfo("main", "Answered to other controller restriction access demand.")
 				// Check if can start own critical
 				if estampilles[siteNum].Type == "[ACRITICAL]" && canGoCritical(estampilles, siteNum) {
@@ -275,6 +275,13 @@ func main() {
 				}
 
 			case "[VCRITICAL]": // Other controller validates request reception
+				// Reject validations that are not meant for this controller
+				if messageReceived[11:] != name {
+					logWarning("main", "Validation not for this controller (ignored).")
+					messageReceived = ""
+					continue
+				}
+
 				// Do not replace an ask by a reception
 				if estampilles[otherSiteNumber].Type != "[ACRITICAL]" {
 					estampilles[otherSiteNumber].Type = "[VCRITICAL]"
