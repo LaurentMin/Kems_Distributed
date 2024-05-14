@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 )
 
 /*
@@ -22,7 +23,7 @@ func write(ch <-chan string) {
 		select {
 		case message := <-ch:
 			fmt.Printf(message)
-			// time.Sleep(1 * time.Second)
+			time.Sleep(10 * time.Millisecond)
 		}
 	}
 }
