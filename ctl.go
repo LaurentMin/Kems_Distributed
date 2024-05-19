@@ -8,6 +8,19 @@ import (
 	"strings"
 )
 
+//#region ESTAMPILLE STRUCT
+////////////////
+// ESTAMPILLE //
+////////////////
+/*
+	estampille structure
+*/
+type Request struct {
+	Type  string
+	Clock int
+}
+
+//#region CLOCK FCT
 ///////////
 // CLOCK //
 ///////////
@@ -76,6 +89,7 @@ func castVClockToString(vlg []int) string {
 	return strVlg
 }
 
+//#region FILES FCT
 ///////////
 // FILES //
 ///////////
@@ -110,14 +124,7 @@ func saveGame(gameSave string, name string, vClock []int) {
 	logSuccess("saveGame", "Game saved in file.")
 }
 
-/*
-	estampille structure
-*/
-type Request struct {
-	Type  string
-	Clock int
-}
-
+//#region HELPER FCT
 //////////////////
 // HELPER FUNCS //
 //////////////////

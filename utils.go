@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+//#region ENCODING MSG
 ///////////////////////
 // ENCODING MESSAGES //
 ///////////////////////
@@ -92,6 +93,7 @@ func encodeMessage(keyTab []string, valTab []string) string {
 	return msg
 }
 
+//#region DECODING MSG
 ///////////////////////
 // DECODING MESSAGES //
 ///////////////////////
@@ -146,6 +148,7 @@ func findValue(table []string, key string) string {
 	return ""
 }
 
+//#region READING STDIN
 ///////////////////
 // READING STDIN //
 ///////////////////

@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+//#region ACT HANDLING UTILS
 ///////////////////////////
 // ACTION HANDLING UTILS //
 ///////////////////////////
@@ -152,6 +153,7 @@ func swapCard(playerCard Card, drawPileCard Card, player Player, game GameState)
 	return game
 }
 
+//#region ACT HANDLING
 /////////////////////
 // ACTION HANDLING //
 /////////////////////
@@ -284,6 +286,7 @@ func handleAction(fullAction string, game GameState) GameState {
 	return game
 }
 
+//#region GAME
 //////////
 // GAME //
 //////////
