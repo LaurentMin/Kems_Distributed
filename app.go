@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+//#region ACT HANDLING UTILS
 ///////////////////////////
 // ACTION HANDLING UTILS //
 ///////////////////////////
@@ -152,6 +153,7 @@ func swapCard(playerCard Card, drawPileCard Card, player Player, game GameState)
 	return game
 }
 
+//#region ACT HANDLING
 /////////////////////
 // ACTION HANDLING //
 /////////////////////
@@ -284,6 +286,7 @@ func handleAction(fullAction string, game GameState) GameState {
 	return game
 }
 
+//#region GAME
 //////////
 // GAME //
 //////////
@@ -319,9 +322,18 @@ func main() {
 		keyValTable = decodeMessage(messageReceived)
 		sender := findValue(keyValTable, "snd")
 
+		
 		// Filter out obviously wrong messages that an app should not receive
 		if len(sender) != 2 || len(name) != 2 || (sender != "C"+name[1:2] && sender[:1] != "P") {
 			logError("main", "Message invalid sender OR invalid app name (ignored) - CAN BE FATAL!")
+			messageReceived = ""
+			continue
+		}
+
+		// CONTROLLER sent message
+		// Filter out messages from our controller to other controllers
+		if findValue(keyValTable, "hlg") != "" {
+			logWarning("main", "Message from own controller to other controllers, (ignored).")
 			messageReceived = ""
 			continue
 		}
@@ -335,16 +347,12 @@ func main() {
 			messageReceived = ""
 			continue
 		}
+		
 
-		// CONTROLLER sent message
-		// Filter out messages from our controller to other controllers
-		if findValue(keyValTable, "hlg") != "" {
-			logWarning("main", "Message from own controller to other controllers, (ignored).")
-			messageReceived = ""
-			continue
-		}
+
 		// Getting message
 		messageReceived = findValue(keyValTable, "msg")
+
 
 		// Filter out wrong messages (just in case)
 		if len(messageReceived) < 11 || (messageReceived[:11] != "[GAMESTATE]" && messageReceived[:11] != "[BCRITICAL]" && messageReceived[:11] != "[SAVEORDER]") {
@@ -353,6 +361,7 @@ func main() {
 			messageReceived = ""
 			continue
 		}
+
 
 		// Message is an exclusive access grant => handle action
 		if messageReceived[:11] == "[BCRITICAL]" {
@@ -384,6 +393,7 @@ func main() {
 			messageReceived = ""
 			continue
 		}
+
 
 		// Message is a game state (process)
 		// logInfo("main", "Processing game state... "+messageReceived)
