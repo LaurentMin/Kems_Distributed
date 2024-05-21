@@ -142,7 +142,7 @@ func canGoCritical(estampilles []Request, site int) bool {
 	return true
 }
 
-func GoCritical(estampilles []Request, site int, outChan chan string, siteNum int, name string) bool {
+func GoCritical(estampilles []Request, site int, outChan chan string, siteNum int, name string) {
 	if estampilles[siteNum].Type == "[ACRITICAL]" && canGoCritical(estampilles, siteNum) {
 		outChan <- encodeMessage([]string{"snd", "msg"}, []string{name, "[BCRITICAL]"}) + "\n"
 		logInfo("main", "Begin critical section sent to base app.")
