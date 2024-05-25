@@ -317,7 +317,7 @@ func main() {
 		// logInfo("main", "Waiting for message.")
 		// Message reception
 		messageReceived = <-inChan
-		logInfo("main", "Message received. "+messageReceived)
+		logInfo("main", "Message received : "+messageReceived)
 
 		// Determine message type for processing
 		keyValTable = decodeMessage(messageReceived)

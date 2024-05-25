@@ -144,7 +144,7 @@ func canGoCritical(estampilles []Request, site int) bool {
 
 func GoCritical(estampilles []Request, site int, outChan chan string, siteNum int, name string) {
 	if estampilles[siteNum].Type == "[ACRITICAL]" && canGoCritical(estampilles, siteNum) {
-		outChan <- encodeMessage([]string{"snd", "msg"}, []string{name, "[BCRITICAL]"}) + "\n"
+		outChan <- encodeMessage([]string{"snd", "typ"}, []string{name, "[BCRITICAL]"}) + "\n"
 		logInfo("main", "Begin critical section sent to base app.")
 	}
 }
@@ -193,7 +193,7 @@ func main() {
 		// logInfo("main", "Waiting for message.")
 		// Message reception
 		messageReceived = <-inChan
-		logInfo("main", "Message received : "+ messageType + " " + messageReceived)
+		logInfo("main", "Message received : "+ messageReceived)
 
 		// Determine message type for processing
 		keyValTable = decodeMessage(messageReceived)
@@ -243,20 +243,19 @@ func main() {
 
 		//#region Message processing
 		// Message processing
-		// getting message
-		messageReceived = findValue(keyValTable, "msg")
+		// getting message type
+		messageType = findValue(keyValTable, "typ")
 		// Filter out wrong messages
-		if len(messageReceived) < 11 {
-			messageType = findValue(keyValTable, "typ")
-			if len(messageType) < 11 {
-				// logInfo("main", "Wrong message type for app received "+messageReceived+" (ignoring).")
-				logInfo("main", "Wrong message type for app received (too short) (ignoring).")
-				messageReceived = ""
-				messageType = ""
-				continue
-			}
+		if len(messageType) < 11 {
+			// logInfo("main", "Wrong message type for app received "+messageReceived+" (ignoring).")
+			logInfo("main", "Wrong message type for app received (too short) (ignoring).")
+			messageReceived = ""
+			messageType = ""
+			continue
 		}
 
+		// getting message
+		messageReceived = findValue(keyValTable, "msg")
 
 		// Receive from controller
 		if clockReceivedStr != "" && sender[:1] == "C" {
@@ -338,6 +337,7 @@ func main() {
 			}
 
 			messageReceived = ""
+			messageType = ""
 			continue
 		}
 
