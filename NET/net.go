@@ -9,10 +9,19 @@ import (
 func main () {
 	// Getting name from commandline (usefull for logging)
 	pName := flag.String("n", "net", "name")
+	pAskNode := flag.String("a", "N1", "name of other node")
 	flag.Parse()
-	name := *pName
 
+	name := *pName
 	fmt.Println("Starting ", name)
+
+	askNode := *pAskNode
+	fmt.Println("Ask to ", askNode)
+
+	if askNode {
+		// TODO : executer ./reseauNet.sh name askNode
+	
+	}
 
 	messageReceived := ""
 	inChan = make(chan string, 10)

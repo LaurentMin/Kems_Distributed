@@ -15,5 +15,7 @@ sleep 1
 
 # stdin in /tmp/in_$1
 cat >> /tmp/in_$1
+cat /tmp/out_$2 | tee -a /tmp/in_$1
+cat /tmp/out_$1 | tee -a /tmp/in_$2
 
 echo "Everything running. (start a display and a player to begin)"
