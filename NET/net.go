@@ -12,6 +12,8 @@ func main () {
 	flag.Parse()
 	name := *pName
 
+	fmt.Println("Starting ", name)
+
 	messageReceived := ""
 	inChan = make(chan string, 10)
 	outChan = make(chan string, 10)
