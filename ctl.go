@@ -144,7 +144,7 @@ func canGoCritical(estampilles []Request, site int) bool {
 
 func GoCritical(estampilles []Request, site int, outChan chan string, siteNum int, name string) {
 	if estampilles[siteNum].Type == "[ACRITICAL]" && canGoCritical(estampilles, siteNum) {
-		outChan <- encodeMessage([]string{"snd", "msg"}, []string{name, "[BCRITICAL]"}) + "\n"
+		outChan <- encodeMessage([]string{"snd", "typ"}, []string{name, "[BCRITICAL]"}) + "\n"
 		logInfo("main", "Begin critical section sent to base app.")
 	}
 }
@@ -164,6 +164,7 @@ func main() {
 	// logInfo("main", "Launching controller...")
 	// Initialising key variables for controller
 	messageReceived := ""
+	messageType := ""
 	keyValTable := []string{}
 	clock := 0
 	
@@ -192,7 +193,7 @@ func main() {
 		// logInfo("main", "Waiting for message.")
 		// Message reception
 		messageReceived = <-inChan
-		logInfo("main", "Message received "+messageReceived)
+		logInfo("main", "Message received : "+ messageReceived)
 
 		// Determine message type for processing
 		keyValTable = decodeMessage(messageReceived)
@@ -242,22 +243,25 @@ func main() {
 
 		//#region Message processing
 		// Message processing
-		// getting message
-		messageReceived = findValue(keyValTable, "msg")
+		// getting message type
+		messageType = findValue(keyValTable, "typ")
 		// Filter out wrong messages
-		if len(messageReceived) < 11 {
+		if len(messageType) < 11 {
 			// logInfo("main", "Wrong message type for app received "+messageReceived+" (ignoring).")
 			logInfo("main", "Wrong message type for app received (too short) (ignoring).")
 			messageReceived = ""
+			messageType = ""
 			continue
 		}
 
+		// getting message
+		messageReceived = findValue(keyValTable, "msg")
 
 		// Receive from controller
 		if clockReceivedStr != "" && sender[:1] == "C" {
 			otherSiteNumber, _ := strconv.Atoi(sender[1:2])
 			otherSiteNumber -= 1
-			switch messageReceived[:11] {
+			switch messageType {
 			case "[GAMESTATE]":
 				// Do not replace an ask by a gamestate
 				if estampilles[otherSiteNumber].Type != "[ACRITICAL]" {
@@ -267,7 +271,7 @@ func main() {
 				// Check if can start own critical
 				GoCritical(estampilles, siteNum, outChan, siteNum, name)
 				// Send gamestate to app
-				outChan <- encodeMessage([]string{"snd", "msg"}, []string{name, messageReceived}) + "\n"
+				outChan <- encodeMessage([]string{"snd", "typ", "msg"}, []string{name, messageType, messageReceived}) + "\n"
 				logInfo("main", "Gamestate message sent to local app.")
 
 
@@ -282,8 +286,8 @@ func main() {
 				GoCritical(estampilles, siteNum, outChan, siteNum, name)
 
 				// Save order received from other controller
-				if strconv.FormatBool(saveState) != messageReceived[11:] {
-					outChan <- encodeMessage([]string{"snd", "msg"}, []string{name, messageReceived}) + "\n"
+				if strconv.FormatBool(saveState) != messageReceived {
+					outChan <- encodeMessage([]string{"snd", "typ", "msg"}, []string{name, messageType, messageReceived}) + "\n"
 					// outChan <- encodeMessage([]string{"snd", "hlg", "vlg", "msg"}, []string{name, strconv.Itoa(clock), castVClockToString(vClock), messageReceived}) + "\n"
 					saveState = !saveState
 					logInfo("main", "Save order received from other controller and send to local app.")
@@ -293,7 +297,7 @@ func main() {
 			case "[ACRITICAL]": // Other controller asks for access restriction
 				estampilles[otherSiteNumber].Type = "[ACRITICAL]"
 				estampilles[otherSiteNumber].Clock = clock
-				outChan <- encodeMessage([]string{"snd", "hlg", "vlg", "msg"}, []string{name, strconv.Itoa(clock), castVClockToString(vClock), "[VCRITICAL]" + sender}) + "\n"
+				outChan <- encodeMessage([]string{"snd", "hlg", "vlg", "typ", "msg"}, []string{name, strconv.Itoa(clock), castVClockToString(vClock), "[VCRITICAL]", sender}) + "\n"
 				logInfo("main", "Answered to other controller restriction access demand.")
 
 				// Check if can start own critical
@@ -302,7 +306,7 @@ func main() {
 
 			case "[VCRITICAL]": // Other controller validates request reception
 				// Reject validations that are not meant for this controller
-				if messageReceived[11:] != name {
+				if messageReceived != name {
 					logWarning("main", "Validation not for this controller (ignored).")
 					messageReceived = ""
 					continue
@@ -333,20 +337,21 @@ func main() {
 			}
 
 			messageReceived = ""
+			messageType = ""
 			continue
 		}
 
 
 		// Received from app
 		if clockReceivedStr == "" && sender == "A"+name[1:2] {
-			switch messageReceived[:11] {
+			switch messageType {
 			case "[GAMESTATE]":
 				// Do not replace an ask by a gamestate
 				if estampilles[siteNum].Type != "[ACRITICAL]" {
 					estampilles[siteNum].Type = "[GAMESTATE]"
 					estampilles[siteNum].Clock = clock
 				}
-				outChan <- encodeMessage([]string{"snd", "hlg", "vlg", "msg"}, []string{name, strconv.Itoa(clock), castVClockToString(vClock), messageReceived}) + "\n"
+				outChan <- encodeMessage([]string{"snd", "hlg", "vlg", "typ", "msg"}, []string{name, strconv.Itoa(clock), castVClockToString(vClock), messageType, messageReceived}) + "\n"
 				logInfo("main", "Gamestate message sent to other controller.")
 
 
@@ -369,7 +374,7 @@ func main() {
 					saveState = !saveState
 
 					logInfo("main", "Sent save order to other controllers.")
-					outChan <- encodeMessage([]string{"snd", "hlg", "vlg", "msg"}, []string{name, strconv.Itoa(clock), castVClockToString(vClock), "[SAVEORDER]" + strconv.FormatBool(saveState)}) + "\n"
+					outChan <- encodeMessage([]string{"snd", "hlg", "vlg", "typ", "msg"}, []string{name, strconv.Itoa(clock), castVClockToString(vClock), "[SAVEORDER]", strconv.FormatBool(saveState)}) + "\n"
 
 				} else if findValue(keyValTable, "saveOrder") == "0" {
 					// made save
@@ -384,14 +389,14 @@ func main() {
 			case "[ACRITICAL]": // Base app asks critical (asking other controllers)
 				estampilles[siteNum].Type = "[ACRITICAL]"
 				estampilles[siteNum].Clock = clock
-				outChan <- encodeMessage([]string{"snd", "hlg", "vlg", "msg"}, []string{name, strconv.Itoa(clock), castVClockToString(vClock), "[ACRITICAL]"}) + "\n"
+				outChan <- encodeMessage([]string{"snd", "hlg", "vlg", "typ"}, []string{name, strconv.Itoa(clock), castVClockToString(vClock), messageType}) + "\n"
 				logInfo("main", "Asked other controllers for access restriction.")
 
 
 			case "[ECRITICAL]": // Base app stops critical (liberating other controllers)
 				estampilles[siteNum].Type = "[ECRITICAL]"
 				estampilles[siteNum].Clock = clock
-				outChan <- encodeMessage([]string{"snd", "hlg", "vlg", "msg"}, []string{name, strconv.Itoa(clock), castVClockToString(vClock), "[ECRITICAL]"}) + "\n"
+				outChan <- encodeMessage([]string{"snd", "hlg", "vlg", "typ"}, []string{name, strconv.Itoa(clock), castVClockToString(vClock), messageType}) + "\n"
 				logInfo("main", "Liberated other controllers from access restriction.")
 
 
