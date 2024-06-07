@@ -237,7 +237,11 @@ func main() {
 
 		} else { // Filters out messages from other controller to their own app or other errors
 			// ERROR, ignoring
-			logWarning("main", "Message from another controller to it's own app (IGNORED) OR UNEXPECTED ERROR.")
+			if clockReceivedStr != "" && inter == name[1:] {
+				logWarning("main", "Message return by broadcast but already read.")
+			} else {
+				logWarning("main", "Message from another controller to it's own app (IGNORED) OR UNEXPECTED ERROR.")
+			}
 			messageReceived = ""
 			continue
 		}
@@ -269,7 +273,7 @@ func main() {
 			switch messageType {
 			case "[GAMESTATE]":
 				// Broadcast to other controllers
-				outChan <- encodeMessage([]string{"snd", "hlg", "vlg", "typ", "msg", "par", "int"}, []string{name, strconv.Itoa(clock), castVClockToString(vClock), messageType, messageReceived, name[1:], parent}) + "\n"
+				outChan <- encodeMessage([]string{"snd", "hlg", "vlg", "typ", "msg", "par", "int"}, []string{sender, strconv.Itoa(clock), castVClockToString(vClock), messageType, messageReceived, name[1:], parent}) + "\n"
 				// Do not replace an ask by a gamestate
 				if estampilles[otherSiteNumber].Type != "[ACRITICAL]" {
 					estampilles[otherSiteNumber].Type = "[GAMESTATE]"
@@ -296,7 +300,7 @@ func main() {
 				if strconv.FormatBool(saveState) != messageReceived {
 					outChan <- encodeMessage([]string{"snd", "typ", "msg"}, []string{name, messageType, messageReceived}) + "\n"
 					// Broadcast to other controllers
-					outChan <- encodeMessage([]string{"snd", "hlg", "vlg", "msg", "par", "int"}, []string{name, strconv.Itoa(clock), castVClockToString(vClock), messageReceived, name[1:], parent}) + "\n"
+					outChan <- encodeMessage([]string{"snd", "hlg", "vlg", "msg", "par", "int"}, []string{sender, strconv.Itoa(clock), castVClockToString(vClock), messageReceived, name[1:], parent}) + "\n"
 					saveState = !saveState
 					logInfo("main", "Save order received from other controller and send to local app.")
 				}
@@ -304,7 +308,7 @@ func main() {
 
 			case "[ACRITICAL]": // Other controller asks for access restriction
 				// Broadcast to other controllers
-				outChan <- encodeMessage([]string{"snd", "hlg", "vlg", "typ", "msg", "par", "int"}, []string{name, strconv.Itoa(clock), castVClockToString(vClock), messageType, messageReceived, name[1:], parent}) + "\n"
+				outChan <- encodeMessage([]string{"snd", "hlg", "vlg", "typ", "msg", "par", "int"}, []string{sender, strconv.Itoa(clock), castVClockToString(vClock), messageType, messageReceived, name[1:], parent}) + "\n"
 
 				estampilles[otherSiteNumber].Type = "[ACRITICAL]"
 				estampilles[otherSiteNumber].Clock = clock
@@ -316,10 +320,10 @@ func main() {
 
 
 			case "[VCRITICAL]": // Other controller validates request reception
-				// Reject validations that are not meant for this controller
+				// Broadcast to other controllers
 				if messageReceived != name {
 					logWarning("main", "Validation not for this controller (broadcast).")
-					outChan <- encodeMessage([]string{"snd", "hlg", "vlg", "typ", "msg", "par", "int"}, []string{name, strconv.Itoa(clock), castVClockToString(vClock), messageType, messageReceived, name[1:], parent}) + "\n"
+					outChan <- encodeMessage([]string{"snd", "hlg", "vlg", "typ", "msg", "par", "int"}, []string{sender, strconv.Itoa(clock), castVClockToString(vClock), messageType, messageReceived, name[1:], parent}) + "\n"
 					messageReceived = ""
 					continue
 				}
@@ -337,7 +341,7 @@ func main() {
 				
 			case "[ECRITICAL]": // Other controller liberates access restriction
 				// Broadcast to other controllers
-				outChan <- encodeMessage([]string{"snd", "hlg", "vlg", "typ", "msg", "par", "int"}, []string{name, strconv.Itoa(clock), castVClockToString(vClock), messageType, messageReceived, name[1:], parent}) + "\n"
+				outChan <- encodeMessage([]string{"snd", "hlg", "vlg", "typ", "msg", "par", "int"}, []string{sender, strconv.Itoa(clock), castVClockToString(vClock), messageType, messageReceived, name[1:], parent}) + "\n"
 
 				estampilles[otherSiteNumber].Type = "[ECRITICAL]"
 				estampilles[otherSiteNumber].Clock = clock
