@@ -1,3 +1,3 @@
 #!/bin/bash
 
-go build -o net net.go utils.go logs.go io-utils.go
+go build -o net net.go pastouche3.go pastouche2.go pastouche1.go

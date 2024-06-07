@@ -8,8 +8,8 @@ import (
 
 func main () {
 	// Getting name from commandline (usefull for logging)
-	pName := flag.String("n", "net", "name")
-	pAskNode := flag.String("a", "N1", "name of other node")
+	pName := flag.String("n", "N1", "name")
+	pAskNode := flag.String("a", "N1", "name of node to connect to")
 	flag.Parse()
 
 	name := *pName
@@ -18,9 +18,8 @@ func main () {
 	askNode := *pAskNode
 	fmt.Println("Ask to ", askNode)
 
-	if askNode {
+	if askNode != "" {
 		// TODO : executer ./reseauNet.sh name askNode
-	
 	}
 
 	messageReceived := ""
