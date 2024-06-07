@@ -1,12 +1,12 @@
 package main
 
 import (
-	"fmt"
-	"strings"
 	"flag"
+	"fmt"
+	"regexp"
 )
 
-func main () {
+func main() {
 	// Getting name from commandline (usefull for logging)
 	pName := flag.String("n", "N1", "name")
 	pAskNode := flag.String("a", "N1", "name of node to connect to")
@@ -22,7 +22,6 @@ func main () {
 		// TODO : executer ./reseauNet.sh name askNode
 	}
 
-	messageReceived := ""
 	inChan = make(chan string, 10)
 	outChan = make(chan string, 10)
 	// Reading go routine (sends read data from sdtin through channel)
@@ -31,11 +30,49 @@ func main () {
 	// Writing go routine (writes data from channel to stdout)
 	go write(outChan)
 
+	messageReceived := ""
+	sender := ""
+	msgtype := ""
+	keyValTable := []string{}
+
 	for {
-		messageReceived = <- inChan
-		fmt.Println("Message received ", name, " : ", messageReceived)
-		if ! strings.Contains(messageReceived, "test") {
-			outChan <- encodeMessage([]string{"typ", "msg"}, []string{"test", messageReceived})
+		logInfo("main", "Waiting for message.")
+		// Message reception
+		messageReceived = <-inChan
+		logInfo("main", "Message received : "+messageReceived)
+
+		// Determine message type for processing
+		keyValTable = decodeMessage(messageReceived)
+		sender = findValue(keyValTable, "snd")
+		msgtype = findValue(keyValTable, "typ")
+		logMessage("main", sender)
+		logMessage("main", msgtype)
+		// Filter out random messages
+		validSender, _ := regexp.MatchString("(N|C)[0-9]+", sender)
+		if len(name) < 2 || len(sender) < 2 || !validSender || msgtype == "" {
+			logWarning("main", "NET has bad name or received wrong message (ignored) - CAN BE FATAL!")
+			messageReceived = ""
+			continue
 		}
+
+		// Send controller message to network
+		if sender[0] == 'C' {
+			outChan <- encodeMessage([]string{"snd", "typ", "msg"}, []string{name, "net", messageReceived})
+
+			messageReceived = ""
+			continue
+		}
+
+		// Handle natwork message
+		if sender[0] == 'N' {
+			msgcontent := findValue(keyValTable, "msg")
+			outChan <- msgcontent
+
+			messageReceived = ""
+			continue
+		}
+
+		logError("main", "FATAL this should never be reached!")
+		messageReceived = ""
 	}
 }
