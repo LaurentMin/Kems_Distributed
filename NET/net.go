@@ -2,26 +2,40 @@ package main
 
 import (
 	"flag"
-	"fmt"
-	"regexp"
 )
+
+type MessageContent string
+
+const (
+	askToConnect     MessageContent = "Hello, may I join your awesome network ?"
+	acceptConnection MessageContent = "Hello, of course you can join our network ?"
+	refuseConnection MessageContent = "Hello, sorry but you'll have to wait ?"
+)
+
+/*
+NET is connected to network and is asked by a new node to join
+*/
+func handleConnectionMessage(sender string, msgcontent string) {
+	// Connection message, accept
+	if msgcontent == string(askToConnect) {
+		outChan <- encodeMessage([]string{"snd", "typ", "msg"}, []string{name, "con", string(acceptConnection)})
+		logInfo("handleConnectionMessage", "Connection accepted.")
+	}
+
+}
+
+func handleNetMessage(sender string, msgcontent string) {
+	logInfo("handleNetMessage", "Function note implemented.")
+}
 
 func main() {
 	// Getting name from commandline (usefull for logging)
 	pName := flag.String("n", "N1", "name")
 	pAskNode := flag.String("a", "N1", "name of node to connect to")
 	flag.Parse()
-
 	name := *pName
-	fmt.Println("Starting ", name)
-
 	askNode := *pAskNode
-	fmt.Println("Ask to ", askNode)
-
-	if askNode != "" {
-		// TODO : executer ./reseauNet.sh name askNode
-	}
-
+	logError("main", "|"+name+"|"+askNode+"|")
 	inChan = make(chan string, 10)
 	outChan = make(chan string, 10)
 	// Reading go routine (sends read data from sdtin through channel)
@@ -35,6 +49,17 @@ func main() {
 	msgtype := ""
 	keyValTable := []string{}
 
+	// Ask to join network
+	connected := false
+	if askNode != "" {
+		outChan <- encodeMessage([]string{"snd", "typ", "msg"}, []string{name, "con", string(askToConnect)})
+		logInfo("main", "Asked to join a network through : "+askNode)
+	} else {
+		connected = true // First node of the network
+		logInfo("main", "Started a new network.")
+	}
+
+	// Main message handling loop
 	for {
 		logInfo("main", "Waiting for message.")
 		// Message reception
@@ -48,31 +73,52 @@ func main() {
 		logMessage("main", sender)
 		logMessage("main", msgtype)
 		// Filter out random messages
-		validSender, _ := regexp.MatchString("(N|C)[0-9]+", sender)
-		if len(name) < 2 || len(sender) < 2 || !validSender || msgtype == "" {
+		invalidSender := len(sender) < 2 || (sender[0] != 'C' && sender[0] != 'N')
+		if len(name) < 2 || invalidSender || msgtype == "" {
 			logWarning("main", "NET has bad name or received wrong message (ignored) - CAN BE FATAL!")
 			messageReceived = ""
 			continue
 		}
 
-		// Send controller message to network
-		if sender[0] == 'C' {
+		/* HANDLE CONTROLLER MESSAGE */
+		if sender[0] == 'C' && connected {
 			outChan <- encodeMessage([]string{"snd", "typ", "msg"}, []string{name, "net", messageReceived})
-
+			logInfo("main", "Controller message sent to network.")
 			messageReceived = ""
 			continue
 		}
 
-		// Handle natwork message
-		if sender[0] == 'N' {
-			msgcontent := findValue(keyValTable, "msg")
-			outChan <- msgcontent
-
+		/* HANDLE NETWORK MESSAGE */
+		msgcontent := findValue(keyValTable, "msg")
+		if sender[0] == 'N' && connected {
+			switch msgtype {
+			case "con":
+				handleConnectionMessage(sender, msgcontent) // must log action
+			case "net":
+				handleNetMessage(sender, msgcontent) // must log action
+			default:
+				logError("main", "Ignored network message.")
+			}
 			messageReceived = ""
 			continue
 		}
 
-		logError("main", "FATAL this should never be reached!")
+		// HANDLE NETWORK CONNECTION
+		if sender[0] == 'N' && !connected {
+			switch msgcontent {
+			case string(acceptConnection):
+				connected = true
+				logSuccess("main", "Successfully connected to network.")
+			case string(refuseConnection):
+				logWarning("main", "Connection to network was not accepted.")
+			default:
+				logError("main", "Unexpected connection message, ignored.")
+			}
+			messageReceived = ""
+			continue
+		}
+
+		logError("main", "FATAL ! Node received unexpected message while not connected to network. (usually from controller)")
 		messageReceived = ""
 	}
 }
