@@ -19,6 +19,6 @@ elif [ $# -eq 2 ]; then
     echo "Node added to network."
 else
     echo "Error: Invalid number of arguments"
-    echo "Usage: $0 nodeName nodeToConnectTo (starting new network => 1 agument)"
+    echo "Usage: $0 nodeName nodeToConnectTo (To start a new network use 1 argument)"
     exit 1
 fi
