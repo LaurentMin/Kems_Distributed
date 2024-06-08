@@ -30,17 +30,16 @@ func handleNetMessage(sender string, msgcontent string) {
 
 func main() {
 	// Getting name from commandline (usefull for logging)
-	pName := flag.String("n", "N1", "name")
-	pAskNode := flag.String("a", "N1", "name of node to connect to")
+	pName := flag.String("n", "default", "name")
+	pAskNode := flag.String("a", "default", "name of node to connect to")
 	flag.Parse()
-	name := *pName
+	name = *pName
 	askNode := *pAskNode
-	logError("main", "|"+name+"|"+askNode+"|")
+
 	inChan = make(chan string, 10)
 	outChan = make(chan string, 10)
-	// Reading go routine (sends read data from sdtin through channel)
+	// Reading go routine (sends read data from stdin through channel)
 	go read(inChan)
-
 	// Writing go routine (writes data from channel to stdout)
 	go write(outChan)
 
@@ -51,14 +50,13 @@ func main() {
 
 	// Ask to join network
 	connected := false
-	if askNode != "" {
+	if name != askNode { // First node  of the network has itself as askNode
 		outChan <- encodeMessage([]string{"snd", "typ", "msg"}, []string{name, "con", string(askToConnect)})
 		logInfo("main", "Asked to join a network through : "+askNode)
 	} else {
 		connected = true // First node of the network
 		logInfo("main", "Started a new network.")
 	}
-
 	// Main message handling loop
 	for {
 		logInfo("main", "Waiting for message.")
@@ -70,8 +68,6 @@ func main() {
 		keyValTable = decodeMessage(messageReceived)
 		sender = findValue(keyValTable, "snd")
 		msgtype = findValue(keyValTable, "typ")
-		logMessage("main", sender)
-		logMessage("main", msgtype)
 		// Filter out random messages
 		invalidSender := len(sender) < 2 || (sender[0] != 'C' && sender[0] != 'N')
 		if len(name) < 2 || invalidSender || msgtype == "" {
