@@ -150,11 +150,18 @@ func handleDiffusionMessage(sender string, recipient string, msgcontent string, 
 		} else {
 			diffMessage.color = rouge
 			outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, "all", "net", diffusionToString(diffMessage)}) + "\n"
-			logInfo("handleDiffusionMessage", "Sent blue message to neighbours.")
+			logInfo("handleDiffusionMessage", "Sent red message to parent.")
 		}
 	case rouge:
-		// Restart here
-
+		(*table)[tabIndex].nbNeighbours -= 1
+		if (*table)[tabIndex].nbNeighbours == 0 {
+			if (*table)[tabIndex].parent == name {
+				logSuccess("handleDiffusionMessage", "Diffusion terminée : "+diffMessage.diffIndex)
+			} else {
+				outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, "all", "net", diffusionToString(diffMessage)}) + "\n"
+				logInfo("handleDiffusionMessage", "Passing red message to parent.")
+			}
+		}
 	default:
 		logError("handleDiffusionMessage", "Fatal error, diffusion message has unexpected color (ignored).")
 		return
@@ -188,6 +195,7 @@ func main() {
 	keyValTable := []string{}
 	// diffCounter := 0
 	diffTable := []Diffusion{}
+	numNeighbours := 0
 
 	// Ask to join network
 	connected := false
@@ -248,7 +256,7 @@ func main() {
 			case "con":
 				handleConnectionMessage(sender, msgcontent) // must log action
 			case "net":
-				handleDiffusionMessage(sender, recipient, msgcontent, &diffTable)
+				handleDiffusionMessage(sender, recipient, msgcontent, &diffTable, &numNeighbours)
 			default:
 				logError("main", "Ignored network message.")
 			}
