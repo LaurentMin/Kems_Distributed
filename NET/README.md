@@ -14,3 +14,5 @@ So scripts add scripts built `addn.sh` :
 3. starts N3 on N0
 4. starts N4 on N1
 5. starts N6 on N4 AND N5 on N3
+
+**Use `fullStartScript.sh` (Starts every script with an interval of 10 seconds).**
