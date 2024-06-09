@@ -34,7 +34,7 @@ func connect(stop <-chan bool, askNode string) {
 		default:
 			outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, askNode, "con", string(askToConnect)}) + "\n"
 			logInfo("connect", "Asked to join a network through : "+askNode)
-			time.Sleep(5 * time.Second)
+			time.Sleep(30 * time.Second)
 		}
 	}
 }
@@ -46,9 +46,7 @@ NET is connected to network and a new node asks to join
 func handleConnectionMessage(sender string, msgcontent string, neighbours *[]string) {
 	// Connection message, accept
 	if msgcontent == string(askToConnect) {
-		addNeighbour(neighbours, sender)
-		outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, sender, "con", string(acceptConnection)}) + "\n"
-		logInfo("handleConnectionMessage", "Connection accepted.")
+
 	} else {
 		logInfo("handleConnectionMessage", "Unexpected connection message, ignored.")
 	}
@@ -74,6 +72,7 @@ type Diffusion struct {
 	color        Color
 	parent       string
 	nbNeighbours int
+	value        string
 }
 
 /*
@@ -88,12 +87,13 @@ type DiffusionMessage struct {
 /*
 Diffusion constructor
 */
-func getDiffusioni(index string, neighbours int) Diffusion {
+func getDiffusioni(index string, neighbours int, val string) Diffusion {
 	return Diffusion{
 		diffIndex:    index,
 		color:        blanc,
 		parent:       "",
 		nbNeighbours: neighbours,
+		value:        val,
 	}
 }
 
@@ -115,7 +115,7 @@ func startDiffusion(counter int, val string, table *[]Diffusion, nbNeighbours in
 	diffID := name + "D" + strconv.Itoa(counter)
 
 	// Create diffusion
-	newDiff := getDiffusioni(diffID, nbNeighbours)
+	newDiff := getDiffusioni(diffID, nbNeighbours, val)
 	newDiff.color = bleu
 	newDiff.parent = name
 	*table = append(*table, newDiff)
@@ -135,15 +135,19 @@ func startDiffusion(counter int, val string, table *[]Diffusion, nbNeighbours in
 DIFFUSION
 NET is connected to network and receives a net message (diffusion messages are net messages)
 */
-func handleDiffusionMessage(sender string, recipient string, msgcontent string, table *[]Diffusion, numNeighbours int) {
+func handleDiffusionMessage(sender string, recipient string, msgcontent string, table *[]Diffusion, neighbours *[]string) {
 	if len(msgcontent) < 11 || msgcontent[:11] != "[DIFFUSION]" {
 		logError("handleDiffusionMessage", "Fatal error, net message content is corrupted (ignored).")
 		return
 	}
-
+	numNeighbours := len(*neighbours)
 	diffMessage := stringToDiffusion(msgcontent)
-	tabIndex := getDiffIdIndexOrCreateIfNotExists(table, diffMessage.diffIndex, numNeighbours)
-	logError("handleDiffusionMessage", printDiffusion((*table)[tabIndex]))
+	if stopElecWave(*table, diffMessage) {
+		logWarning("handleDiffusionMessage", "Stopped election wave for "+diffMessage.diffIndex)
+		return
+	}
+	tabIndex := getDiffIdIndexOrCreateIfNotExists(table, diffMessage.diffIndex, numNeighbours, diffMessage.value)
+	// logError("handleDiffusionMessage", printDiffusion((*table)[tabIndex]))
 	switch diffMessage.color {
 	case bleu:
 		if (*table)[tabIndex].color == blanc {
@@ -160,7 +164,13 @@ func handleDiffusionMessage(sender string, recipient string, msgcontent string, 
 		(*table)[tabIndex].nbNeighbours -= 1
 		if (*table)[tabIndex].nbNeighbours == 0 {
 			if (*table)[tabIndex].parent == name {
-				logSuccess("handleDiffusionMessage", "Diffusion terminée : "+diffMessage.diffIndex)
+				if len((*table)[tabIndex].value) > 1 && (*table)[tabIndex].value[:1] == "N" { // Had asked for election to add a node
+					addNeighbour(neighbours, (*table)[tabIndex].value)
+					outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, (*table)[tabIndex].value, "con", string(acceptConnection)}) + "\n"
+					logSuccess("handleDiffusionMessage", "Connection accepted for "+(*table)[tabIndex].value)
+				} else {
+					logSuccess("handleDiffusionMessage", "Diffusion terminée : "+diffMessage.diffIndex)
+				}
 			} else {
 				outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, (*table)[tabIndex].parent, "net", diffusionToString(diffMessage)}) + "\n"
 				logInfo("handleDiffusionMessage", "Passing red message to parent.")
@@ -260,9 +270,19 @@ func main() {
 		if sender[0] == 'N' && connected {
 			switch msgtype {
 			case "con":
-				handleConnectionMessage(sender, msgcontent, &neighbours) // must log action
+				if len(neighbours) == 0 { // No other nodes in the network, can accept without election
+					addNeighbour(&neighbours, sender)
+					outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, sender, "con", string(acceptConnection)}) + "\n"
+					logInfo("handleConnectionMessage", "Connection accepted for "+sender)
+				} else if msgcontent == string(askToConnect) && canParticipateToElection(diffTable) {
+					startDiffusion(counter, sender, &diffTable, len(neighbours))
+					counter += 1
+					logInfo("main", "Asked network to add new node.")
+				} else {
+					logWarning("main", "Can't participate to election or unexpected connection message (ignored).")
+				}
 			case "net":
-				handleDiffusionMessage(sender, recipient, msgcontent, &diffTable, len(neighbours))
+				handleDiffusionMessage(sender, recipient, msgcontent, &diffTable, &neighbours)
 			default:
 				logError("main", "Ignored network message.")
 			}
@@ -277,13 +297,17 @@ func main() {
 				stop <- true // channel initialised only if connected is false when program begins
 				connected = true
 				addNeighbour(&neighbours, sender) // Adds neighbour if does not exist
-				startDiffusion(counter, name, &diffTable, len(neighbours))
+				startDiffusion(counter, "new", &diffTable, len(neighbours))
 				counter += 1
 				logSuccess("main", "Successfully connected to network.")
 			case string(refuseConnection):
 				logWarning("main", "Connection to network was not accepted.")
 			default:
-				logWarning("main", "Unexpected connection message, ignored.")
+				if msgtype == "net" {
+					logWarning("main", "Node not yet connected to network (ignored)")
+				} else {
+					logWarning("main", "Unexpected connection message, ignored.")
+				}
 			}
 			messageReceived = ""
 			continue
