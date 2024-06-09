@@ -43,9 +43,10 @@ func connect(stop <-chan bool, askNode string) {
 Connection message handling
 NET is connected to network and a new node asks to join
 */
-func handleConnectionMessage(sender string, msgcontent string) {
+func handleConnectionMessage(sender string, msgcontent string, neighbours *[]string) {
 	// Connection message, accept
 	if msgcontent == string(askToConnect) {
+		addNeighbour(neighbours, sender)
 		outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, sender, "con", string(acceptConnection)}) + "\n"
 		logInfo("handleConnectionMessage", "Connection accepted.")
 	} else {
@@ -195,7 +196,7 @@ func main() {
 	keyValTable := []string{}
 	// diffCounter := 0
 	diffTable := []Diffusion{}
-	numNeighbours := 0
+	neighbours := []string{}
 
 	// Ask to join network
 	connected := false
@@ -254,9 +255,10 @@ func main() {
 		if sender[0] == 'N' && connected {
 			switch msgtype {
 			case "con":
-				handleConnectionMessage(sender, msgcontent) // must log action
+
+				handleConnectionMessage(sender, msgcontent, &neighbours) // must log action
 			case "net":
-				handleDiffusionMessage(sender, recipient, msgcontent, &diffTable, &numNeighbours)
+				handleDiffusionMessage(sender, recipient, msgcontent, &diffTable, len(neighbours))
 			default:
 				logError("main", "Ignored network message.")
 			}
@@ -270,6 +272,7 @@ func main() {
 			case string(acceptConnection):
 				stop <- true // channel initialised only if connected is false when program begins
 				connected = true
+				addNeighbour(&neighbours, sender) // Adds neighbour if does not exist
 				logSuccess("main", "Successfully connected to network.")
 			case string(refuseConnection):
 				logWarning("main", "Connection to network was not accepted.")

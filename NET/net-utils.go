@@ -33,3 +33,15 @@ func getDiffIdIndexOrCreateIfNotExists(table *[]Diffusion, id string, numNeighbo
 	*table = append(*table, newDiff)
 	return len(*table) - 1
 }
+
+/*
+Custom append to add string in array only if does not exist
+*/
+func addNeighbour(neighbours *[]string, addMe string) {
+	for _, id := range *neighbours {
+		if id == addMe {
+			return
+		}
+	}
+	*neighbours = append(*neighbours, addMe)
+}
