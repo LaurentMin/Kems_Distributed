@@ -2,9 +2,17 @@ package main
 
 import (
 	"flag"
+	"strconv"
+	"strings"
 	"time"
 )
 
+////////////////////////////////
+////////// CONNECTION //////////
+////////////////////////////////
+/*
+Connection messages
+*/
 type MessageContent string
 
 const (
@@ -14,7 +22,7 @@ const (
 )
 
 /*
-Connect go routine sends asks to connect to network untill stoped (waits a certain amount of time in between pings)
+Connect go routine asks to connect to network until stopped (waits a certain amount of time in between pings)
 */
 func connect(stop <-chan bool, askNode string) {
 	time.Sleep(5 * time.Second)
@@ -24,7 +32,7 @@ func connect(stop <-chan bool, askNode string) {
 			logMessage("connect", "Connection go routine stopped.")
 			return
 		default:
-			outChan <- encodeMessage([]string{"snd", "typ", "msg"}, []string{name, "con", string(askToConnect)}) + "\n"
+			outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, askNode, "con", string(askToConnect)}) + "\n"
 			logInfo("connect", "Asked to join a network through : "+askNode)
 			time.Sleep(5 * time.Second)
 		}
@@ -32,25 +40,130 @@ func connect(stop <-chan bool, askNode string) {
 }
 
 /*
+Connection message handling
 NET is connected to network and a new node asks to join
 */
 func handleConnectionMessage(sender string, msgcontent string) {
 	// Connection message, accept
 	if msgcontent == string(askToConnect) {
-		outChan <- encodeMessage([]string{"snd", "typ", "msg"}, []string{name, "con", string(acceptConnection)}) + "\n"
+		outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, sender, "con", string(acceptConnection)}) + "\n"
 		logInfo("handleConnectionMessage", "Connection accepted.")
 	} else {
 		logInfo("handleConnectionMessage", "Unexpected connection message, ignored.")
 	}
 }
 
+///////////////////////////////
+////////// DIFFUSION //////////
+///////////////////////////////
+type Color string
+
+const (
+	blanc Color = "blanc"
+	bleu  Color = "bleu"
+	rouge Color = "rouge"
+)
+
 /*
-NET is connected to network and receives message from network
+Type to have multiple diffusions at the same time
+A diffusion index is the name of a node concatenated to the id of it's diffusion
 */
-func handleNetMessage(sender string, msgcontent string) {
-	logInfo("handleNetMessage", "Function not implemented.")
+type Diffusion struct {
+	diffIndex    string
+	color        Color
+	parent       string
+	nbNeighbours int
 }
 
+/*
+Used for messages
+*/
+type DiffusionMessage struct {
+	diffIndex string
+	color     Color
+	value     string
+}
+
+/*
+Diffusion constructor
+*/
+func getDiffusioni(index string, neighbours int) Diffusion {
+	return Diffusion{
+		diffIndex:    index,
+		color:        blanc,
+		parent:       "",
+		nbNeighbours: neighbours,
+	}
+}
+
+/*
+Diffusion message
+*/
+func getDiffusionMessagei(index string, neighbours int) DiffusionMessage {
+	return DiffusionMessage{
+		diffIndex: index,
+		color:     blanc,
+		value:     "",
+	}
+}
+
+/*
+Starts a diffusion from node
+*/
+func startDiffusion(message string, counter int, val string, table *[]Diffusion, nbNeighbours int) {
+	diffID := name + strconv.Itoa(counter)
+
+	// Create diffusion
+	newDiff := getDiffusioni(diffID, nbNeighbours)
+	*table = append(*table, newDiff)
+
+	// Create message
+	diff := getDiffusionMessagei(diffID, nbNeighbours)
+	diff.color = bleu
+	diff.value = val
+	outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, "all", "net", diffusionToString(diff)}) + "\n"
+	logInfo("startDiffusion", "Diffused message to all neighbours.")
+}
+
+//////////////////////////////////////////
+////////// NET MESSAGE HANDLING //////////
+//////////////////////////////////////////
+/*
+DIFFUSION
+NET is connected to network and receives a net message (only diffusion messages are net messages => for now)
+*/
+func handleDiffusionMessage(sender string, recipient string, msgcontent string, table *[]Diffusion, numNeighbours int) {
+	if len(msgcontent) < 11 || msgcontent[:11] != "[DIFFUSION]" {
+		logError("handleDiffusionMessage", "Fatal error, net message content is corrupted (ignored).")
+		return
+	}
+
+	diffMessage := stringToDiffusion(msgcontent) // must ignore numNeighbours and parent from this object
+	tabIndex := getDiffIdIndexOrCreateIfNotExists(table, diffMessage.diffIndex, numNeighbours)
+	switch diffMessage.color {
+	case bleu:
+		if (*table)[tabIndex].color == blanc {
+			(*table)[tabIndex].color = bleu
+			(*table)[tabIndex].parent = sender
+			outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, "all", "net", diffusionToString(diffMessage)}) + "\n"
+			logInfo("handleDiffusionMessage", "Sent blue message to neighbours.")
+		} else {
+			diffMessage.color = rouge
+			outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, "all", "net", diffusionToString(diffMessage)}) + "\n"
+			logInfo("handleDiffusionMessage", "Sent blue message to neighbours.")
+		}
+	case rouge:
+		// Restart here
+
+	default:
+		logError("handleDiffusionMessage", "Fatal error, diffusion message has unexpected color (ignored).")
+		return
+	}
+}
+
+//////////////////////////
+////////// MAIN //////////
+//////////////////////////
 func main() {
 	// Getting name from commandline (usefull for logging)
 	pName := flag.String("n", "default", "name")
@@ -70,8 +183,11 @@ func main() {
 	var stop chan bool
 	messageReceived := ""
 	sender := ""
+	recipient := ""
 	msgtype := ""
 	keyValTable := []string{}
+	// diffCounter := 0
+	diffTable := []Diffusion{}
 
 	// Ask to join network
 	connected := false
@@ -107,17 +223,19 @@ func main() {
 		keyValTable = decodeMessage(messageReceived)
 		sender = findValue(keyValTable, "snd")
 		msgtype = findValue(keyValTable, "typ")
+		recipient = findValue(keyValTable, "rec")
 		// Filter out random messages
 		invalidSender := len(sender) < 2 || (sender[0] != 'C' && sender[0] != 'N')
-		if len(name) < 2 || invalidSender || msgtype == "" {
-			logWarning("main", "NET has bad name or received wrong message (ignored) - CAN BE FATAL!")
+		messageForMe := strings.EqualFold(recipient, "all") || recipient == name
+		if len(name) < 2 || invalidSender || !messageForMe || msgtype == "" {
+			logWarning("main", "Message not for node (ignored) OR unexpected message - COULD BE FATAL!")
 			messageReceived = ""
 			continue
 		}
 
 		/* HANDLE CONTROLLER MESSAGE */
 		if sender[0] == 'C' && connected {
-			outChan <- encodeMessage([]string{"snd", "typ", "msg"}, []string{name, "net", messageReceived}) + "\n"
+			// outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, "all", "net", messageReceived}) + "\n"
 			logInfo("main", "Controller message sent to network.")
 			messageReceived = ""
 			continue
@@ -130,7 +248,7 @@ func main() {
 			case "con":
 				handleConnectionMessage(sender, msgcontent) // must log action
 			case "net":
-				handleNetMessage(sender, msgcontent) // must log action
+				handleDiffusionMessage(sender, recipient, msgcontent, &diffTable)
 			default:
 				logError("main", "Ignored network message.")
 			}
