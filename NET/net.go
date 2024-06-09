@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"time"
 )
 
 type MessageContent string
@@ -13,19 +14,40 @@ const (
 )
 
 /*
-NET is connected to network and is asked by a new node to join
+Connect go routine sends asks to connect to network untill stoped (waits a certain amount of time in between pings)
+*/
+func connect(stop <-chan bool, askNode string) {
+	time.Sleep(5 * time.Second)
+	for {
+		select {
+		case <-stop:
+			logMessage("connect", "Connection go routine stopped.")
+			return
+		default:
+			outChan <- encodeMessage([]string{"snd", "typ", "msg"}, []string{name, "con", string(askToConnect)}) + "\n"
+			logInfo("connect", "Asked to join a network through : "+askNode)
+			time.Sleep(5 * time.Second)
+		}
+	}
+}
+
+/*
+NET is connected to network and a new node asks to join
 */
 func handleConnectionMessage(sender string, msgcontent string) {
 	// Connection message, accept
 	if msgcontent == string(askToConnect) {
-		outChan <- encodeMessage([]string{"snd", "typ", "msg"}, []string{name, "con", string(acceptConnection)})
+		outChan <- encodeMessage([]string{"snd", "typ", "msg"}, []string{name, "con", string(acceptConnection)}) + "\n"
 		logInfo("handleConnectionMessage", "Connection accepted.")
 	}
 
 }
 
+/*
+NET is connected to network and receives message from network
+*/
 func handleNetMessage(sender string, msgcontent string) {
-	logInfo("handleNetMessage", "Function note implemented.")
+	logInfo("handleNetMessage", "Function not implemented.")
 }
 
 func main() {
@@ -43,6 +65,8 @@ func main() {
 	// Writing go routine (writes data from channel to stdout)
 	go write(outChan)
 
+	// Program variables
+	var stop chan bool
 	messageReceived := ""
 	sender := ""
 	msgtype := ""
@@ -51,12 +75,13 @@ func main() {
 	// Ask to join network
 	connected := false
 	if name != askNode { // First node  of the network has itself as askNode
-		outChan <- encodeMessage([]string{"snd", "typ", "msg"}, []string{name, "con", string(askToConnect)})
-		logInfo("main", "Asked to join a network through : "+askNode)
+		stop = make(chan bool)
+		go connect(stop, askNode)
 	} else {
 		connected = true // First node of the network
 		logInfo("main", "Started a new network.")
 	}
+
 	// Main message handling loop
 	for {
 		logInfo("main", "Waiting for message.")
@@ -78,7 +103,7 @@ func main() {
 
 		/* HANDLE CONTROLLER MESSAGE */
 		if sender[0] == 'C' && connected {
-			outChan <- encodeMessage([]string{"snd", "typ", "msg"}, []string{name, "net", messageReceived})
+			outChan <- encodeMessage([]string{"snd", "typ", "msg"}, []string{name, "net", messageReceived}) + "\n"
 			logInfo("main", "Controller message sent to network.")
 			messageReceived = ""
 			continue
@@ -103,6 +128,7 @@ func main() {
 		if sender[0] == 'N' && !connected {
 			switch msgcontent {
 			case string(acceptConnection):
+				stop <- true // channel initialised only if connected is false when program begins
 				connected = true
 				logSuccess("main", "Successfully connected to network.")
 			case string(refuseConnection):
