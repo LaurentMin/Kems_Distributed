@@ -111,7 +111,7 @@ func getDiffusionMessagei(index string, neighbours int) DiffusionMessage {
 /*
 Starts a diffusion from node
 */
-func startDiffusion(message string, counter int, val string, table *[]Diffusion, nbNeighbours int) {
+func startDiffusion(counter int, val string, table *[]Diffusion, nbNeighbours int) {
 	diffID := name + strconv.Itoa(counter)
 
 	// Create diffusion
@@ -194,7 +194,7 @@ func main() {
 	recipient := ""
 	msgtype := ""
 	keyValTable := []string{}
-	// diffCounter := 0
+	counter := 0
 	diffTable := []Diffusion{}
 	neighbours := []string{}
 
@@ -255,7 +255,6 @@ func main() {
 		if sender[0] == 'N' && connected {
 			switch msgtype {
 			case "con":
-
 				handleConnectionMessage(sender, msgcontent, &neighbours) // must log action
 			case "net":
 				handleDiffusionMessage(sender, recipient, msgcontent, &diffTable, len(neighbours))
@@ -273,7 +272,8 @@ func main() {
 				stop <- true // channel initialised only if connected is false when program begins
 				connected = true
 				addNeighbour(&neighbours, sender) // Adds neighbour if does not exist
-				logSuccess("main", "Successfully connected to network.")
+				startDiffusion(counter, name, &diffTable, len(neighbours))
+				logSuccess("main", "Successfully connected to network, diffused the information.")
 			case string(refuseConnection):
 				logWarning("main", "Connection to network was not accepted.")
 			default:
