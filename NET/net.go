@@ -39,8 +39,9 @@ func handleConnectionMessage(sender string, msgcontent string) {
 	if msgcontent == string(askToConnect) {
 		outChan <- encodeMessage([]string{"snd", "typ", "msg"}, []string{name, "con", string(acceptConnection)}) + "\n"
 		logInfo("handleConnectionMessage", "Connection accepted.")
+	} else {
+		logInfo("handleConnectionMessage", "Unexpected connection message, ignored.")
 	}
-
 }
 
 /*
@@ -75,10 +76,13 @@ func main() {
 	// Ask to join network
 	connected := false
 	if name != askNode { // First node  of the network has itself as askNode
-		stop = make(chan bool)
+		stop = make(chan bool, 10)
 		go connect(stop, askNode)
+		outChan <- "ping" + "\n"
+		logInfo("main", "Started new node on existing "+askNode)
 	} else {
 		connected = true // First node of the network
+		outChan <- "ping" + "\n"
 		logInfo("main", "Started a new network.")
 	}
 
@@ -88,6 +92,16 @@ func main() {
 		// Message reception
 		messageReceived = <-inChan
 		logInfo("main", "Message received : "+messageReceived)
+
+		// "easter egg"
+		if messageReceived == "ping" || messageReceived == "pong" {
+			if messageReceived == "ping" {
+				outChan <- "pong" + "\n"
+				logInfo("main", "Replied to ping.")
+			}
+			messageReceived = ""
+			continue
+		}
 
 		// Determine message type for processing
 		keyValTable = decodeMessage(messageReceived)
@@ -134,7 +148,7 @@ func main() {
 			case string(refuseConnection):
 				logWarning("main", "Connection to network was not accepted.")
 			default:
-				logError("main", "Unexpected connection message, ignored.")
+				logWarning("main", "Unexpected connection message, ignored.")
 			}
 			messageReceived = ""
 			continue
