@@ -1,5 +1,7 @@
 package main
 
+import "strconv"
+
 func diffusionToString(diff DiffusionMessage) string {
 	str := "[DIFFUSION]"
 	str += encodeMessage([]string{"diffIndex", "color", "value"}, []string{diff.diffIndex, string(diff.color), diff.value})
@@ -47,5 +49,5 @@ func addNeighbour(neighbours *[]string, addMe string) {
 }
 
 func printDiffusion(diff Diffusion) string {
-	return diff.diffIndex + "|" + string(diff.color) + "|" + string(diff.nbNeighbours) + "|" + diff.parent
+	return diff.diffIndex + "|" + string(diff.color) + "|" + strconv.Itoa(diff.nbNeighbours) + "|" + diff.parent
 }

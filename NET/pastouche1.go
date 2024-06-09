@@ -32,8 +32,8 @@ func write(ch <-chan string) {
 	for {
 		select {
 		case message := <-ch:
-			// Wait a random time between 10 and 40 ms and print next message
-			duration := time.Duration(rand.Intn(51) + 50)
+			// Wait a random time between 100 and 500 ms and print next message
+			duration := time.Duration(rand.Intn(501) + 100)
 			time.Sleep(duration * time.Millisecond)
 			fmt.Printf(message)
 		}

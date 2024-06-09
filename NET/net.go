@@ -112,7 +112,7 @@ func getDiffusionMessagei(index string) DiffusionMessage {
 Starts a diffusion from node
 */
 func startDiffusion(counter int, val string, table *[]Diffusion, nbNeighbours int) {
-	diffID := name + strconv.Itoa(counter)
+	diffID := name + "D" + strconv.Itoa(counter)
 
 	// Create diffusion
 	newDiff := getDiffusioni(diffID, nbNeighbours)
@@ -154,7 +154,7 @@ func handleDiffusionMessage(sender string, recipient string, msgcontent string, 
 		} else {
 			diffMessage.color = rouge
 			outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, sender, "net", diffusionToString(diffMessage)}) + "\n"
-			logInfo("handleDiffusionMessage", "Sent red message to sender.")
+			logInfo("handleDiffusionMessage", "Replied red message to sender.")
 		}
 	case rouge:
 		(*table)[tabIndex].nbNeighbours -= 1
@@ -165,6 +165,8 @@ func handleDiffusionMessage(sender string, recipient string, msgcontent string, 
 				outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, (*table)[tabIndex].parent, "net", diffusionToString(diffMessage)}) + "\n"
 				logInfo("handleDiffusionMessage", "Passing red message to parent.")
 			}
+		} else {
+			logWarning("handleDiffusionMessage", "Decremented node neighbour count.")
 		}
 	default:
 		logError("handleDiffusionMessage", "Fatal error, diffusion message has unexpected color (ignored).")
