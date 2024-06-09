@@ -100,7 +100,7 @@ func getDiffusioni(index string, neighbours int) Diffusion {
 /*
 Diffusion message
 */
-func getDiffusionMessagei(index string, neighbours int) DiffusionMessage {
+func getDiffusionMessagei(index string) DiffusionMessage {
 	return DiffusionMessage{
 		diffIndex: index,
 		color:     blanc,
@@ -116,10 +116,12 @@ func startDiffusion(counter int, val string, table *[]Diffusion, nbNeighbours in
 
 	// Create diffusion
 	newDiff := getDiffusioni(diffID, nbNeighbours)
+	newDiff.color = bleu
+	newDiff.parent = name
 	*table = append(*table, newDiff)
 
 	// Create message
-	diff := getDiffusionMessagei(diffID, nbNeighbours)
+	diff := getDiffusionMessagei(diffID)
 	diff.color = bleu
 	diff.value = val
 	outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, "all", "net", diffusionToString(diff)}) + "\n"
@@ -141,6 +143,7 @@ func handleDiffusionMessage(sender string, recipient string, msgcontent string, 
 
 	diffMessage := stringToDiffusion(msgcontent) // must ignore numNeighbours and parent from this object
 	tabIndex := getDiffIdIndexOrCreateIfNotExists(table, diffMessage.diffIndex, numNeighbours)
+	logError("handleDiffusionMessage", printDiffusion((*table)[tabIndex]))
 	switch diffMessage.color {
 	case bleu:
 		if (*table)[tabIndex].color == blanc {
@@ -150,8 +153,8 @@ func handleDiffusionMessage(sender string, recipient string, msgcontent string, 
 			logInfo("handleDiffusionMessage", "Sent blue message to neighbours.")
 		} else {
 			diffMessage.color = rouge
-			outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, "all", "net", diffusionToString(diffMessage)}) + "\n"
-			logInfo("handleDiffusionMessage", "Sent red message to parent.")
+			outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, sender, "net", diffusionToString(diffMessage)}) + "\n"
+			logInfo("handleDiffusionMessage", "Sent red message to sender.")
 		}
 	case rouge:
 		(*table)[tabIndex].nbNeighbours -= 1
@@ -159,7 +162,7 @@ func handleDiffusionMessage(sender string, recipient string, msgcontent string, 
 			if (*table)[tabIndex].parent == name {
 				logSuccess("handleDiffusionMessage", "Diffusion terminée : "+diffMessage.diffIndex)
 			} else {
-				outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, "all", "net", diffusionToString(diffMessage)}) + "\n"
+				outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, (*table)[tabIndex].parent, "net", diffusionToString(diffMessage)}) + "\n"
 				logInfo("handleDiffusionMessage", "Passing red message to parent.")
 			}
 		}
@@ -273,7 +276,7 @@ func main() {
 				connected = true
 				addNeighbour(&neighbours, sender) // Adds neighbour if does not exist
 				startDiffusion(counter, name, &diffTable, len(neighbours))
-				logSuccess("main", "Successfully connected to network, diffused the information.")
+				logSuccess("main", "Successfully connected to network.")
 			case string(refuseConnection):
 				logWarning("main", "Connection to network was not accepted.")
 			default:

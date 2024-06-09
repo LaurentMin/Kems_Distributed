@@ -45,3 +45,7 @@ func addNeighbour(neighbours *[]string, addMe string) {
 	}
 	*neighbours = append(*neighbours, addMe)
 }
+
+func printDiffusion(diff Diffusion) string {
+	return diff.diffIndex + "|" + string(diff.color) + "|" + string(diff.nbNeighbours) + "|" + diff.parent
+}
