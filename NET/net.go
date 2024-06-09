@@ -141,7 +141,7 @@ func handleDiffusionMessage(sender string, recipient string, msgcontent string, 
 		return
 	}
 
-	diffMessage := stringToDiffusion(msgcontent) // must ignore numNeighbours and parent from this object
+	diffMessage := stringToDiffusion(msgcontent)
 	tabIndex := getDiffIdIndexOrCreateIfNotExists(table, diffMessage.diffIndex, numNeighbours)
 	logError("handleDiffusionMessage", printDiffusion((*table)[tabIndex]))
 	switch diffMessage.color {
@@ -185,8 +185,8 @@ func main() {
 	name = *pName
 	askNode := *pAskNode
 
-	inChan = make(chan string, 10)
-	outChan = make(chan string, 10)
+	inChan = make(chan string, 100)
+	outChan = make(chan string, 100)
 	// Reading go routine (sends read data from stdin through channel)
 	go read(inChan)
 	// Writing go routine (writes data from channel to stdout)
