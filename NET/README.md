@@ -12,3 +12,5 @@ So scripts add scripts built `addn.sh` :
 1. `add1.sh` Starts N1 on N0
 2. starts N2 on N1
 3. starts N3 on N0
+4. starts N4 on N1
+5. starts N6 on N4 AND N5 on N3
