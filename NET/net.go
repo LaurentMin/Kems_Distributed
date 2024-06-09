@@ -133,7 +133,7 @@ func startDiffusion(counter int, val string, table *[]Diffusion, nbNeighbours in
 //////////////////////////////////////////
 /*
 DIFFUSION
-NET is connected to network and receives a net message (only diffusion messages are net messages => for now)
+NET is connected to network and receives a net message (diffusion messages are net messages)
 */
 func handleDiffusionMessage(sender string, recipient string, msgcontent string, table *[]Diffusion, numNeighbours int) {
 	if len(msgcontent) < 11 || msgcontent[:11] != "[DIFFUSION]" {
@@ -249,8 +249,8 @@ func main() {
 
 		/* HANDLE CONTROLLER MESSAGE */
 		if sender[0] == 'C' && connected {
-			// outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, "all", "net", messageReceived}) + "\n"
-			logInfo("main", "Controller message sent to network.")
+			startDiffusion(counter, messageReceived, &diffTable, len(neighbours))
+			counter += 1
 			messageReceived = ""
 			continue
 		}
@@ -278,6 +278,7 @@ func main() {
 				connected = true
 				addNeighbour(&neighbours, sender) // Adds neighbour if does not exist
 				startDiffusion(counter, name, &diffTable, len(neighbours))
+				counter += 1
 				logSuccess("main", "Successfully connected to network.")
 			case string(refuseConnection):
 				logWarning("main", "Connection to network was not accepted.")
