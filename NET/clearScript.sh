@@ -16,13 +16,14 @@ nettoyer () {
 
   # Suppression des processus NET
   killall net 2> /dev/null
+  killall netadmin 2> /dev/null
  
   # Suppression des processus tee et cat
   killall tee 2> /dev/null
   killall cat 2> /dev/null
  
   # Suppression des tubes nommés
-  \rm -f /tmp/in* /tmp/out*
+  rm -f /tmp/in_* /tmp/out_*
   echo "Nettoyage terminé."
   exit 0
 }
