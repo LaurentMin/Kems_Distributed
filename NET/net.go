@@ -136,6 +136,7 @@ DIFFUSION
 NET is connected to network and receives a net message (diffusion messages are net messages)
 */
 func handleDiffusionMessage(sender string, recipient string, msgcontent string, table *[]Diffusion, neighbours *[]string) {
+	logError("handleDiffusionMessage", (*neighbours)[0])
 	if len(msgcontent) < 11 || msgcontent[:11] != "[DIFFUSION]" {
 		logError("handleDiffusionMessage", "Fatal error, net message content is corrupted (ignored).")
 		return
@@ -167,14 +168,14 @@ func handleDiffusionMessage(sender string, recipient string, msgcontent string, 
 				if len((*table)[tabIndex].value) > 1 && (*table)[tabIndex].value[:1] == "N" { // Had asked for election to add a node
 					addNeighbour(neighbours, (*table)[tabIndex].value)
 					outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, (*table)[tabIndex].value, "con", string(acceptConnection)}) + "\n"
-					logSuccess("handleDiffusionMessage", "Connection accepted for "+(*table)[tabIndex].value)
+					logSuccess("handleDiffusionMessage", "Election ended, connection accepted for "+(*table)[tabIndex].value)
 				} else {
 					logSuccess("handleDiffusionMessage", "Diffusion terminée : "+diffMessage.diffIndex)
 				}
-			} else {
+			} else { // Not the diffusion initiator
 				outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, (*table)[tabIndex].parent, "net", diffusionToString(diffMessage)}) + "\n"
 				logInfo("handleDiffusionMessage", "Passing red message to parent.")
-				// If diffusion was a controller message, send it to controller.
+				// If diffusion was a controller message, send it to own controller here own controller message already ignored because initiator doesn't get here.
 				if isDiffCtlMsg(diffMessage.value) {
 					outChan <- diffMessage.value + "\n"
 					logInfo("handleDiffusionMessage", "Transmitted message to controller.")
@@ -254,10 +255,10 @@ func main() {
 		msgtype = findValue(keyValTable, "typ")
 		recipient = findValue(keyValTable, "rec")
 		// Filter out random messages
-		invalidSender := len(sender) < 2 || (sender[0] != 'C' && sender[1:] != name[1:] && sender[0] != 'N')
+		invalidSender := len(sender) < 2 || len(name) < 2 || (sender[0] != 'C' && sender[1:] != name[1:] && sender[0] != 'N')
 		messageForMe := strings.EqualFold(recipient, "all") || recipient == name
-		if len(name) < 2 || invalidSender || !messageForMe || msgtype == "" {
-			logWarning("main", "Message not for node (ignored) controller or Sj message OR unexpected message - COULD BE FATAL!")
+		if invalidSender || !messageForMe || msgtype == "" {
+			logWarning("main", "Message not for node (ignored) wrong controller or Sj message OR unexpected message - COULD BE FATAL!")
 			messageReceived = ""
 			continue
 		}

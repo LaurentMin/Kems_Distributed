@@ -11,5 +11,5 @@ scripts=(
 
 for script in "${scripts[@]}"; do
     ./$script
-    sleep 10
+    sleep 15
 done
