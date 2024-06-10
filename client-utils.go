@@ -1,13 +1,11 @@
 package main
 
-import "fmt"
-
 func sendAction(actionType string, actionParamsNames []string, actionParamsValues []string) {
 	params := encodeMessage(actionParamsNames, actionParamsValues)
 	action := encodeMessage([]string{"typ", "prm"}, []string{actionType, params})
 
 	logInfo("sendAction", "Sending action "+action)
-	fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{"P" + name, action}) + "\n")
+	outChan <- encodeMessage([]string{"snd", "msg"}, []string{"P" + name, action}) + "\n"
 }
 
 func checkIfKems(game GameState) int {
