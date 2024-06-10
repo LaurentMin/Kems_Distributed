@@ -136,7 +136,6 @@ DIFFUSION
 NET is connected to network and receives a net message (diffusion messages are net messages)
 */
 func handleDiffusionMessage(sender string, recipient string, msgcontent string, table *[]Diffusion, neighbours *[]string) {
-	logError("handleDiffusionMessage", (*neighbours)[0])
 	if len(msgcontent) < 11 || msgcontent[:11] != "[DIFFUSION]" {
 		logError("handleDiffusionMessage", "Fatal error, net message content is corrupted (ignored).")
 		return
@@ -279,7 +278,7 @@ func main() {
 				if len(neighbours) == 0 { // No other nodes in the network, can accept without election
 					addNeighbour(&neighbours, sender)
 					outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, sender, "con", string(acceptConnection)}) + "\n"
-					logInfo("handleConnectionMessage", "Connection accepted for "+sender)
+					logSuccess("handleConnectionMessage", "Connection accepted for "+sender)
 				} else if msgcontent == string(askToConnect) && canParticipateToElection(diffTable) {
 					startDiffusion(counter, sender, &diffTable, len(neighbours))
 					counter += 1
