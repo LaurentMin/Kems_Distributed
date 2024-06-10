@@ -15,10 +15,10 @@ cat /tmp/out_A1 | tee -a /tmp/in_C1 >> /tmp/in_Debug &
 cat /tmp/out_C1 | tee -a /tmp/in_A1 >> /tmp/in_N1 &
 
 echo "Starting App..."
-# ../app -n A1 < /tmp/in_A1 >> /tmp/out_A1 &
+../app -n A1 < /tmp/in_A1 >> /tmp/out_A1 &
 sleep 1
 echo "Starting Controller..."
-# ../ctl -n C1 < /tmp/in_C1 >> /tmp/out_C1 &
+../ctl -n C1 < /tmp/in_C1 >> /tmp/out_C1 &
 sleep 1
 echo "Starting first network node..."
 ./net -n N1 -a N1 < /tmp/in_N1 >> /tmp/out_N1 &

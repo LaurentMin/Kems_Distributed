@@ -1,5 +1,9 @@
 #!/bin/bash
 
+echo "Clearing old cats and tees..."
+killall tee 2> /dev/null
+killall cat 2> /dev/null
+
 echo "Making named pipes..."
 mkfifo /tmp/in_A2 /tmp/out_A2
 mkfifo /tmp/in_C2 /tmp/out_C2
@@ -17,11 +21,11 @@ cat /tmp/out_A2 | tee -a /tmp/in_C2 >> /tmp/in_Debug &
 cat /tmp/out_C2 | tee -a /tmp/in_A2 >> /tmp/in_N2 &
 
 echo "Starting App..."
-# ../app -n A2 < /tmp/in_A2 >> /tmp/out_A2 &
+../app -n A2 < /tmp/in_A2 >> /tmp/out_A2 &
 sleep 1
 echo "Starting Controller..."
-# ../ctl -n C2 < /tmp/in_C2 >> /tmp/out_C2 &
-
+../ctl -n C2 < /tmp/in_C2 >> /tmp/out_C2 &
+sleep1
 echo "Starting network node..."
 ./net -n N2 -a N1 < /tmp/in_N2 >> /tmp/out_N2 &
 

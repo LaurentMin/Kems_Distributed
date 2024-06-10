@@ -1,8 +1,8 @@
 #!/bin/bash
 
 echo "Clearing old cats and tees..."
-killall tee 3> /dev/null
-killall cat 3> /dev/null
+killall tee 2> /dev/null
+killall cat 2> /dev/null
 
 echo "Making named pipes..."
 mkfifo /tmp/in_N4 /tmp/out_N4
