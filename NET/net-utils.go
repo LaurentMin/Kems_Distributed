@@ -98,3 +98,7 @@ func stopElecWave(tab []Diffusion, diff DiffusionMessage) bool {
 	}
 	return false
 }
+
+func isDiffCtlMsg(value string) bool {
+	return value != "new" || value[0] == 'N'
+}

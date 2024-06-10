@@ -174,6 +174,10 @@ func handleDiffusionMessage(sender string, recipient string, msgcontent string, 
 			} else {
 				outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, (*table)[tabIndex].parent, "net", diffusionToString(diffMessage)}) + "\n"
 				logInfo("handleDiffusionMessage", "Passing red message to parent.")
+				// If diffusion was a controller message, send it to controller.
+				if isDiffCtlMsg(diffMessage.value) {
+					outChan <- diffMessage.value + "\n"
+				}
 			}
 		} else {
 			logWarning("handleDiffusionMessage", "Decremented node neighbour count.")
@@ -249,10 +253,10 @@ func main() {
 		msgtype = findValue(keyValTable, "typ")
 		recipient = findValue(keyValTable, "rec")
 		// Filter out random messages
-		invalidSender := len(sender) < 2 || (sender[0] != 'C' && sender[0] != 'N')
+		invalidSender := len(sender) < 2 || (sender[0] != 'C' && sender[1:] != name[1:] && sender[0] != 'N')
 		messageForMe := strings.EqualFold(recipient, "all") || recipient == name
 		if len(name) < 2 || invalidSender || !messageForMe || msgtype == "" {
-			logWarning("main", "Message not for node (ignored) OR unexpected message - COULD BE FATAL!")
+			logWarning("main", "Message not for node (ignored) controller or Sj message OR unexpected message - COULD BE FATAL!")
 			messageReceived = ""
 			continue
 		}
