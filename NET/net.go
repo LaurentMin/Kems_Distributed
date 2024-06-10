@@ -25,7 +25,7 @@ const (
 Connect go routine asks to connect to network until stopped (waits a certain amount of time in between pings)
 */
 func connect(stop <-chan bool, askNode string) {
-	time.Sleep(5 * time.Second)
+	time.Sleep(1 * time.Second)
 	for {
 		select {
 		case <-stop:
@@ -124,8 +124,9 @@ func startDiffusion(counter int, val string, table *[]Diffusion, nbNeighbours in
 	diff := getDiffusionMessagei(diffID)
 	diff.color = bleu
 	diff.value = val
+	logError("startDiffusion", encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, "all", "net", diffusionToString(diff)})+"\n")
 	outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, "all", "net", diffusionToString(diff)}) + "\n"
-	logInfo("startDiffusion", "Diffused message to all neighbours.")
+	logInfo("startDiffusion", "Diffused message to all neighbours : "+diffID)
 }
 
 //////////////////////////////////////////
@@ -254,9 +255,10 @@ func main() {
 		msgtype = findValue(keyValTable, "typ")
 		recipient = findValue(keyValTable, "rec")
 		// Filter out random messages
-		invalidSender := len(sender) < 2 || len(name) < 2 || (sender[0] != 'C' && sender[1:] != name[1:] && sender[0] != 'N')
-		messageForMe := strings.EqualFold(recipient, "all") || recipient == name
-		if invalidSender || !messageForMe || msgtype == "" {
+		notControllerMessage := sender == "C"+name[1:] && findValue(keyValTable, "hlg") == "" // filter out ctl msg to app
+		invalidSender := len(sender) < 2 || len(name) < 2 || (sender != "C"+name[1:] && sender[0] != 'N')
+		messageForMe := strings.EqualFold(recipient, "all") || recipient == name || recipient == ""
+		if invalidSender || !messageForMe || notControllerMessage {
 			logWarning("main", "Message not for node (ignored) wrong controller or Sj message OR unexpected message - COULD BE FATAL!")
 			messageReceived = ""
 			continue

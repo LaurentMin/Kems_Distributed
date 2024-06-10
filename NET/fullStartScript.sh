@@ -8,5 +8,5 @@ scripts=(
 
 for script in "${scripts[@]}"; do
     ./$script
-    sleep 20
+    sleep 5
 done

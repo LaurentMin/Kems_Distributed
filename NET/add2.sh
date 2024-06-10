@@ -29,7 +29,7 @@ echo "Starting App..."
 sleep 1
 echo "Starting Controller..."
 ../ctl -n C3 < /tmp/in_C3 >> /tmp/out_C3 &
-sleep1
+sleep 1
 echo "Starting network node..."
 ./net -n N3 -a N1 < /tmp/in_N3 >> /tmp/out_N3 &
 
