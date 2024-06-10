@@ -177,6 +177,7 @@ func handleDiffusionMessage(sender string, recipient string, msgcontent string, 
 				// If diffusion was a controller message, send it to controller.
 				if isDiffCtlMsg(diffMessage.value) {
 					outChan <- diffMessage.value + "\n"
+					logInfo("handleDiffusionMessage", "Transmitted message to controller.")
 				}
 			}
 		} else {
