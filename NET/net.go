@@ -7,6 +7,20 @@ import (
 	"time"
 )
 
+///// TEST
+func test(table *[]Diffusion, neighbours *[]string) {
+	if name != "N1" {
+		return
+	}
+	for i := 0; i < 30; i++ {
+		logError("test", "Begin in "+strconv.Itoa(30-i))
+		time.Sleep(time.Second)
+	}
+	for i := 0; i < 100; i++ {
+		startDiffusion(i+100, "new", table, len(*neighbours))
+	}
+}
+
 ////////////////////////////////
 ////////// CONNECTION //////////
 ////////////////////////////////
@@ -124,7 +138,6 @@ func startDiffusion(counter int, val string, table *[]Diffusion, nbNeighbours in
 	diff := getDiffusionMessagei(diffID)
 	diff.color = bleu
 	diff.value = val
-	logError("startDiffusion", encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, "all", "net", diffusionToString(diff)})+"\n")
 	outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, "all", "net", diffusionToString(diff)}) + "\n"
 	logInfo("startDiffusion", "Diffused message to all neighbours : "+diffID)
 }
@@ -148,7 +161,6 @@ func handleDiffusionMessage(sender string, recipient string, msgcontent string, 
 		return
 	}
 	tabIndex := getDiffIdIndexOrCreateIfNotExists(table, diffMessage.diffIndex, numNeighbours, diffMessage.value)
-	// logError("handleDiffusionMessage", printDiffusion((*table)[tabIndex]))
 	switch diffMessage.color {
 	case bleu:
 		if (*table)[tabIndex].color == blanc {
@@ -218,6 +230,7 @@ func main() {
 	counter := 0
 	diffTable := []Diffusion{}
 	neighbours := []string{}
+	lastCtlMsgHlg := -1
 
 	// Ask to join network
 	connected := false
@@ -231,6 +244,9 @@ func main() {
 		outChan <- "ping" + "\n"
 		logInfo("main", "Started a new network.")
 	}
+
+	// test
+	// go test(&diffTable, &neighbours)
 
 	// Main message handling loop
 	for {
@@ -255,7 +271,8 @@ func main() {
 		msgtype = findValue(keyValTable, "typ")
 		recipient = findValue(keyValTable, "rec")
 		// Filter out random messages
-		notControllerMessage := sender == "C"+name[1:] && findValue(keyValTable, "hlg") == "" // filter out ctl msg to app
+		hlg := findValue(keyValTable, "hlg")
+		notControllerMessage := sender == "C"+name[1:] && hlg == "" // filter out ctl msg to app
 		invalidSender := len(sender) < 2 || len(name) < 2 || (sender != "C"+name[1:] && sender[0] != 'N')
 		messageForMe := strings.EqualFold(recipient, "all") || recipient == name || recipient == ""
 		if invalidSender || !messageForMe || notControllerMessage {
@@ -266,8 +283,15 @@ func main() {
 
 		/* HANDLE CONTROLLER MESSAGE */
 		if sender[0] == 'C' && connected {
+			hlgInt, err := strconv.Atoi(hlg)
+			if hlgInt <= lastCtlMsgHlg || err != nil {
+				logWarning("main", "This message was meant for a controller (ignored).")
+				messageReceived = ""
+				continue
+			}
+			lastCtlMsgHlg = hlgInt
 			startDiffusion(counter, messageReceived, &diffTable, len(neighbours))
-			counter += 1
+			counter++
 			messageReceived = ""
 			continue
 		}
@@ -283,7 +307,7 @@ func main() {
 					logSuccess("handleConnectionMessage", "Connection accepted for "+sender)
 				} else if msgcontent == string(askToConnect) && canParticipateToElection(diffTable) {
 					startDiffusion(counter, sender, &diffTable, len(neighbours))
-					counter += 1
+					counter++
 					logInfo("main", "Asked network to add new node.")
 				} else {
 					logWarning("main", "Can't participate to election or unexpected connection message (ignored).")
@@ -305,7 +329,7 @@ func main() {
 				connected = true
 				addNeighbour(&neighbours, sender) // Adds neighbour if does not exist
 				startDiffusion(counter, "new", &diffTable, len(neighbours))
-				counter += 1
+				counter++
 				logSuccess("main", "Successfully connected to network.")
 			case string(refuseConnection):
 				logWarning("main", "Connection to network was not accepted.")
