@@ -149,7 +149,7 @@ func startDiffusion(counter int, val string, table *[]Diffusion, nbNeighbours in
 DIFFUSION
 NET is connected to network and receives a net message (diffusion messages are net messages)
 */
-func handleDiffusionMessage(sender string, recipient string, msgcontent string, table *[]Diffusion, neighbours *[]string) {
+func handleDiffusionMessage(sender string, recipient string, msgcontent string, table *[]Diffusion, neighbours *[]string, zombie *bool) {
 	if len(msgcontent) < 11 || msgcontent[:11] != "[DIFFUSION]" {
 		logError("handleDiffusionMessage", "Fatal error, net message content is corrupted (ignored).")
 		return
@@ -181,6 +181,9 @@ func handleDiffusionMessage(sender string, recipient string, msgcontent string, 
 					addNeighbour(neighbours, (*table)[tabIndex].value)
 					outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, (*table)[tabIndex].value, "con", string(acceptConnection)}) + "\n"
 					logSuccess("handleDiffusionMessage", "Election ended, connection accepted for "+(*table)[tabIndex].value)
+				} else if diffMessage.value == "del" { // NODE had difused del message, can deactivate
+					zombie = true
+					logSuccess("handleDiffusionMessage", "Node successfully deactivated : "+diffMessage.diffIndex)
 				} else {
 					logSuccess("handleDiffusionMessage", "Diffusion terminée : "+diffMessage.diffIndex)
 				}
@@ -191,6 +194,9 @@ func handleDiffusionMessage(sender string, recipient string, msgcontent string, 
 				if isDiffCtlMsg(diffMessage.value) {
 					outChan <- diffMessage.value + "\n"
 					logInfo("handleDiffusionMessage", "Transmitted message to controller.")
+				} else if diffMessage.value == "new" || diffMessage.value == "del" {
+					outChan <- encodeMessage([]string{"snd", "msg"}, []string{"C" + getOriginIndex(diffMessage.diffIndex), diffMessage.value}) + "\n"
+					logInfo("handleDiffusionMessage", "Sent new or del message to controller.")
 				}
 			}
 		} else {
@@ -231,7 +237,7 @@ func main() {
 	diffTable := []Diffusion{}
 	neighbours := []string{}
 	lastCtlMsgHlg := -1
-
+	zombie := false // when true, net does not send messages to controller anymore, continues to passively transmit net messages
 	// Ask to join network
 	connected := false
 	if name != askNode { // First node  of the network has itself as askNode
@@ -282,7 +288,7 @@ func main() {
 		}
 
 		/* HANDLE CONTROLLER MESSAGE */
-		if sender[0] == 'C' && connected {
+		if sender[0] == 'C' && connected && !zombie {
 			hlgInt, err := strconv.Atoi(hlg)
 			if hlgInt <= lastCtlMsgHlg || err != nil {
 				logWarning("main", "This message was meant for a controller (ignored).")
@@ -298,7 +304,7 @@ func main() {
 
 		/* HANDLE NETWORK MESSAGE */
 		msgcontent := findValue(keyValTable, "msg")
-		if sender[0] == 'N' && connected {
+		if sender[0] == 'N' && connected { // still goes here whether is zombie node
 			switch msgtype {
 			case "con":
 				if len(neighbours) == 0 { // No other nodes in the network, can accept without election
@@ -313,7 +319,7 @@ func main() {
 					logWarning("main", "Can't participate to election or unexpected connection message (ignored).")
 				}
 			case "net":
-				handleDiffusionMessage(sender, recipient, msgcontent, &diffTable, &neighbours)
+				handleDiffusionMessage(sender, recipient, msgcontent, &diffTable, &neighbours, &zombie)
 			default:
 				logError("main", "Ignored network message.")
 			}
@@ -322,7 +328,7 @@ func main() {
 		}
 
 		// HANDLE NETWORK CONNECTION
-		if sender[0] == 'N' && !connected {
+		if sender[0] == 'N' && !connected && !zombie {
 			switch msgcontent {
 			case string(acceptConnection):
 				stop <- true // channel initialised only if connected is false when program begins
