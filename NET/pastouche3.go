@@ -7,6 +7,7 @@ import (
 )
 
 //#region ENCODING MSG
+
 ///////////////////////
 // ENCODING MESSAGES //
 ///////////////////////
@@ -17,8 +18,8 @@ import (
 func determineSep(msg string) string {
 	// logMessage("determineSep", "Determining seperator for "+msg)
 	// ASCII ranges in which to look for seperators (includes numbers)
-	beginRangeASCII := [5]int{58, 33, 91, 123, 48}
-	endRangeASCII := [5]int{64, 47, 96, 126, 57}
+	beginRangeASCII := []int{58, 33, 35, 40, 91, 93, 123, 48}
+	endRangeASCII := []int{64, 33, 36, 47, 91, 95, 126, 57}
 
 	// Error returns ""
 	if len(beginRangeASCII) != len(endRangeASCII) {
@@ -92,6 +93,7 @@ func encodeMessage(keyTab []string, valTab []string) string {
 	// logSuccess("encodeMessage", "Message formatted correctly : "+msg)
 	return msg
 }
+
 
 //#region DECODING MSG
 ///////////////////////

@@ -1,6 +1,9 @@
 package main
 
-import "strconv"
+import (
+	"strconv"
+	"strings"
+)
 
 func diffusionToString(diff DiffusionMessage) string {
 	str := "[DIFFUSION]"
@@ -97,4 +100,22 @@ func stopElecWave(tab []Diffusion, diff DiffusionMessage) bool {
 		}
 	}
 	return false
+}
+
+func isDiffCtlMsg(value string) bool {
+	return value != "new" || value[0] == 'N'
+}
+
+func getOriginIndex(diffIndex string) string {
+	if len(diffIndex) < 4 {
+		logError("getOriginIndex", "FATAL, could not get index from a diffusion index !!")
+		return ""
+	}
+	diffIndex = diffIndex[1:]
+	index := strings.IndexRune(diffIndex, 'D')
+	if index == -1 {
+		logError("getOriginIndex", "FATAL, could not get index from a diffusion index !!")
+		return diffIndex
+	}
+	return diffIndex[:index]
 }
