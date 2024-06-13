@@ -319,7 +319,7 @@ func main() {
 		sender := findValue(keyValTable, "snd")
 
 		// Filter out obviously wrong messages that an app should not receive
-		if len(sender) != 2 || len(name) != 2 || (sender != "C"+name[1:2] && sender[:1] != "P") {
+		if len(sender) != 2 || len(name) != 2 || (sender != "C"+name[1:] && sender[:1] != "P") {
 			logError("main", "Message invalid sender OR invalid app name (ignored) - CAN BE FATAL!")
 			messageReceived = ""
 			continue

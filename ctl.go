@@ -203,7 +203,7 @@ func main() {
 
 	//	estampilles := []Request{Request{"[ECRITICAL]", 0}, Request{"[ECRITICAL]", 0}, Request{"[ECRITICAL]", 0}} // Index 0..2 corresponds to controllers 1..3
 	estampilles := []Request{}
-	siteNum, _ := strconv.Atoi(name[1:2]) // Ok if this makes app crash (name must be defined)
+	siteNum, _ := strconv.Atoi(name[1:]) // Ok if this makes app crash (name must be defined)
 
 	// Find the controller number in vClock
 	idVClock := siteNum
@@ -232,7 +232,7 @@ func main() {
 		sender := findValue(keyValTable, "snd")
 
 		// Filter out random messages (Display messages for example)
-		if len(sender) != 2 || len(name) != 2 || (sender != "A"+name[1:2] && sender[:1] != "C") {
+		if len(sender) != 2 || len(name) != 2 || (sender != "A"+name[1:] && sender[:1] != "C") {
 			logWarning("main", "Display message OR invalid sender OR wrong ctl name (ignored) - CAN BE FATAL!")
 			messageReceived = ""
 			continue
@@ -271,7 +271,7 @@ func main() {
 			vClock = vClockAdjustment(vClock, vClockReceived, idVClock)
 			// logInfo("main", "Clock updated, message received from other controller.")
 
-		} else if clockReceivedStr == "" && sender == "A"+name[1:2] { // Filters out messages without a clock from the wrong app or a controller.
+		} else if clockReceivedStr == "" && sender == "A"+name[1:] { // Filters out messages without a clock from the wrong app or a controller.
 			// Incremented if message received from app
 			clock = clock + 1
 			vClock[idVClock] = vClock[idVClock] + 1
@@ -298,7 +298,7 @@ func main() {
 		// Receive from controller
 		// logInfo("main", "Sending message...")
 		if clockReceivedStr != "" && sender[:1] == "C" {
-			otherSiteNumber, _ := strconv.Atoi(sender[1:2])
+			otherSiteNumber, _ := strconv.Atoi(sender[1:])
 			switch messageReceived[:11] {
 			case "[GAMESTATE]":
 				// Do not replace an ask by a gamestate
@@ -386,7 +386,7 @@ func main() {
 		}
 
 		// Received from app
-		if clockReceivedStr == "" && sender == "A"+name[1:2] {
+		if clockReceivedStr == "" && sender == "A"+name[1:] {
 			switch messageReceived[:11] {
 			case "[GAMESTATE]":
 				// Do not replace an ask by a gamestate
