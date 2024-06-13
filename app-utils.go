@@ -96,10 +96,9 @@ func getInitDeck() []Card {
 */
 func getInitPlayers() []Player {
 	// logMessage("getInitPlayers", "Initialising players")
-	players := []Player{
-		{Name: "Newbie", Score: 0, Hand: []Card{}},
-		{Name: "Mexican", Score: 0, Hand: []Card{}},
-		{Name: "Convict", Score: 0, Hand: []Card{}},
+	players := []Player{}
+	for i := 0; i < ctlNumPlayers; i++ {
+		players = append(players, Player{Name: "Player" + strconv.Itoa(i), Score: 0, Hand: []Card{}})
 	}
 	return players
 }

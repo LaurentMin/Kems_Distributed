@@ -159,6 +159,7 @@ func swapCard(playerCard Card, drawPileCard Card, player Player, game GameState)
 	Global variable to know which player controls this app instance
 */
 var lastConnectedPlayer string = "-1"
+var ctlNumPlayers = 1
 
 /*
 	Handle player action
@@ -236,7 +237,6 @@ func handleAction(fullAction string, game GameState) GameState {
 			logError("handleAction", "Error converting action params to integers for Contre Kems "+err.Error()+" action, (ignored) "+actionType)
 			return game
 		}
-		otherPlayerIndex -= 1
 		if otherPlayerIndex < 0 || otherPlayerIndex >= len(game.Players) {
 			logError("handleAction", "Wrong params values, action (ignored) "+actionType)
 			return game
@@ -260,7 +260,6 @@ func handleAction(fullAction string, game GameState) GameState {
 			logError("handleAction", "Error converting action params to integers for card swapping "+err1.Error()+err2.Error()+err3.Error()+" action, (ignored) "+actionType)
 			return game
 		}
-		playerIndex -= 1
 		if playerIndex < 0 || playerCardIndex < 0 || drawPileCardIndex < 0 || playerIndex >= len(game.Players) || playerCardIndex >= len(game.Players[playerIndex].Hand) || drawPileCardIndex >= len(game.DrawPile) {
 			logError("handleAction", "Wrong params values, action (ignored) "+actionType)
 			return game
