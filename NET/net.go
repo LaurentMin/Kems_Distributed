@@ -9,8 +9,8 @@ type MessageContent string
 
 const (
 	askToConnect     MessageContent = "Hello, may I join your awesome network ?"
-	acceptConnection MessageContent = "Hello, of course you can join our network ?"
-	refuseConnection MessageContent = "Hello, sorry but you'll have to wait ?"
+	acceptConnection MessageContent = "Hello, of course you can join our network!"
+	refuseConnection MessageContent = "Hello, sorry but you'll have to wait."
 )
 
 /*
@@ -37,6 +37,7 @@ NET is connected to network and a new node asks to join
 func handleConnectionMessage(sender string, msgcontent string) {
 	// Connection message, accept
 	if msgcontent == string(askToConnect) {
+		//outChan <- encodeMessage([]string{"snd", "typ", "msg"}, []string{sender, "con", string(acceptConnection)}) + "\n"
 		outChan <- encodeMessage([]string{"snd", "typ", "msg"}, []string{name, "con", string(acceptConnection)}) + "\n"
 		logInfo("handleConnectionMessage", "Connection accepted.")
 	}
