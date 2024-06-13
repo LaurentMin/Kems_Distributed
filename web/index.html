@@ -27,12 +27,19 @@
             <form>
                 <p>
                 <div id="player-selection">
-                    <input type="radio" id="player1" name="player" value="1" checked>
-                    <label for="player1">Player 1</label>
-                    <input type="radio" id="player2" name="player" value="2">
-                    <label for="player2">Player 2</label>
-                    <input type="radio" id="player3" name="player" value="3">
-                    <label for="player3">Player 3</label>
+                    <label for="playerInput">Player&nbsp;</label>
+
+                    <select name="playerId" id="playerInput" required>
+                        <option value="" disabled>&nbsp;Choose an option&nbsp;</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                    </select>
                 </div>
                 <button id="connect" class="button">Connect</button>
                 <button id="close" class="button">Close</button>

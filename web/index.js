@@ -139,12 +139,12 @@ const allCards = createAllCardsObject()
 var ws;
 let selectedPlayer = '1'; // Default to player 1
 
-// Listen for changes on the radio buttons
-document.querySelectorAll('input[name="player"]').forEach((elem) => {
-    elem.addEventListener('change', function () {
-        selectedPlayer = this.value;
-    });
+// Listen for changes on the player select
+const inputPlayer = document.getElementById("playerInput");
+inputPlayer.addEventListener('change', function () {
+    selectedPlayer = this.value;
 });
+
 
 document.getElementById("connect").onclick = function (evt) {
     if (ws) {
@@ -152,18 +152,7 @@ document.getElementById("connect").onclick = function (evt) {
     }
 
     var host = "localhost";
-    let port
-    switch (selectedPlayer) {
-        case '1':
-            port = 4444;
-            break;
-        case '2':
-            port = 5555;
-            break;
-        case '3':
-            port = 5000;
-            break;
-    }
+    const port = `444${selectedPlayer}`
 
     try {
         ws = new WebSocket("ws://" + host + ":" + port + "/ws");
