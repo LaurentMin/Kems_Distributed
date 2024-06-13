@@ -244,7 +244,7 @@ func main() {
 			// add node to mutual exclusion table
 			addController(sender, &estampilles, &vClock)
 			numPlayers := strconv.Itoa(len(estampilles))
-			outChan <- encodeMessage([]string{"snd", "msg"}, []string{name, "[UPDATEPLAY]" + numPlayers}) + "\n"
+			outChan <- encodeMessage([]string{"snd", "msg"}, []string{name, "[UPDATEPLA]" + numPlayers}) + "\n"
 			logInfo("main", "Controller was added to table, num players sent to app : "+sender)
 		case "del":
 			// remove node from mutual exclusion table

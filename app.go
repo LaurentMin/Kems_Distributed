@@ -327,7 +327,7 @@ func main() {
 
 		// Update number of players by controller
 		tmpMsg := findValue(keyValTable, "msg")
-		if len(tmpMsg) > 11 && tmpMsg[:11] == "[UPDATEPLAY]" {
+		if len(tmpMsg) > 11 && tmpMsg[:11] == "[UPDATEPLA]" {
 			numPlayers, err := strconv.Atoi(tmpMsg[11:])
 			if err != nil {
 				logError("main", "FATAL Error while converting number of players in app.")
@@ -341,7 +341,7 @@ func main() {
 		}
 
 		// PLAYER sent message (ask for exclusive access)
-		if sender == "P"+lastConnectedPlayer || (sender[:1] == "P" && lastConnectedPlayer == "") {
+		if sender == "P"+lastConnectedPlayer || (sender[:1] == "P" && lastConnectedPlayer == "-1") {
 			actionToDo = findValue(keyValTable, "msg")
 			// Ask for exclusive access
 			outChan <- encodeMessage([]string{"snd", "msg"}, []string{name, "[ACRITICAL]"}) + "\n"
@@ -361,7 +361,7 @@ func main() {
 		messageReceived = findValue(keyValTable, "msg")
 
 		// Filter out wrong messages (just in case)
-		if len(messageReceived) < 11 || (messageReceived[:11] != "[GAMESTATE]" && messageReceived[:11] != "[BCRITICAL]" && messageReceived[:11] != "[SAVEORDER]") {
+		if len(messageReceived) < 11 || (messageReceived[:11] != "[GAMESTATE]" && messageReceived[:11] != "[BCRITICAL]" && messageReceived[:11] != "[SAVEORDER]" && messageReceived[:11] != "[UPDATEPLA]") {
 			// logInfo("main", "Wrong message type for app received "+messageReceived+" (ignoring).")
 			logInfo("main", "Wrong message type for app received (ignoring).")
 			messageReceived = ""
