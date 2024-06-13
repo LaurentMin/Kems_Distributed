@@ -186,6 +186,16 @@ func main() {
 			continue
 		}
 
+		// Check if message from net to add or delete nodes from mutual exclusion table
+		switch findValue(keyValTable, "msg") {
+		case "new":
+			// add node to mutual exclusion table
+			logInfo("main", "Controller was added to table : "+sender)
+		case "del":
+			// remove node from mutual exclusion table
+			logInfo("main", "Controller was removed from table : "+sender)
+		}
+
 		// Clock updating
 
 		// logInfo("main", "Clock updating...")
