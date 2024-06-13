@@ -1,6 +1,7 @@
 #!/bin/bash
 
 echo "Making named pipes..."
+
 mkfifo /tmp/in_Debug
 
 mkfifo /tmp/in_A1 /tmp/out_A1

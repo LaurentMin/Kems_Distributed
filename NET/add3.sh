@@ -5,6 +5,7 @@ killall tee 2> /dev/null
 killall cat 2> /dev/null
 
 echo "Making named pipes..."
+
 mkfifo /tmp/in_N4 /tmp/out_N4
 
 echo "Adding pipes to network..."

@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+//#region ACT HANDLING UTILS
 ///////////////////////////
 // ACTION HANDLING UTILS //
 ///////////////////////////
@@ -152,6 +153,7 @@ func swapCard(playerCard Card, drawPileCard Card, player Player, game GameState)
 	return game
 }
 
+//#region ACT HANDLING
 /////////////////////
 // ACTION HANDLING //
 /////////////////////
@@ -271,7 +273,7 @@ func handleAction(fullAction string, game GameState) GameState {
 		// Save the game state
 
 		logInfo("handleAction", "Send order received from base app, gamestate saved, sending to controller.")
-		outChan <- encodeMessage([]string{"snd", "msg", "saveOrder"}, []string{name, "[SAVEORDER]" + gameStateToString(game), "1"}) + "\n"
+		outChan <- encodeMessage([]string{"snd", "typ", "msg", "sOr"}, []string{name, "[SAVEORDER]", gameStateToString(game), "1"}) + "\n"
 		return game
 
 	default: // Uknown action, ERROR
@@ -284,6 +286,7 @@ func handleAction(fullAction string, game GameState) GameState {
 	return game
 }
 
+//#region GAME
 //////////
 // GAME //
 //////////
@@ -297,6 +300,7 @@ func main() {
 	// logInfo("main", "Launching app...")
 	// Initialising key variables for app
 	messageReceived := ""
+	messageType := ""
 	keyValTable := []string{}
 	actionToDo := ""
 	game := getInitState()
@@ -313,25 +317,16 @@ func main() {
 		// logInfo("main", "Waiting for message.")
 		// Message reception
 		messageReceived = <-inChan
-		logInfo("main", "Message received. "+messageReceived)
+		logInfo("main", "Message received : "+messageReceived)
 
 		// Determine message type for processing
 		keyValTable = decodeMessage(messageReceived)
 		sender := findValue(keyValTable, "snd")
 
+		
 		// Filter out obviously wrong messages that an app should not receive
 		if len(sender) != 2 || len(name) != 2 || (sender != "C"+name[1:2] && sender[:1] != "P") {
 			logError("main", "Message invalid sender OR invalid app name (ignored) - CAN BE FATAL!")
-			messageReceived = ""
-			continue
-		}
-
-		// PLAYER sent message (ask for exclusive access)
-		if sender == "P"+lastConnectedPlayer || (sender[:1] == "P" && lastConnectedPlayer == "") {
-			actionToDo = findValue(keyValTable, "msg")
-			// Ask for exclusive access
-			outChan <- encodeMessage([]string{"snd", "msg"}, []string{name, "[ACRITICAL]"}) + "\n"
-			logInfo("main", "Asked for exclusive access.")
 			messageReceived = ""
 			continue
 		}
@@ -343,52 +338,71 @@ func main() {
 			messageReceived = ""
 			continue
 		}
+
+		// PLAYER sent message (ask for exclusive access)
+		if sender == "P"+lastConnectedPlayer || (sender[:1] == "P" && lastConnectedPlayer == "") {
+			actionToDo = findValue(keyValTable, "msg")
+			// Ask for exclusive access
+			outChan <- encodeMessage([]string{"snd", "typ"}, []string{name, "[ACRITICAL]"}) + "\n"
+			logInfo("main", "Asked for exclusive access.")
+			messageReceived = ""
+			continue
+		}
+		
+
+
 		// Getting message
 		messageReceived = findValue(keyValTable, "msg")
+		messageType = findValue(keyValTable, "typ")
+
 
 		// Filter out wrong messages (just in case)
-		if len(messageReceived) < 11 || (messageReceived[:11] != "[GAMESTATE]" && messageReceived[:11] != "[BCRITICAL]" && messageReceived[:11] != "[SAVEORDER]") {
+		if len(messageType) < 11 || (messageType != "[GAMESTATE]" && messageType != "[BCRITICAL]" && messageType != "[SAVEORDER]") {
 			// logInfo("main", "Wrong message type for app received "+messageReceived+" (ignoring).")
 			logInfo("main", "Wrong message type for app received (ignoring).")
 			messageReceived = ""
+			messageType = ""
 			continue
 		}
 
-		// Message is an exclusive access grant => handle action
-		if messageReceived[:11] == "[BCRITICAL]" {
-			// Error if app is not trying to handle an action
-			if actionToDo == "" {
-				logError("main", "App received access but did not need it anymore (liberating)")
-				outChan <- encodeMessage([]string{"snd", "msg"}, []string{name, "[ECRITICAL]"}) + "\n"
+		
+		switch messageType {
+			// Message is an exclusive access grant => handle action
+		case "[BCRITICAL]":
+				// Error if app is not trying to handle an action
+				if actionToDo == "" {
+					logError("main", "App received access but did not need it anymore (liberating)")
+					outChan <- encodeMessage([]string{"snd", "typ"}, []string{name, "[ECRITICAL]"}) + "\n"
+					messageReceived = ""
+					messageType = ""
+					continue
+				}
+
+				oldGame := gameStateToString(game)
+				game = handleAction(actionToDo, game)
+				if oldGame == gameStateToString(game) {
+					logWarning("main", "Action did not change game state, no update required. (Ended critical access)")
+					outChan <- encodeMessage([]string{"snd", "typ"}, []string{name, "[ECRITICAL]"}) + "\n"
+				} else {
+					logSuccess("main", "Gamestate updated, sending game update. (Ended critical access) + (Sent update to display)")
+					outChan <- encodeMessage([]string{"snd", "typ", "msg"}, []string{name, "[GAMESTATE]", gameStateToString(game)}) + "\n"
+					logInfo("main", "Ended critical access message sent.")
+					outChan <- encodeMessage([]string{"snd", "typ"}, []string{name, "[ECRITICAL]"}) + "\n"
+					logInfo("main", "Sent update to display.")
+					outChan <- gameStateToString(game) + "\n"
+
+				}
+				// Reset action (it has been processed)
+				actionToDo = ""
+
 				messageReceived = ""
-				continue
-			}
+				messageType = ""
 
-			oldGame := gameStateToString(game)
-			game = handleAction(actionToDo, game)
-			if oldGame == gameStateToString(game) {
-				logWarning("main", "Action did not change game state, no update required. (Ended critical access)")
-				outChan <- encodeMessage([]string{"snd", "msg"}, []string{name, "[ECRITICAL]"}) + "\n"
-			} else {
-				logSuccess("main", "Gamestate updated, sending game update. (Ended critical access) + (Sent update to display)")
-				outChan <- encodeMessage([]string{"snd", "msg"}, []string{name, gameStateToString(game)}) + "\n"
-				logInfo("main", "Ended critical access message sent.")
-				outChan <- encodeMessage([]string{"snd", "msg"}, []string{name, "[ECRITICAL]"}) + "\n"
-				logInfo("main", "Sent update to display.")
-				outChan <- gameStateToString(game) + "\n"
 
-			}
-			// Reset action (it has been processed)
-			actionToDo = ""
-
-			messageReceived = ""
-			continue
-		}
-
-		// Message is a game state (process)
-		// logInfo("main", "Processing game state... "+messageReceived)
-		// Replace game state if an update was received
-		if messageReceived[:11] == "[GAMESTATE]" {
+			// Message is a game state (process)
+			// logInfo("main", "Processing game state... "+messageReceived)
+			// Replace game state if an update was received
+		case"[GAMESTATE]":
 			if gameStateToString(game) != messageReceived {
 				game = stringToGameState(messageReceived)
 				// Updated game state not sent anymore when update is received
@@ -400,16 +414,19 @@ func main() {
 			}
 
 			messageReceived = ""
-			continue
-		}
+			messageType = ""
 
-		// Message of save order from controller
-		if messageReceived[:11] == "[SAVEORDER]" {
+			// Message of save order from controller
+		case "[SAVEORDER]":
 			logInfo("main", "Save order received, saving game state.")
-			outChan <- encodeMessage([]string{"snd", "msg", "saveOrder"}, []string{name, "[SAVEORDER]" + gameStateToString(game), "0"}) + "\n"
+			outChan <- encodeMessage([]string{"snd", "typ", "msg", "sOr"}, []string{name, messageType, gameStateToString(game), "0"}) + "\n"
+			
+
+		default:
+			logError("main", "CRITICAL ERROR, MESSAGE TREATMENT WAS NOT IMPLEMENTED (should never happen)")
+			messageReceived = ""
 		}
 
-		logError("main", "CRITICAL ERROR, MESSAGE TREATMENT WAS NOT IMPLEMENTED (should never happen)")
-		messageReceived = ""
+		
 	}
 }

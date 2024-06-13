@@ -5,6 +5,7 @@ killall tee 2> /dev/null
 killall cat 2> /dev/null
 
 echo "Making named pipes..."
+
 mkfifo /tmp/in_A3 /tmp/out_A3
 mkfifo /tmp/in_C3 /tmp/out_C3
 
@@ -36,5 +37,6 @@ echo "Starting Controller..."
 sleep 1
 echo "Starting network node..."
 ./net -n N3 -a N1 < /tmp/in_N3 >> /tmp/out_N3 &
+
 
 echo "Network built."

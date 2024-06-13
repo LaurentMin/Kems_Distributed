@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+//#region GS DECLARATION
 ////////////////////////////
 // GAME STATE DECLARATION //
 ////////////////////////////
@@ -48,6 +49,7 @@ type GameState struct {
 	DiscardPile []Card
 }
 
+//#region GS INITIALISATION
 ///////////////////////////////
 // GAME STATE INITIALISATION //
 ///////////////////////////////
@@ -121,6 +123,7 @@ func getInitState() GameState {
 	return game
 }
 
+//#region ToSTRING FUNC
 ////////////////////////
 // ToSTRING FUNCTIONS //
 ////////////////////////
@@ -143,6 +146,7 @@ func toStringCards(cards []Card) string {
 	return cardsString
 }
 
+//# region CASTING FUNCTIONS
 ///////////////////////
 // CASTING FUNCTIONS //
 ///////////////////////
@@ -206,6 +210,7 @@ func getCardsFromString(cardsString string) []Card {
 
 	return cards
 }
+
 func stringToGameState(gameString string) GameState {
 	// ERROR returns empty game state
 	if gameString[:11] != "[GAMESTATE]" {
@@ -246,6 +251,7 @@ func stringToGameState(gameString string) GameState {
 	return game
 }
 
+//#region LOOKUP FUNC
 //////////////////////
 // LOOKUP FUNCTIONS //
 //////////////////////
@@ -285,6 +291,7 @@ func findIndexCard(card Card, cards []Card) int {
 	return -1
 }
 
+//#region GS HELPER FUNC
 ////////////////////////////////
 // GAMESTATE HELPER FUNCTIONS //
 ////////////////////////////////
