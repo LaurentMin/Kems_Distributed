@@ -8,7 +8,7 @@ import (
 )
 
 ///// TEST
-func test(table *[]Diffusion, neighbours *[]string) {
+func testDiffusion(table *[]Diffusion, neighbours *[]string) {
 	if name != "N1" {
 		return
 	}
@@ -19,6 +19,17 @@ func test(table *[]Diffusion, neighbours *[]string) {
 	for i := 0; i < 100; i++ {
 		startDiffusion(i+100, "new", table, len(*neighbours))
 	}
+}
+
+func testRemoving(table *[]Diffusion, neighbours *[]string) {
+	if name != "N1" {
+		return
+	}
+	for i := 0; i < 30; i++ {
+		logError("test", "Removing in "+strconv.Itoa(30-i))
+		time.Sleep(time.Second)
+	}
+	startDiffusion(69, "del", table, len(*neighbours))
 }
 
 ////////////////////////////////
@@ -182,7 +193,7 @@ func handleDiffusionMessage(sender string, recipient string, msgcontent string, 
 					outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, (*table)[tabIndex].value, "con", string(acceptConnection)}) + "\n"
 					logSuccess("handleDiffusionMessage", "Election ended, connection accepted for "+(*table)[tabIndex].value)
 				} else if diffMessage.value == "del" { // NODE had difused del message, can deactivate
-					zombie = true
+					*zombie = true
 					logSuccess("handleDiffusionMessage", "Node successfully deactivated : "+diffMessage.diffIndex)
 				} else {
 					logSuccess("handleDiffusionMessage", "Diffusion terminée : "+diffMessage.diffIndex)
@@ -251,8 +262,9 @@ func main() {
 		logInfo("main", "Started a new network.")
 	}
 
-	// test
-	// go test(&diffTable, &neighbours)
+	///////// tests /////
+	// go testDiffusion(&diffTable, &neighbours)
+	// go testRemoving(&diffTable, &neighbours)
 
 	// Main message handling loop
 	for {
@@ -350,7 +362,7 @@ func main() {
 			continue
 		}
 
-		logError("main", "FATAL ! Node received unexpected message while not connected to network. (usually from controller)")
+		logWarning("main", "(ignored) Node certainly in zombie mode OR received unexpected message while not connected to network => FATAL.")
 		messageReceived = ""
 	}
 }
