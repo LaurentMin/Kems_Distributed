@@ -159,7 +159,6 @@ func swapCard(playerCard Card, drawPileCard Card, player Player, game GameState)
 	Global variable to know which player controls this app instance
 */
 var lastConnectedPlayer string = "-1"
-var ctlNumPlayers = 1
 
 /*
 	Handle player action
@@ -322,6 +321,21 @@ func main() {
 		// Filter out obviously wrong messages that an app should not receive
 		if len(sender) != 2 || len(name) != 2 || (sender != "C"+name[1:2] && sender[:1] != "P") {
 			logError("main", "Message invalid sender OR invalid app name (ignored) - CAN BE FATAL!")
+			messageReceived = ""
+			continue
+		}
+
+		// Update number of players by controller
+		tmpMsg := findValue(keyValTable, "msg")
+		if len(tmpMsg) > 11 && tmpMsg[:11] == "[UPDATEPLAY]" {
+			numPlayers, err := strconv.Atoi(tmpMsg[11:])
+			if err != nil {
+				logError("main", "FATAL Error while converting number of players in app.")
+			} else {
+				ctlNumPlayers = numPlayers
+				logInfo("main", "Updated number of players in app.")
+			}
+
 			messageReceived = ""
 			continue
 		}

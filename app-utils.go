@@ -10,6 +10,8 @@ import (
 ////////////////////////////
 // GAME STATE DECLARATION //
 ////////////////////////////
+var ctlNumPlayers = 1
+
 /*
 	Single Card structure
 */
