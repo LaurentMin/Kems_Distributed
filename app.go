@@ -158,7 +158,7 @@ func swapCard(playerCard Card, drawPileCard Card, player Player, game GameState)
 /*
 	Global variable to know which player controls this app instance
 */
-var lastConnectedPlayer string = ""
+var lastConnectedPlayer string = "-1"
 
 /*
 	Handle player action
@@ -174,10 +174,11 @@ func handleAction(fullAction string, game GameState) GameState {
 		newPlayerTab := decodeMessage(actionParams)
 		newPlayer := findValue(newPlayerTab, "newPlayer")
 		// Check new player validity
-		if newPlayer != "1" && newPlayer != "2" && newPlayer != "3" {
+		newPlayerIndex, err := strconv.Atoi(newPlayer)
+		if err != nil || newPlayerIndex < 0 {
 			// Player not valid (ignore)
 			logWarning("handleAction", "Player Disconnected OR Player not valid (player reset)")
-			lastConnectedPlayer = ""
+			lastConnectedPlayer = "-1"
 			return game
 		} else {
 			// Valid player : updates
@@ -193,7 +194,8 @@ func handleAction(fullAction string, game GameState) GameState {
 	}
 
 	// Check if app controls valid player
-	if lastConnectedPlayer != "1" && lastConnectedPlayer != "2" && lastConnectedPlayer != "3" {
+	lastConnectedPlayerInt, err := strconv.Atoi(lastConnectedPlayer)
+	if err != nil || lastConnectedPlayerInt < 0 {
 		logError("handleAction", "No player defined or player not recognized! Impossible to do other actions than player initialisation.")
 		return game
 	}
@@ -216,7 +218,6 @@ func handleAction(fullAction string, game GameState) GameState {
 	case "Kems": // CONTROLS -> Increments player score if won (or does nothing)
 		// Getting app player index
 		appPlayerIndex, _ := strconv.Atoi(lastConnectedPlayer)
-		appPlayerIndex -= 1
 
 		// Player won
 		if hasKems(game, appPlayerIndex) {
