@@ -22,7 +22,7 @@ func testDiffusion(table *[]Diffusion, neighbours *[]string) {
 }
 
 func testRemoving(table *[]Diffusion, neighbours *[]string) {
-	if name != "N1" {
+	if name != "N0" {
 		return
 	}
 	for i := 0; i < 30; i++ {
@@ -264,7 +264,7 @@ func main() {
 
 	///////// tests /////
 	// go testDiffusion(&diffTable, &neighbours)
-	// go testRemoving(&diffTable, &neighbours)
+	go testRemoving(&diffTable, &neighbours)
 
 	// Main message handling loop
 	for {
