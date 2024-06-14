@@ -8,16 +8,6 @@ import (
 	"strings"
 )
 
-/*
-J'ai enfin un truc qui marche pour ajouter et enlever des joueurs et que ça passe au niveau de l'app, il y a juste des choses à prendre en compte pour que ça marche bien car j'ai pas changé toutes les fonctionnalités...
-
-Prérequis :
-- un joueur désactivé aura quand même des cartes mais il peut pas envoyer des msg sur le réseau
-- il faut démarrer les joueurs dans l'ordre croissant (de 0 à n)
-- ne pas démarer de display ET un joueur avant d'avoir ajouté tous les joueurs
-- y en a peut être d'autres, faudra juste avoir un scénario prédéfini qui marche bien comme ça on aura pas de problèmes pendant la soutanance
-*/
-
 ///////////
 // CLOCK //
 ///////////
