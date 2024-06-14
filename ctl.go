@@ -219,6 +219,9 @@ func main() {
 		estampilles = append(estampilles, Request{"[ECRITICAL]", -1})
 		vClock = append(vClock, 0)
 	}
+	numPlayers := strconv.Itoa(len(estampilles))
+	outChan <- encodeMessage([]string{"snd", "msg"}, []string{name, "[UPDATEPLA]" + numPlayers}) + "\n"
+	logInfo("main", "Controller initialised, num players sent to app.")
 
 	// Main loop of the controller, manages message reception and emission and processing
 	for {
