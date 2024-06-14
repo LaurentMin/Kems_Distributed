@@ -44,13 +44,16 @@ const (
 	askToConnect     MessageContent = "Hello, may I join your awesome network ?"
 	acceptConnection MessageContent = "Hello, of course you can join our network ?"
 	refuseConnection MessageContent = "Hello, sorry but you'll have to wait ?"
+	askToDelete      MessageContent = "Hello, may I leave the network ?"
+	acceptDelete     MessageContent = "Hello, of course you can leave the network ?"
+	refuseDelete     MessageContent = "Hello, sorry but you'll have to wait to delete?"
 )
 
 /*
 Connect go routine asks to connect to network until stopped (waits a certain amount of time in between pings)
 */
 func connect(stop <-chan bool, askNode string) {
-  
+
 	time.Sleep(1 * time.Second)
 
 	for {
@@ -61,6 +64,26 @@ func connect(stop <-chan bool, askNode string) {
 		default:
 			outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, askNode, "con", string(askToConnect)}) + "\n"
 			logInfo("connect", "Asked to join a network through : "+askNode)
+			time.Sleep(30 * time.Second)
+		}
+	}
+}
+
+/*
+Connect go routine asks to connect to network until stopped (waits a certain amount of time in between pings)
+*/
+func delete(stop <-chan bool, askNode string) {
+
+	time.Sleep(1 * time.Second)
+
+	for {
+		select {
+		case <-stop:
+			logMessage("delete", "Delete go routine stopped.")
+			return
+		default:
+			outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, askNode, "delete", string(askToDelete)}) + "\n"
+			logInfo("delete", "Asked to leave"+askNode) //askNode is itself
 			time.Sleep(30 * time.Second)
 		}
 	}
@@ -197,11 +220,11 @@ func handleDiffusionMessage(sender string, recipient string, msgcontent string, 
 					addNeighbour(neighbours, (*table)[tabIndex].value)
 					outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, (*table)[tabIndex].value, "con", string(acceptConnection)}) + "\n"
 					logSuccess("handleDiffusionMessage", "Election ended, connection accepted for "+(*table)[tabIndex].value)
-          
+
 				} else if diffMessage.value == "del" { // NODE had difused del message, can deactivate
 					*zombie = true
 					logSuccess("handleDiffusionMessage", "Node successfully deactivated : "+diffMessage.diffIndex)
-          
+
 				} else {
 					logSuccess("handleDiffusionMessage", "Diffusion terminée : "+diffMessage.diffIndex)
 				}
@@ -209,11 +232,11 @@ func handleDiffusionMessage(sender string, recipient string, msgcontent string, 
 				outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, (*table)[tabIndex].parent, "net", diffusionToString(diffMessage)}) + "\n"
 				logInfo("handleDiffusionMessage", "Passing red message to parent.")
 				// If diffusion was a controller message, send it to own controller here own controller message already ignored because initiator doesn't get here.
-				
-        if isDiffCtlMsg(diffMessage.value) {
+
+				if isDiffCtlMsg(diffMessage.value) {
 					outChan <- diffMessage.value + "\n"
 					logInfo("handleDiffusionMessage", "Transmitted message to controller.")
-          
+
 				} else if diffMessage.value == "new" || diffMessage.value == "del" {
 					outChan <- encodeMessage([]string{"snd", "msg"}, []string{"C" + getOriginIndex(diffMessage.diffIndex), diffMessage.value}) + "\n"
 					logInfo("handleDiffusionMessage", "Sent new or del message to controller.")
@@ -222,10 +245,20 @@ func handleDiffusionMessage(sender string, recipient string, msgcontent string, 
 		} else {
 			logWarning("handleDiffusionMessage", "Decremented node neighbour count.")
 		}
-    
+
 	default:
 		logError("handleDiffusionMessage", "Fatal error, diffusion message has unexpected color (ignored).")
 		return
+	}
+}
+
+func handleLeaveRequest(nodeName string, table *[]Diffusion, neighbours *[]string, counter *int) {
+	if canParticipateToElection(*table) {
+		startDiffusion(*counter, "del", table, len(*neighbours))
+		*counter++
+		logInfo("handleLeaveRequest", "Requested to leave network.")
+	} else {
+		logWarning("handleLeaveRequest", "Cannot participate to election for leaving.")
 	}
 }
 
@@ -236,9 +269,14 @@ func main() {
 	// Getting name from commandline (usefull for logging)
 	pName := flag.String("n", "default", "name")
 	pAskNode := flag.String("a", "default", "name of node to connect to")
+
+	//getting name from commandline (usefull for logging)
+	pLeave := flag.String("d", "default", "flag to indicate if the node is leaving")
+
 	flag.Parse()
 	name = *pName
 	askNode := *pAskNode
+	leave := *pLeave
 
 	inChan = make(chan string, 100)
 	outChan = make(chan string, 100)
@@ -300,13 +338,13 @@ func main() {
 		sender = findValue(keyValTable, "snd")
 		msgtype = findValue(keyValTable, "typ")
 		recipient = findValue(keyValTable, "rec")
-    
+
 		// Filter out random messages
 		hlg := findValue(keyValTable, "hlg")
 		notControllerMessage := sender == "C"+name[1:] && hlg == "" // filter out ctl msg to app
 		invalidSender := len(sender) < 2 || len(name) < 2 || (sender != "C"+name[1:] && sender[0] != 'N')
 		messageForMe := strings.EqualFold(recipient, "all") || recipient == name || recipient == ""
-    
+
 		if invalidSender || !messageForMe || notControllerMessage {
 			logWarning("main", "Message not for node (ignored) wrong controller or Sj message OR unexpected message - COULD BE FATAL!")
 			messageReceived = ""
@@ -331,7 +369,7 @@ func main() {
 
 		/* HANDLE NETWORK MESSAGE */
 		msgcontent := findValue(keyValTable, "msg")
-    
+
 		if sender[0] == 'N' && connected { // still goes here whether is zombie node
 			switch msgtype {
 			case "con":
@@ -339,7 +377,7 @@ func main() {
 					addNeighbour(&neighbours, sender)
 					outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, sender, "con", string(acceptConnection)}) + "\n"
 
-          logSuccess("handleConnectionMessage", "Connection accepted for "+sender)
+					logSuccess("handleConnectionMessage", "Connection accepted for "+sender)
 				} else if msgcontent == string(askToConnect) && canParticipateToElection(diffTable) {
 					startDiffusion(counter, sender, &diffTable, len(neighbours))
 					counter++
@@ -348,9 +386,22 @@ func main() {
 				} else {
 					logWarning("main", "Can't participate to election or unexpected connection message (ignored).")
 				}
+
+			case "delete":
+				if len(neighbours) == 0 {
+					outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, sender, "del", string(acceptDelete)}) + "\n"
+					logSuccess("handleDeleteMessage", "Delete request accepted for "+sender)
+				} else if msgcontent == string(askToDelete) && canParticipateToElection(diffTable) {
+					startDiffusion(counter, "delete:"+sender, &diffTable, len(neighbours))
+					counter++
+					logInfo("main", "Asked network to delete node.")
+				} else {
+					logWarning("main", "Can't participate to election or unexpected delete message (ignored).")
+				}
+
 			case "net":
 
-        handleDiffusionMessage(sender, recipient, msgcontent, &diffTable, &neighbours, &zombie)
+				handleDiffusionMessage(sender, recipient, msgcontent, &diffTable, &neighbours, &zombie)
 
 			default:
 				logError("main", "Ignored network message.")
@@ -362,7 +413,7 @@ func main() {
 		// HANDLE NETWORK CONNECTION
 		if sender[0] == 'N' && !connected && !zombie {
 			switch msgcontent {
-        
+
 			case string(acceptConnection):
 				stop <- true // channel initialised only if connected is false when program begins
 				connected = true
@@ -370,10 +421,18 @@ func main() {
 				startDiffusion(counter, "new", &diffTable, len(neighbours))
 				counter++
 				logSuccess("main", "Successfully connected to network.")
-        
+
 			case string(refuseConnection):
 				logWarning("main", "Connection to network was not accepted.")
-        
+
+			case string(acceptDelete):
+				stop <- true
+				zombie = true
+				logSuccess("main", "Successfully authorized to leave the network.")
+
+			case string(refuseDelete):
+				logWarning("main", "Request to leave the network was not accepted.")
+
 			default:
 				if msgtype == "net" {
 					logWarning("main", "Node not yet connected to network (ignored)")
@@ -384,7 +443,7 @@ func main() {
 			messageReceived = ""
 			continue
 		}
-    
+
 		logWarning("main", "(ignored) Node certainly in zombie mode OR received unexpected message while not connected to network => FATAL.")
 		messageReceived = ""
 	}
