@@ -5,6 +5,7 @@ killall tee 2> /dev/null
 killall cat 2> /dev/null
 
 echo "Making named pipes..."
+
 mkfifo /tmp/in_N6 /tmp/out_N6
 mkfifo /tmp/in_N7 /tmp/out_N7
 
@@ -20,5 +21,6 @@ cat /tmp/out_N7 | tee -a /tmp/in_N5 &
 echo "Starting node..."
 ./net -n N7 -a N5 < /tmp/in_N7 >> /tmp/out_N7 &
 ./net -n N6 -a N4 < /tmp/in_N6 >> /tmp/out_N6 &
+
 
 echo "Network built."
