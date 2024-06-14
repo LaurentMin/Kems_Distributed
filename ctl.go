@@ -8,6 +8,16 @@ import (
 	"strings"
 )
 
+/*
+J'ai enfin un truc qui marche pour ajouter et enlever des joueurs et que ça passe au niveau de l'app, il y a juste des choses à prendre en compte pour que ça marche bien car j'ai pas changé toutes les fonctionnalités...
+
+Prérequis :
+- un joueur désactivé aura quand même des cartes mais il peut pas envoyer des msg sur le réseau
+- il faut démarrer les joueurs dans l'ordre croissant (de 0 à n)
+- ne pas démarer de display ET un joueur avant d'avoir ajouté tous les joueurs
+- y en a peut être d'autres, faudra juste avoir un scénario prédéfini qui marche bien comme ça on aura pas de problèmes pendant la soutanance
+*/
+
 ///////////
 // CLOCK //
 ///////////
@@ -252,7 +262,8 @@ func main() {
 		case "del":
 			// remove node from mutual exclusion table
 			removeController(sender, &estampilles, &vClock)
-			logInfo("main", "Controller was removed from table : "+sender)
+			outChan <- encodeMessage([]string{"snd", "msg"}, []string{name, "[UPDATEPLR]" + sender[1:]}) + "\n"
+			logInfo("main", "Controller was removed from table, info sent to app : "+sender)
 		}
 
 		// Clock updating
@@ -264,7 +275,7 @@ func main() {
 			// Clock adjustment if message received from other controller
 			clockReceived, err := strconv.Atoi(clockReceivedStr)
 			if err != nil {
-				logError("main", "Error converting string to int : "+err.Error()+" (FATAT, clock corruption)")
+				logError("main", "Error converting string to int : "+err.Error()+" (FATAL, clock corruption)")
 				continue
 			}
 			clock = clockAdjustment(clock, clockReceived)

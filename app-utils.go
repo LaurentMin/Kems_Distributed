@@ -11,6 +11,7 @@ import (
 // GAME STATE DECLARATION //
 ////////////////////////////
 var ctlNumPlayers = 1
+var removedPlayers = []int{}
 
 /*
 	Single Card structure

@@ -325,7 +325,7 @@ func main() {
 			continue
 		}
 
-		// Update number of players by controller
+		// Update number of players by controller or remove a player
 		tmpMsg := findValue(keyValTable, "msg")
 		if len(tmpMsg) > 11 && tmpMsg[:11] == "[UPDATEPLA]" {
 			numPlayers, err := strconv.Atoi(tmpMsg[11:])
@@ -335,7 +335,17 @@ func main() {
 				ctlNumPlayers = numPlayers
 				logInfo("main", "Updated number of players in app.")
 			}
+			messageReceived = ""
+			continue
 
+		} else if len(tmpMsg) > 11 && tmpMsg[:11] == "[UPDATEPLR]" {
+			removedPlayer, err := strconv.Atoi(tmpMsg[11:])
+			if err != nil {
+				logError("main", "FATAL Error while converting players to remove in app.")
+			} else {
+				removedPlayers = append(removedPlayers, removedPlayer)
+				logInfo("main", "Updated removed players in app : "+strconv.Itoa(removedPlayers[len(removedPlayers)-1]))
+			}
 			messageReceived = ""
 			continue
 		}
@@ -361,7 +371,7 @@ func main() {
 		messageReceived = findValue(keyValTable, "msg")
 
 		// Filter out wrong messages (just in case)
-		if len(messageReceived) < 11 || (messageReceived[:11] != "[GAMESTATE]" && messageReceived[:11] != "[BCRITICAL]" && messageReceived[:11] != "[SAVEORDER]" && messageReceived[:11] != "[UPDATEPLA]") {
+		if len(messageReceived) < 11 || (messageReceived[:11] != "[GAMESTATE]" && messageReceived[:11] != "[BCRITICAL]" && messageReceived[:11] != "[SAVEORDER]" && messageReceived[:11] != "[UPDATEPLA]" && messageReceived[:11] != "[UPDATEPLR]") {
 			// logInfo("main", "Wrong message type for app received "+messageReceived+" (ignoring).")
 			logInfo("main", "Wrong message type for app received (ignoring).")
 			messageReceived = ""
