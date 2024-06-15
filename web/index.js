@@ -21,6 +21,12 @@ hardResetButton.onclick = function () {
     modal.style.display = "none";
 }
 
+var saveGameButton = document.getElementById('save-game');
+saveGameButton.onclick = function () {
+    saveGame()
+    modal.style.display = "none";
+}
+
 // When the user clicks on <span> (x), close the modal
 span.onclick = function () {
     modal.style.display = "none";
@@ -165,7 +171,6 @@ document.getElementById("connect").onclick = function (evt) {
     ws.onopen = function (evt) {
         console.log("Connection open ...");
         connectedElem.textContent = "Connected";
-        ws.send("Hello Server!!")
     };
 
     ws.onclose = function (evt) {
@@ -260,10 +265,11 @@ function sendAction(action) {
 
 // game Action
 function newTurn() {
-    actionObject = {
-        action: 'NextTurn',
-    }
-    sendAction(actionObject)
+    sendAction({ action: 'NextTurn', })
+}
+
+function saveGame() {
+    sendAction({ action: 'SavePoint' })
 }
 
 function swapCards(drawCardHtml, handCardHtml) {

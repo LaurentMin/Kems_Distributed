@@ -107,6 +107,8 @@ func do_websocket(w http.ResponseWriter, r *http.Request) {
 			sendAction("ContreKems", []string{"playerIndex"}, []string{strconv.Itoa(otherPlayerId)})
 		case "ResetGame":
 			sendAction("ResetGame", []string{"playerIndex"}, []string{name})
+		case "SavePoint":
+			sendAction("SavePoint", []string{"playerIndex"}, []string{name})
 		default:
 			logError("Web proxy", "Unknown action type: "+actionType)
 		}
