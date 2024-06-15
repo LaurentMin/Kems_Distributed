@@ -7,10 +7,12 @@ import (
 	"time"
 )
 
-//#region GS DECLARATION
 ////////////////////////////
 // GAME STATE DECLARATION //
 ////////////////////////////
+var ctlNumPlayers = 1
+var removedPlayers = []int{}
+
 /*
 	Single Card structure
 */
@@ -49,7 +51,6 @@ type GameState struct {
 	DiscardPile []Card
 }
 
-//#region GS INITIALISATION
 ///////////////////////////////
 // GAME STATE INITIALISATION //
 ///////////////////////////////
@@ -98,10 +99,9 @@ func getInitDeck() []Card {
 */
 func getInitPlayers() []Player {
 	// logMessage("getInitPlayers", "Initialising players")
-	players := []Player{
-		{Name: "Newbie", Score: 0, Hand: []Card{}},
-		{Name: "Mexican", Score: 0, Hand: []Card{}},
-		{Name: "Convict", Score: 0, Hand: []Card{}},
+	players := []Player{}
+	for i := 0; i < ctlNumPlayers; i++ {
+		players = append(players, Player{Name: "Player" + strconv.Itoa(i), Score: 0, Hand: []Card{}})
 	}
 	return players
 }
@@ -123,7 +123,6 @@ func getInitState() GameState {
 	return game
 }
 
-//#region ToSTRING FUNC
 ////////////////////////
 // ToSTRING FUNCTIONS //
 ////////////////////////
@@ -146,7 +145,6 @@ func toStringCards(cards []Card) string {
 	return cardsString
 }
 
-//# region CASTING FUNCTIONS
 ///////////////////////
 // CASTING FUNCTIONS //
 ///////////////////////
@@ -210,7 +208,6 @@ func getCardsFromString(cardsString string) []Card {
 
 	return cards
 }
-
 func stringToGameState(gameString string) GameState {
 	// ERROR returns empty game state
 	if gameString[:11] != "[GAMESTATE]" {
@@ -251,7 +248,6 @@ func stringToGameState(gameString string) GameState {
 	return game
 }
 
-//#region LOOKUP FUNC
 //////////////////////
 // LOOKUP FUNCTIONS //
 //////////////////////
@@ -291,7 +287,6 @@ func findIndexCard(card Card, cards []Card) int {
 	return -1
 }
 
-//#region GS HELPER FUNC
 ////////////////////////////////
 // GAMESTATE HELPER FUNCTIONS //
 ////////////////////////////////
