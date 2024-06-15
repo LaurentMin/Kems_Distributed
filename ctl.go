@@ -25,9 +25,14 @@ func clockAdjustment(x, y int) int {
 /*
 	Vector clock adjustment
 */
-func vClockAdjustment(x, y []int, ind int) []int {
+func vClockAdjustment(x []int, y []int, ind int) []int {
 	// logMessage("vClockAdjustment", "Adjusting vector clock to max(local,received) + 1.")
-	for i := 0; i < len(x); i++ {
+	minRange := len(x)
+	if len(y) < len(x) {
+		minRange = len(y)
+	}
+
+	for i := 0; i < minRange; i++ {
 		if x[i] < y[i] {
 			x[i] = y[i]
 		} else {
@@ -118,21 +123,62 @@ type Request struct {
 	Clock int
 }
 
-//////////////////
-// HELPER FUNCS //
-//////////////////
+/////////////////
+// ESTAMPILLES //
+/////////////////
 /*
 	Returns true if siteN has smallest date in estampilles
 	(called to start a critical section for example)
 */
 func canGoCritical(estampilles []Request, site int) bool {
 	for i := 0; i < len(estampilles); i++ {
-		logError("canGoCritical", "num site : "+strconv.Itoa(i+1)+" clock : "+strconv.Itoa(estampilles[i].Clock))
-		if estampilles[site].Clock > estampilles[i].Clock || (estampilles[site].Clock == estampilles[i].Clock && site > i) {
+		logError("canGoCritical", "num site : "+strconv.Itoa(i)+" clock : "+strconv.Itoa(estampilles[i].Clock))
+		if estampilles[i].Clock > -1 && (estampilles[site].Clock > estampilles[i].Clock || (estampilles[site].Clock == estampilles[i].Clock && site > i)) {
 			return false
 		}
 	}
 	return true
+}
+
+/*
+Adds a controller to estampilles table
+*/
+func addController(ctl string, table *[]Request, vClock *[]int) {
+	if len(ctl) < 2 || ctl[0] != 'C' {
+		logError("addController", "Error adding controller: "+ctl)
+		return
+	}
+
+	ctlNumber, err := strconv.Atoi(ctl[1:])
+	if err != nil {
+		logError("addController", "Error converting string to int: "+err.Error())
+	}
+
+	for i := 0; i <= ctlNumber; i++ {
+		if i >= len(*vClock) {
+			*vClock = append(*vClock, 0)
+		}
+		if i >= len(*table) {
+			*table = append(*table, Request{"[ECRITICAL]", -1})
+		}
+	}
+}
+
+/*
+Removes a controller from estampilles table
+*/
+func removeController(ctl string, table *[]Request, vClock *[]int) {
+	if len(ctl) < 2 || ctl[0] != 'C' {
+		logError("addController", "Error removing controller: "+ctl)
+		return
+	}
+
+	ctlNumber, err := strconv.Atoi(ctl[1:])
+	if err != nil || ctlNumber >= len(*table) {
+		logError("addController", "Controller out of range or Error converting string to int: "+err.Error())
+	}
+
+	(*table)[ctlNumber].Clock = -1
 }
 
 //////////
@@ -151,13 +197,13 @@ func main() {
 	keyValTable := []string{}
 	clock := 0
 
-	vClock := []int{0, 0, 0}
+	vClock := []int{}
 	// Save state
 	saveState := false
 
-	estampilles := []Request{Request{"[ECRITICAL]", 0}, Request{"[ECRITICAL]", 0}, Request{"[ECRITICAL]", 0}} // Index 0..2 corresponds to controllers 1..3
-	siteNum, _ := strconv.Atoi(name[1:2])                                                                     // Ok if this makes app crash (name must be defined)
-	siteNum -= 1
+	//	estampilles := []Request{Request{"[ECRITICAL]", 0}, Request{"[ECRITICAL]", 0}, Request{"[ECRITICAL]", 0}} // Index 0..2 corresponds to controllers 1..3
+	estampilles := []Request{}
+	siteNum, _ := strconv.Atoi(name[1:]) // Ok if this makes app crash (name must be defined)
 
 	// Find the controller number in vClock
 	idVClock := siteNum
@@ -167,6 +213,15 @@ func main() {
 	outChan := make(chan string, 10)
 	go read(inChan)
 	go write(outChan)
+
+	// init vclock and estampilles
+	for i := 0; i <= siteNum; i++ {
+		estampilles = append(estampilles, Request{"[ECRITICAL]", -1})
+		vClock = append(vClock, 0)
+	}
+	numPlayers := strconv.Itoa(len(estampilles))
+	outChan <- encodeMessage([]string{"snd", "msg"}, []string{name, "[UPDATEPLA]" + numPlayers}) + "\n"
+	logInfo("main", "Controller initialised, num players sent to app.")
 
 	// Main loop of the controller, manages message reception and emission and processing
 	for {
@@ -180,7 +235,7 @@ func main() {
 		sender := findValue(keyValTable, "snd")
 
 		// Filter out random messages (Display messages for example)
-		if len(sender) != 2 || len(name) != 2 || (sender != "A"+name[1:2] && sender[:1] != "C") {
+		if len(sender) != 2 || len(name) != 2 || (sender != "A"+name[1:] && sender[:1] != "C") {
 			logWarning("main", "Display message OR invalid sender OR wrong ctl name (ignored) - CAN BE FATAL!")
 			messageReceived = ""
 			continue
@@ -190,14 +245,18 @@ func main() {
 		switch findValue(keyValTable, "msg") {
 		case "new":
 			// add node to mutual exclusion table
-			logInfo("main", "Controller was added to table : "+sender)
+			addController(sender, &estampilles, &vClock)
+			numPlayers := strconv.Itoa(len(estampilles))
+			outChan <- encodeMessage([]string{"snd", "msg"}, []string{name, "[UPDATEPLA]" + numPlayers}) + "\n"
+			logInfo("main", "Controller was added to table, num players sent to app : "+sender)
 		case "del":
 			// remove node from mutual exclusion table
-			logInfo("main", "Controller was removed from table : "+sender)
+			removeController(sender, &estampilles, &vClock)
+			outChan <- encodeMessage([]string{"snd", "msg"}, []string{name, "[UPDATEPLR]" + sender[1:]}) + "\n"
+			logInfo("main", "Controller was removed from table, info sent to app : "+sender)
 		}
 
 		// Clock updating
-
 		// logInfo("main", "Clock updating...")
 		clockReceivedStr := findValue(keyValTable, "hlg")
 		vClockReceivedStr := findValue(keyValTable, "vlg")
@@ -206,7 +265,7 @@ func main() {
 			// Clock adjustment if message received from other controller
 			clockReceived, err := strconv.Atoi(clockReceivedStr)
 			if err != nil {
-				logError("main", "Error converting string to int : "+err.Error()+" (FATAT, clock corruption)")
+				logError("main", "Error converting string to int : "+err.Error()+" (FATAL, clock corruption)")
 				continue
 			}
 			clock = clockAdjustment(clock, clockReceived)
@@ -216,7 +275,7 @@ func main() {
 			vClock = vClockAdjustment(vClock, vClockReceived, idVClock)
 			// logInfo("main", "Clock updated, message received from other controller.")
 
-		} else if clockReceivedStr == "" && sender == "A"+name[1:2] { // Filters out messages without a clock from the wrong app or a controller.
+		} else if clockReceivedStr == "" && sender == "A"+name[1:] { // Filters out messages without a clock from the wrong app or a controller.
 			// Incremented if message received from app
 			clock = clock + 1
 			vClock[idVClock] = vClock[idVClock] + 1
@@ -243,8 +302,7 @@ func main() {
 		// Receive from controller
 		// logInfo("main", "Sending message...")
 		if clockReceivedStr != "" && sender[:1] == "C" {
-			otherSiteNumber, _ := strconv.Atoi(sender[1:2])
-			otherSiteNumber -= 1
+			otherSiteNumber, _ := strconv.Atoi(sender[1:])
 			switch messageReceived[:11] {
 			case "[GAMESTATE]":
 				// Do not replace an ask by a gamestate
@@ -332,7 +390,7 @@ func main() {
 		}
 
 		// Received from app
-		if clockReceivedStr == "" && sender == "A"+name[1:2] {
+		if clockReceivedStr == "" && sender == "A"+name[1:] {
 			switch messageReceived[:11] {
 			case "[GAMESTATE]":
 				// Do not replace an ask by a gamestate

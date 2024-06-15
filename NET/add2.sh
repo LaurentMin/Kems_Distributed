@@ -12,7 +12,8 @@ mkfifo /tmp/in_C3 /tmp/out_C3
 mkfifo /tmp/in_N3 /tmp/out_N3
 
 echo "Adding pipes to network..."
-cat /tmp/out_N1 | tee -a /tmp/in_N2 /tmp/in_N3 >> /tmp/in_C1 &
+cat /tmp/out_N0 | tee -a /tmp/in_N1 &
+cat /tmp/out_N1 | tee -a /tmp/in_N0 /tmp/in_N2 /tmp/in_N3 >> /tmp/in_C1 &
 cat /tmp/out_N2 | tee -a /tmp/in_N1 >> /tmp/in_C2 &
 cat /tmp/out_N3 | tee -a /tmp/in_N1 >> /tmp/in_C3 &
 

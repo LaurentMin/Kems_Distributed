@@ -22,14 +22,14 @@ func testDiffusion(table *[]Diffusion, neighbours *[]string) {
 }
 
 func testRemoving(table *[]Diffusion, neighbours *[]string) {
-	if name != "N1" {
+	if name != "N0" {
 		return
 	}
 	for i := 0; i < 30; i++ {
 		logError("test", "Removing in "+strconv.Itoa(30-i))
 		time.Sleep(time.Second)
 	}
-	startDiffusion(69, "del", table, len(*neighbours))
+	startDiffusion(6969, "del", table, len(*neighbours))
 }
 
 ////////////////////////////////
@@ -197,12 +197,10 @@ func handleDiffusionMessage(sender string, recipient string, msgcontent string, 
 					addNeighbour(neighbours, (*table)[tabIndex].value)
 					outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, (*table)[tabIndex].value, "con", string(acceptConnection)}) + "\n"
 					logSuccess("handleDiffusionMessage", "Election ended, connection accepted for "+(*table)[tabIndex].value)
-          
-				} else if diffMessage.value == "del" { // NODE had difused del message, can deactivate
+				} else if diffMessage.value == "del" { // NODE has diffused del message, can deactivate
 					*zombie = true
 					logSuccess("handleDiffusionMessage", "Node successfully deactivated : "+diffMessage.diffIndex)
-          
-				} else {
+				} else { // NODE has diffused new message
 					logSuccess("handleDiffusionMessage", "Diffusion terminée : "+diffMessage.diffIndex)
 				}
 			} else { // Not the diffusion initiator
@@ -276,7 +274,7 @@ func main() {
 
 	///////// tests /////
 	// go testDiffusion(&diffTable, &neighbours)
-	// go testRemoving(&diffTable, &neighbours)
+	go testRemoving(&diffTable, &neighbours)
 
 	// Main message handling loop
 	for {

@@ -103,7 +103,7 @@ func stopElecWave(tab []Diffusion, diff DiffusionMessage) bool {
 }
 
 func isDiffCtlMsg(value string) bool {
-	return value != "new" || value[0] == 'N'
+	return (value != "new" && value != "del") || value[0] == 'N'
 }
 
 func getOriginIndex(diffIndex string) string {
@@ -117,5 +117,6 @@ func getOriginIndex(diffIndex string) string {
 		logError("getOriginIndex", "FATAL, could not get index from a diffusion index !!")
 		return diffIndex
 	}
+	logError("getOriginIndex", diffIndex[:index])
 	return diffIndex[:index]
 }
