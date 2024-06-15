@@ -72,7 +72,7 @@ func connect(stop <-chan bool, askNode string) {
 /*
 Connect go routine asks to connect to network until stopped (waits a certain amount of time in between pings)
 */
-func delete(stop <-chan bool, askNode string) {
+func delete(stop <-chan bool, deleteNode string) {
 
 	time.Sleep(1 * time.Second)
 
@@ -82,8 +82,8 @@ func delete(stop <-chan bool, askNode string) {
 			logMessage("delete", "Delete go routine stopped.")
 			return
 		default:
-			outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, askNode, "delete", string(askToDelete)}) + "\n"
-			logInfo("delete", "Asked to leave"+askNode) //askNode is itself
+			outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{deleteNode, deleteNode, "delete", string(askToDelete)}) + "\n"
+			logInfo("delete", deleteNode+"Asked to leave") //deleteNode is itself
 			time.Sleep(30 * time.Second)
 		}
 	}
@@ -272,6 +272,9 @@ func main() {
 
 	//getting name from commandline (usefull for logging)
 	pLeave := flag.String("d", "default", "flag to indicate if the node is leaving")
+	pConnectedNodes := flag.String("f", "", "nodes connected to the leaving node, separated by commas")
+
+	connectedNodes := strings.Split(*pConnectedNodes, ",")
 
 	flag.Parse()
 	name = *pName
@@ -301,7 +304,8 @@ func main() {
 
 	// Ask to join network
 	connected := false
-	if name != askNode { // First node  of the network has itself as askNode
+
+	if name != askNode && name != "default" { // First node  of the network has itself as askNode
 		stop = make(chan bool, 10)
 		go connect(stop, askNode)
 		outChan <- "ping" + "\n"
@@ -310,6 +314,16 @@ func main() {
 		connected = true // First node of the network
 		outChan <- "ping" + "\n"
 		logInfo("main", "Started a new network.")
+	}
+
+	if leave != "default" {
+		if len(connectedNodes) != 1 {
+			stop = make(chan bool, 10)
+			go delete(stop, leave)
+
+		} else {
+			zombie = true
+		}
 	}
 
 	///////// tests /////
@@ -389,10 +403,10 @@ func main() {
 
 			case "delete":
 				if len(neighbours) == 0 {
-					outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, sender, "del", string(acceptDelete)}) + "\n"
+					outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{leave, sender, "del", string(acceptDelete)}) + "\n"
 					logSuccess("handleDeleteMessage", "Delete request accepted for "+sender)
 				} else if msgcontent == string(askToDelete) && canParticipateToElection(diffTable) {
-					startDiffusion(counter, "delete:"+sender, &diffTable, len(neighbours))
+					startDiffusion(counter, sender, &diffTable, len(neighbours))
 					counter++
 					logInfo("main", "Asked network to delete node.")
 				} else {
