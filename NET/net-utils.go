@@ -51,6 +51,15 @@ func addNeighbour(neighbours *[]string, addMe string) {
 	*neighbours = append(*neighbours, addMe)
 }
 
+func deleteNeighbour(neighbours *[]string, deleteMe string) {
+	for i, id := range *neighbours {
+		if id == deleteMe {
+			*neighbours = append((*neighbours)[:i], (*neighbours)[i+1:]...)
+			return
+		}
+	}
+}
+
 func printDiffusion(diff Diffusion) string {
 	return diff.diffIndex + "|" + string(diff.color) + "|" + strconv.Itoa(diff.nbNeighbours) + "|" + diff.parent + "|" + diff.value
 }
@@ -103,7 +112,7 @@ func stopElecWave(tab []Diffusion, diff DiffusionMessage) bool {
 }
 
 func isDiffCtlMsg(value string) bool {
-	return value != "new" || value[0] == 'N'
+	return (value != "new" && value != "del") || value[0] == 'N'
 }
 
 func getOriginIndex(diffIndex string) string {

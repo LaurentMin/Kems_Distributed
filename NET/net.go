@@ -9,6 +9,7 @@ import (
 
 ///// TEST
 func testDiffusion(table *[]Diffusion, neighbours *[]string) {
+	//if name != "N0" {
 	if name != "N1" {
 		return
 	}
@@ -82,7 +83,7 @@ func delete(stop <-chan bool, deleteNode string) {
 			logMessage("delete", "Delete go routine stopped.")
 			return
 		default:
-			outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{deleteNode, deleteNode, "delete", string(askToDelete)}) + "\n"
+			outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{deleteNode, deleteNode, "del", string(askToDelete)}) + "\n"
 			logInfo("delete", deleteNode+"Asked to leave") //deleteNode is itself
 			time.Sleep(30 * time.Second)
 		}
@@ -222,8 +223,11 @@ func handleDiffusionMessage(sender string, recipient string, msgcontent string, 
 					logSuccess("handleDiffusionMessage", "Election ended, connection accepted for "+(*table)[tabIndex].value)
 
 				} else if diffMessage.value == "del" { // NODE had difused del message, can deactivate
-					*zombie = true
-					logSuccess("handleDiffusionMessage", "Node successfully deactivated : "+diffMessage.diffIndex)
+					//*zombie = true
+					//logSuccess("handleDiffusionMessage", "Node successfully deactivated : "+diffMessage.diffIndex)
+					deleteNeighbour(neighbours, (*table)[tabIndex].value)
+					outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, (*table)[tabIndex].value, "del", string(acceptDelete)}) + "\n"
+					logSuccess("handleDiffusionMessage", "Node successfully deactivated: "+diffMessage.diffIndex)
 
 				} else {
 					logSuccess("handleDiffusionMessage", "Diffusion terminée : "+diffMessage.diffIndex)
@@ -401,7 +405,7 @@ func main() {
 					logWarning("main", "Can't participate to election or unexpected connection message (ignored).")
 				}
 
-			case "delete":
+			case "del":
 				if len(neighbours) == 0 {
 					outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{leave, sender, "del", string(acceptDelete)}) + "\n"
 					logSuccess("handleDeleteMessage", "Delete request accepted for "+sender)
@@ -439,6 +443,20 @@ func main() {
 			case string(refuseConnection):
 				logWarning("main", "Connection to network was not accepted.")
 
+			default:
+				if msgtype == "net" {
+					logWarning("main", "Node not yet connected to network (ignored)")
+				} else {
+					logWarning("main", "Unexpected connection message, ignored.")
+				}
+			}
+			messageReceived = ""
+			continue
+		}
+
+		if sender[0] == 'N' && connected && !zombie {
+			switch msgcontent {
+
 			case string(acceptDelete):
 				stop <- true
 				zombie = true
@@ -449,13 +467,14 @@ func main() {
 
 			default:
 				if msgtype == "net" {
-					logWarning("main", "Node not yet connected to network (ignored)")
+					logWarning("main", "Node not yet deleted from network (ignored)")
 				} else {
-					logWarning("main", "Unexpected connection message, ignored.")
+					logWarning("main", "Unexpected deleted message, ignored.")
 				}
 			}
 			messageReceived = ""
 			continue
+
 		}
 
 		logWarning("main", "(ignored) Node certainly in zombie mode OR received unexpected message while not connected to network => FATAL.")
