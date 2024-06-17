@@ -218,16 +218,18 @@ func handleDiffusionMessage(sender string, recipient string, msgcontent string, 
 		if (*table)[tabIndex].nbNeighbours == 0 {
 			if (*table)[tabIndex].parent == name {
 				if len((*table)[tabIndex].value) > 1 && (*table)[tabIndex].value[:1] == "N" { // Had asked for election to add a node
-					// Check if node (*table)[tabIndex].value is neighbour
-					// If it is not neighbour, regular behaviour below (add the node)		#####YEMING######
-					// If it is already a neighour it means the election was to delete the node (diffuse deletion message)
-					addNeighbour(neighbours, (*table)[tabIndex].value)
-					outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, (*table)[tabIndex].value, "con", string(acceptConnection)}) + "\n"
-					logSuccess("handleDiffusionMessage", "Election ended, connection accepted for "+(*table)[tabIndex].value)
-
+					if (*table)[tabIndex].value != name { // Case to add a node
+						addNeighbour(neighbours, (*table)[tabIndex].value)
+						outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, (*table)[tabIndex].value, "con", string(acceptConnection)}) + "\n"
+						logSuccess("handleDiffusionMessage", "Election ended, connection accepted for "+(*table)[tabIndex].value)
+					} else { // Case to delete this node
+						startDiffusion(696969, "del", table, len(*neighbours))
+						logSuccess("handleDiffusionMessage", "Election ended, deletion accepted for "+name)
+					}
 				} else if diffMessage.value == "del" { // NODE had difused del message, can deactivate
 					//*zombie = true
 					//logSuccess("handleDiffusionMessage", "Node successfully deactivated : "+diffMessage.diffIndex)
+					// YEMING : handle deletion of the node here !
 					deleteNeighbour(neighbours, (*table)[tabIndex].value)
 					outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, (*table)[tabIndex].value, "del", string(acceptDelete)}) + "\n"
 					logSuccess("handleDiffusionMessage", "Node successfully deactivated: "+diffMessage.diffIndex)
