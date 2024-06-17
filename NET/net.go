@@ -218,6 +218,9 @@ func handleDiffusionMessage(sender string, recipient string, msgcontent string, 
 		if (*table)[tabIndex].nbNeighbours == 0 {
 			if (*table)[tabIndex].parent == name {
 				if len((*table)[tabIndex].value) > 1 && (*table)[tabIndex].value[:1] == "N" { // Had asked for election to add a node
+					// Check if node (*table)[tabIndex].value is neighbour
+					// If it is not neighbour, regular behaviour below (add the node)		#####YEMING######
+					// If it is already a neighour it means the election was to delete a node (handle deletion)
 					addNeighbour(neighbours, (*table)[tabIndex].value)
 					outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, (*table)[tabIndex].value, "con", string(acceptConnection)}) + "\n"
 					logSuccess("handleDiffusionMessage", "Election ended, connection accepted for "+(*table)[tabIndex].value)
