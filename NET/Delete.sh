@@ -31,30 +31,13 @@ reconnect_nodes() {
     done
 }
 
-# Function to send delete message
-send_delete_message() {
-    NODE_NAME=$1
-    CONNECTED_NODE=$2
-    echo "del" > /tmp/in_$CONNECTED_NODE
-}
-
-## Check if at least one argument is provided
-#if [ $# -lt 1 ]; then
-#    echo "Error: Invalid number of arguments"
-#    echo "Usage: $0 nodeName [connectedNode1 connectedNode2 ...]"
-#    exit 1
-#fi
 
 NODE_TO_REMOVE=$1
 CONNECTED_NODES=("${@:2}")
 
 # Step 1: Send delete message to connected nodes
-if [ ${#CONNECTED_NODES[@]} -gt 0 ]; then
-    for NODE in "${CONNECTED_NODES[@]}"; do
-        send_delete_message $NODE_TO_REMOVE $NODE
-    done
-    sleep 5 # Wait for the delete messages to propagate
-fi
+echo ";:snd:${NODE_TO_REMOVE};:rec:${NODE_TO_REMOVE};:typ:del;:msg:Hello, may I leave the network ?" > /tmp/in_${NODE_TO_REMOVE}
+sleep 15 # Wait for the delete messages to propagate
 
 # Step 2: Kill the node process
 kill_node_process $NODE_TO_REMOVE
@@ -67,5 +50,3 @@ if [ ${#CONNECTED_NODES[@]} -gt 1 ]; then
     reconnect_nodes $NODE_TO_REMOVE "${CONNECTED_NODES[@]}"
 fi
 
-# Call net program with leave flag and connected nodes
-./net -d $NODE_TO_REMOVE -f "${CONNECTED_NODES[@]}"

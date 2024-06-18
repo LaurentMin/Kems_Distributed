@@ -218,6 +218,14 @@ func handleDiffusionMessage(sender string, recipient string, msgcontent string, 
 		if (*table)[tabIndex].nbNeighbours == 0 {
 			if (*table)[tabIndex].parent == name {
 				if len((*table)[tabIndex].value) > 1 && (*table)[tabIndex].value[:1] == "N" { // Had asked for election to add a node
+					//if (*table)[tabIndex].value != name { // Case to add a node
+					//	addNeighbour(neighbours, (*table)[tabIndex].value)
+					//	outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, (*table)[tabIndex].value, "con", string(acceptConnection)}) + "\n"
+					//	logSuccess("handleDiffusionMessage", "Election ended, connection accepted for "+(*table)[tabIndex].value)
+					//} else { // Case to delete this node
+					//	startDiffusion(696969, "del", table, len(*neighbours))
+					//	logSuccess("handleDiffusionMessage", "Election ended, deletion accepted for "+name)
+					//}
 					addNeighbour(neighbours, (*table)[tabIndex].value)
 					outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, (*table)[tabIndex].value, "con", string(acceptConnection)}) + "\n"
 					logSuccess("handleDiffusionMessage", "Election ended, connection accepted for "+(*table)[tabIndex].value)
@@ -226,7 +234,7 @@ func handleDiffusionMessage(sender string, recipient string, msgcontent string, 
 					//*zombie = true
 					//logSuccess("handleDiffusionMessage", "Node successfully deactivated : "+diffMessage.diffIndex)
 					deleteNeighbour(neighbours, (*table)[tabIndex].value)
-					outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, (*table)[tabIndex].value, "del", string(acceptDelete)}) + "\n"
+					outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, name, "del", string(acceptDelete)}) + "\n"
 					logSuccess("handleDiffusionMessage", "Node successfully deactivated: "+diffMessage.diffIndex)
 
 				} else {
@@ -256,15 +264,15 @@ func handleDiffusionMessage(sender string, recipient string, msgcontent string, 
 	}
 }
 
-func handleLeaveRequest(nodeName string, table *[]Diffusion, neighbours *[]string, counter *int) {
-	if canParticipateToElection(*table) {
-		startDiffusion(*counter, "del", table, len(*neighbours))
-		*counter++
-		logInfo("handleLeaveRequest", "Requested to leave network.")
-	} else {
-		logWarning("handleLeaveRequest", "Cannot participate to election for leaving.")
-	}
-}
+//func handleLeaveRequest(nodeName string, table *[]Diffusion, neighbours *[]string, counter *int) {
+//	if canParticipateToElection(*table) {
+//		startDiffusion(*counter, "del", table, len(*neighbours))
+//		*counter++
+//		logInfo("handleLeaveRequest", "Requested to leave network.")
+//	} else {
+//		logWarning("handleLeaveRequest", "Cannot participate to election for leaving.")
+//	}
+//}
 
 //////////////////////////
 ////////// MAIN //////////
@@ -275,15 +283,15 @@ func main() {
 	pAskNode := flag.String("a", "default", "name of node to connect to")
 
 	//getting name from commandline (usefull for logging)
-	pLeave := flag.String("d", "default", "flag to indicate if the node is leaving")
-	pConnectedNodes := flag.String("f", "", "nodes connected to the leaving node, separated by commas")
+	//pLeave := flag.String("d", "default", "flag to indicate if the node is leaving")
+	//pConnectedNodes := flag.String("f", "", "nodes connected to the leaving node, separated by commas")
 
-	connectedNodes := strings.Split(*pConnectedNodes, ",")
+	//connectedNodes := strings.Split(*pConnectedNodes, ",")
 
 	flag.Parse()
 	name = *pName
 	askNode := *pAskNode
-	leave := *pLeave
+	//leave := *pLeave
 
 	inChan = make(chan string, 100)
 	outChan = make(chan string, 100)
@@ -320,15 +328,15 @@ func main() {
 		logInfo("main", "Started a new network.")
 	}
 
-	if leave != "default" {
-		if len(connectedNodes) != 1 {
-			stop = make(chan bool, 10)
-			go delete(stop, leave)
-
-		} else {
-			zombie = true
-		}
-	}
+	//if leave != "default" {
+	//	if len(connectedNodes) != 1 {
+	//		stop = make(chan bool, 10)
+	//		go delete(stop, leave)
+	//
+	//	} else {
+	//		zombie = true
+	//	}
+	//}
 
 	///////// tests /////
 	// go testDiffusion(&diffTable, &neighbours)
@@ -407,11 +415,11 @@ func main() {
 
 			case "del":
 				if len(neighbours) == 0 {
-					outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{leave, sender, "del", string(acceptDelete)}) + "\n"
+					outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{sender, sender, "del", string(acceptDelete)}) + "\n"
 					logSuccess("handleDeleteMessage", "Delete request accepted for "+sender)
-				} else if msgcontent == string(askToDelete) && canParticipateToElection(diffTable) {
-					startDiffusion(counter, sender, &diffTable, len(neighbours))
-					counter++
+				} else if msgcontent == string(askToDelete) {
+					name = sender
+					startDiffusion(696969, "del", &diffTable, len(neighbours))
 					logInfo("main", "Asked network to delete node.")
 				} else {
 					logWarning("main", "Can't participate to election or unexpected delete message (ignored).")
@@ -458,7 +466,7 @@ func main() {
 			switch msgcontent {
 
 			case string(acceptDelete):
-				stop <- true
+				//stop <- true
 				zombie = true
 				logSuccess("main", "Successfully authorized to leave the network.")
 
