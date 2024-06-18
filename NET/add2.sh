@@ -9,6 +9,7 @@ echo "Making named pipes..."
 mkfifo /tmp/in_A3 /tmp/out_A3
 mkfifo /tmp/in_C3 /tmp/out_C3
 
+mkfifo /tmp/in_D0
 mkfifo /tmp/in_D1
 mkfifo /tmp/in_D2
 mkfifo /tmp/in_D3
