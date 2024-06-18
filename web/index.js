@@ -254,12 +254,12 @@ const updateGame = (gameState) => {
     updateStatusElement(roundElem, "block", primaryColor, `Round&nbsp;<span class='badge'>${gameState.round}</span>`)
 }
 
-function sendAction(action) {
+function sendAction(actionObject) {
     if (!ws) {
         console.error('Websocket not connected')
         return false;
     }
-    console.log('Sending action', action)
+    console.log('Sending action', actionObject)
     ws.send(JSON.stringify(actionObject))
 }
 
@@ -396,17 +396,6 @@ function flipCard(card, flipToBack) {
 
 }
 
-
-/* <div class="card">
-<div class="card-inner">
-    <div class="card-front">
-        <img src="/images/card-JackClubs.png" alt="" class="card-img">
-    </div>
-    <div class="card-back">
-        <img src="/images/card-back-Blue.png" alt="" class="card-img">
-    </div>
-</div>
-</div> */
 
 function createCard(cardItem, pile, cardPositionClassName) {
 
