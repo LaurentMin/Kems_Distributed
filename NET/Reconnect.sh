@@ -15,4 +15,5 @@ cat /tmp/out_C2 | tee -a /tmp/in_A2 >> /tmp/in_N2 &
 cat /tmp/out_A3 | tee -a /tmp/in_C3 >> /tmp/in_Debug &
 cat /tmp/out_C3 | tee -a /tmp/in_A3 >> /tmp/in_N3 &
 
+
 echo "Network built."

@@ -53,21 +53,24 @@ remove_named_pipes() {
 NODE_TO_REMOVE=$1
 CONNECTED_NODES=("${@:2}")
 
+
 # Step 1: Send delete message to connected nodes
 echo ";:snd:${NODE_TO_REMOVE};:rec:${NODE_TO_REMOVE};:typ:del;:msg:Hello, may I leave the network ?" > /tmp/in_${NODE_TO_REMOVE}
 sleep 15 # Wait for the delete messages to propagate
 
-# Step 2: Kill the node process
-kill_node_process $NODE_TO_REMOVE
-sleep 1
-# Step 3: Remove named pipes
-remove_named_pipes $NODE_TO_REMOVE
-sleep 1
+## Step 2: Kill the node process
+#kill_node_process $NODE_TO_REMOVE
+#sleep 1
+## Step 3: Remove named pipes
+#remove_named_pipes $NODE_TO_REMOVE
+#sleep 1
+
+echo "fin"
 
 ## Step 4: Reconnect remaining nodes if any; pour tester que le
 ## Clear old cats and tees
 #echo "Clearing old cats and tees..."
 #killall tee 2> /dev/null
 #killall cat 2> /dev/null
-#
-#reconnect_nodes "${CONNECTED_NODES[@]}"
+
+#./Reconnect.sh
