@@ -88,19 +88,20 @@ func renewPlayerHands(game GameState) GameState {
 	}
 
 	// Drawing cards from the deck until player hands are filled
-	for i := 0; i < game.Settings.HandSize; i++ {
-		for playerIndex := 0; playerIndex < len(game.Players); playerIndex++ {
+	for playerIndex := 0; playerIndex < len(game.Players); playerIndex++ {
 
-			//Check if player is removed
-			playerIsRemoved := false
-			for _, removedPlayer := range removedPlayers {
-				if playerIndex == removedPlayer {
-					playerIsRemoved = true
-				}
+		//Check if player is removed
+		playerIsRemoved := false
+		for _, removedPlayer := range removedPlayers {
+			if playerIndex == removedPlayer {
+				playerIsRemoved = true
 			}
-			if playerIsRemoved {
-				continue
-			}
+		}
+		if playerIsRemoved {
+			continue
+		}
+
+		for i := 0; i < game.Settings.HandSize; i++ {
 
 			// Reshuffling deck if it is empty
 			if len(game.Deck) == 0 {
