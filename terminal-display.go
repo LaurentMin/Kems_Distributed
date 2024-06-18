@@ -100,6 +100,7 @@ func displayKemsRules() {
 
 func displayCommands() {
 	fmt.Println("Commands (maj and spaces are not necessary):")
+	fmt.Println("Save game : i")
 	fmt.Println("Swap cards : s <drawPileCardIndex> <playerCardIndex>")
 	fmt.Println("Next turn : n")
 	fmt.Println("Kems: kems")
@@ -115,6 +116,10 @@ func displayGameBoard(game GameState) {
 	displayDrawPile(game)
 	fmt.Println()
 	for i := 0; i < len(game.Players); i++ {
+		if len(game.Players[i].Hand) == 0 {
+			fmt.Println(game.Players[i].Name + " is disabled \n\n")
+			continue
+		}
 		displayPlayerHand(game.Players[i])
 	}
 }
