@@ -14,6 +14,10 @@ nettoyer () {
   # Suppression des processus de l'application ctl
   killall ctl 2> /dev/null
  
+  # Suppression des processus NET
+  killall net 2> /dev/null
+  killall netadmin 2> /dev/null
+
   # Suppression des processus tee et cat
   killall tee 2> /dev/null
   killall cat 2> /dev/null

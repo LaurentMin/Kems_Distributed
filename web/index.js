@@ -21,6 +21,12 @@ hardResetButton.onclick = function () {
     modal.style.display = "none";
 }
 
+var saveGameButton = document.getElementById('save-game');
+saveGameButton.onclick = function () {
+    saveGame()
+    modal.style.display = "none";
+}
+
 // When the user clicks on <span> (x), close the modal
 span.onclick = function () {
     modal.style.display = "none";
@@ -139,12 +145,12 @@ const allCards = createAllCardsObject()
 var ws;
 let selectedPlayer = '1'; // Default to player 1
 
-// Listen for changes on the radio buttons
-document.querySelectorAll('input[name="player"]').forEach((elem) => {
-    elem.addEventListener('change', function () {
-        selectedPlayer = this.value;
-    });
+// Listen for changes on the player select
+const inputPlayer = document.getElementById("playerInput");
+inputPlayer.addEventListener('change', function () {
+    selectedPlayer = this.value;
 });
+
 
 document.getElementById("connect").onclick = function (evt) {
     if (ws) {
@@ -152,18 +158,7 @@ document.getElementById("connect").onclick = function (evt) {
     }
 
     var host = "localhost";
-    let port
-    switch (selectedPlayer) {
-        case '1':
-            port = 4444;
-            break;
-        case '2':
-            port = 5555;
-            break;
-        case '3':
-            port = 5000;
-            break;
-    }
+    const port = `444${selectedPlayer}`
 
     try {
         ws = new WebSocket("ws://" + host + ":" + port + "/ws");
@@ -176,7 +171,6 @@ document.getElementById("connect").onclick = function (evt) {
     ws.onopen = function (evt) {
         console.log("Connection open ...");
         connectedElem.textContent = "Connected";
-        ws.send("Hello Server!!")
     };
 
     ws.onclose = function (evt) {
@@ -260,21 +254,22 @@ const updateGame = (gameState) => {
     updateStatusElement(roundElem, "block", primaryColor, `Round&nbsp;<span class='badge'>${gameState.round}</span>`)
 }
 
-function sendAction(action) {
+function sendAction(actionObject) {
     if (!ws) {
         console.error('Websocket not connected')
         return false;
     }
-    console.log('Sending action', action)
+    console.log('Sending action', actionObject)
     ws.send(JSON.stringify(actionObject))
 }
 
 // game Action
 function newTurn() {
-    actionObject = {
-        action: 'NextTurn',
-    }
-    sendAction(actionObject)
+    sendAction({ action: 'NextTurn', })
+}
+
+function saveGame() {
+    sendAction({ action: 'SavePoint' })
 }
 
 function swapCards(drawCardHtml, handCardHtml) {
@@ -401,17 +396,6 @@ function flipCard(card, flipToBack) {
 
 }
 
-
-/* <div class="card">
-<div class="card-inner">
-    <div class="card-front">
-        <img src="/images/card-JackClubs.png" alt="" class="card-img">
-    </div>
-    <div class="card-back">
-        <img src="/images/card-back-Blue.png" alt="" class="card-img">
-    </div>
-</div>
-</div> */
 
 function createCard(cardItem, pile, cardPositionClassName) {
 

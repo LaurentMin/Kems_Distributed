@@ -12,8 +12,8 @@ func testDiffusion(table *[]Diffusion, neighbours *[]string) {
 	if name != "N1" {
 		return
 	}
-	for i := 0; i < 30; i++ {
-		logError("test", "Begin in "+strconv.Itoa(30-i))
+	for i := 0; i < 20; i++ {
+		logError("test", "Begin in "+strconv.Itoa(20-i))
 		time.Sleep(time.Second)
 	}
 	for i := 0; i < 100; i++ {
@@ -25,8 +25,8 @@ func testRemoving(table *[]Diffusion, neighbours *[]string) {
 	if name != "N0" {
 		return
 	}
-	for i := 0; i < 30; i++ {
-		logError("test", "Removing in "+strconv.Itoa(30-i))
+	for i := 0; i < 20; i++ {
+		logError("test", "Removing in "+strconv.Itoa(20-i))
 		time.Sleep(time.Second)
 	}
 	startDiffusion(6969, "del", table, len(*neighbours))
@@ -50,7 +50,7 @@ const (
 Connect go routine asks to connect to network until stopped (waits a certain amount of time in between pings)
 */
 func connect(stop <-chan bool, askNode string) {
-  
+
 	time.Sleep(1 * time.Second)
 
 	for {
@@ -207,11 +207,11 @@ func handleDiffusionMessage(sender string, recipient string, msgcontent string, 
 				outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, (*table)[tabIndex].parent, "net", diffusionToString(diffMessage)}) + "\n"
 				logInfo("handleDiffusionMessage", "Passing red message to parent.")
 				// If diffusion was a controller message, send it to own controller here own controller message already ignored because initiator doesn't get here.
-				
-        if isDiffCtlMsg(diffMessage.value) {
+
+				if isDiffCtlMsg(diffMessage.value) {
 					outChan <- diffMessage.value + "\n"
 					logInfo("handleDiffusionMessage", "Transmitted message to controller.")
-          
+
 				} else if diffMessage.value == "new" || diffMessage.value == "del" {
 					outChan <- encodeMessage([]string{"snd", "msg"}, []string{"C" + getOriginIndex(diffMessage.diffIndex), diffMessage.value}) + "\n"
 					logInfo("handleDiffusionMessage", "Sent new or del message to controller.")
@@ -220,7 +220,7 @@ func handleDiffusionMessage(sender string, recipient string, msgcontent string, 
 		} else {
 			logWarning("handleDiffusionMessage", "Decremented node neighbour count.")
 		}
-    
+
 	default:
 		logError("handleDiffusionMessage", "Fatal error, diffusion message has unexpected color (ignored).")
 		return
@@ -298,13 +298,13 @@ func main() {
 		sender = findValue(keyValTable, "snd")
 		msgtype = findValue(keyValTable, "typ")
 		recipient = findValue(keyValTable, "rec")
-    
+
 		// Filter out random messages
 		hlg := findValue(keyValTable, "hlg")
 		notControllerMessage := sender == "C"+name[1:] && hlg == "" // filter out ctl msg to app
 		invalidSender := len(sender) < 2 || len(name) < 2 || (sender != "C"+name[1:] && sender[0] != 'N')
 		messageForMe := strings.EqualFold(recipient, "all") || recipient == name || recipient == ""
-    
+
 		if invalidSender || !messageForMe || notControllerMessage {
 			logWarning("main", "Message not for node (ignored) wrong controller or Sj message OR unexpected message - COULD BE FATAL!")
 			messageReceived = ""
@@ -329,7 +329,7 @@ func main() {
 
 		/* HANDLE NETWORK MESSAGE */
 		msgcontent := findValue(keyValTable, "msg")
-    
+
 		if sender[0] == 'N' && connected { // still goes here whether is zombie node
 			switch msgtype {
 			case "con":
@@ -337,7 +337,7 @@ func main() {
 					addNeighbour(&neighbours, sender)
 					outChan <- encodeMessage([]string{"snd", "rec", "typ", "msg"}, []string{name, sender, "con", string(acceptConnection)}) + "\n"
 
-          logSuccess("handleConnectionMessage", "Connection accepted for "+sender)
+					logSuccess("handleConnectionMessage", "Connection accepted for "+sender)
 				} else if msgcontent == string(askToConnect) && canParticipateToElection(diffTable) {
 					startDiffusion(counter, sender, &diffTable, len(neighbours))
 					counter++
@@ -348,7 +348,7 @@ func main() {
 				}
 			case "net":
 
-        handleDiffusionMessage(sender, recipient, msgcontent, &diffTable, &neighbours, &zombie)
+				handleDiffusionMessage(sender, recipient, msgcontent, &diffTable, &neighbours, &zombie)
 
 			default:
 				logError("main", "Ignored network message.")
@@ -360,7 +360,7 @@ func main() {
 		// HANDLE NETWORK CONNECTION
 		if sender[0] == 'N' && !connected && !zombie {
 			switch msgcontent {
-        
+
 			case string(acceptConnection):
 				stop <- true // channel initialised only if connected is false when program begins
 				connected = true
@@ -368,10 +368,10 @@ func main() {
 				startDiffusion(counter, "new", &diffTable, len(neighbours))
 				counter++
 				logSuccess("main", "Successfully connected to network.")
-        
+
 			case string(refuseConnection):
 				logWarning("main", "Connection to network was not accepted.")
-        
+
 			default:
 				if msgtype == "net" {
 					logWarning("main", "Node not yet connected to network (ignored)")
@@ -382,7 +382,7 @@ func main() {
 			messageReceived = ""
 			continue
 		}
-    
+
 		logWarning("main", "(ignored) Node certainly in zombie mode OR received unexpected message while not connected to network => FATAL.")
 		messageReceived = ""
 	}

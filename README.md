@@ -14,15 +14,17 @@ Geffrelot Elouan, Huichalaf Kilapang, Minatchy Laurent
 ### Débuter une exécution
 
 4. Exécuter le clear script au moins une fois entre chaque exécution `./clearScript.sh`
-5. Lancer le script d'initialisation `./reseauComplet.sh`
+5. Lancer le script d'initialisation :
+    - Pour jouer avec le terminal : `./reseauComplet.sh` 
+    - Pour jouer avec l'interface web : `./reseauCompletGraph.sh` 
 
 ### Jouer en mode terminal
 Plus d'infos sur l'[interface terminal](./docs/terminal_interface.md)
 
 6. Dans un nouveau terminal lancer l'affichage `./displayScript.sh` (permet de suivre l'état du jeu)
-7. Dans un nouveau terminal lancer le joueur 1 `./player1.sh` (permet de contrôler le joueur 1)
-8. Dans un nouveau terminal lancer le joueur 2 `./player2.sh` (permet de contrôler le joueur 2)
-9. Dans un nouveau terminal lancer le joueur 3 `./player3.sh` (permet de contrôler le joueur 3)
+7. Dans un nouveau terminal lancer le joueur 1 `./player.sh -p 1` (permet de contrôler le joueur 1)
+8. Dans un nouveau terminal lancer le joueur 2 `./player.sh -p 2` (permet de contrôler le joueur 2)
+9. Dans un nouveau terminal lancer le joueur 3 `./player.sh -p 3` (permet de contrôler le joueur 3)
 10. Il est maintenant possible de jouer :
     - En suivant les instructions qui s'affichent sur le terminal d'affichage
     - En entrant les commandes dans les terminaux de contrôle respectifs des joueurs
@@ -32,15 +34,15 @@ Plus d'infos sur l'[interface terminal](./docs/terminal_interface.md)
 ### Jouer avec l'interface graphique
 Plus d'infos sur l'[interface graphique](./docs/graphical_interface.md)
 
-6. Dans un nouveau terminal lancer le joueur 1 `./web-proxy1.sh` (permet de contrôler le joueur 1)
-7. Dans un nouveau terminal lancer le joueur 2 `./web-proxy2.sh` (permet de contrôler le joueur 2)
-8. Dans un nouveau terminal lancer le joueur 3 `./web-proxy3.sh` (permet de contrôler le joueur 3)
+6. Dans un nouveau terminal lancer le joueur 1 `./web-proxy.sh -p 1` (permet de contrôler le joueur 1)
+7. Dans un nouveau terminal lancer le joueur 2 `./web-proxy.sh -p 2` (permet de contrôler le joueur 2)
+8. Dans un nouveau terminal lancer le joueur 3 `./web-proxy.sh -p 3` (permet de contrôler le joueur 3)
 9. Dans un nouveau terminal se rendre dans le dossier web : `cd web/`
 10. Maintenant il faut lancer le site web pour cela 2 solutions:
     - Ouvrir dans son navigateur un lien vers le fichier `index.html` : `readlink -f index.html` donne le full path du fichier  `file:///home/user/projet_sr05/web/index.html`
     - Faire tourner le site sur un serveur HTTP local : `python3 -m http.server` puis acceder au site sur [localhost:8000](http://localhost:8000/)
 10. Il est maintenant possible de jouer :
-    - En se connectant à un joueur via le bouton **connect**
+    - En sélectionnat un joueur puis en se connectant via le bouton **connect**
     - Les cartes sont affichées, et il est possible de commencer à jouer (un rappel des règles est disponible)
 11. Remarques :
     - Il faut connecter 3 joueurs avant de débuter une partie (car lorsqu'un joueur se connecte la partie se réinitialise)

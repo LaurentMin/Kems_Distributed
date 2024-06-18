@@ -80,11 +80,6 @@ func renewDrawPile(game GameState) GameState {
 func renewPlayerHands(game GameState) GameState {
 	// Bool allows to differentiate the first draw from the renewing of the pile
 	playerHandsEmpty := len(game.Players[0].Hand) == 0
-	if playerHandsEmpty {
-		// logMessage("renewPlayerHands", "Drawing cards from the deck to fill the players hands (first draw).")
-	} else {
-		// logMessage("renewPlayerHands", "Drawing cards from the deck to renew players hands.")
-	}
 
 	// Error returns same game state
 	if len(game.Players) == 0 {
@@ -93,8 +88,21 @@ func renewPlayerHands(game GameState) GameState {
 	}
 
 	// Drawing cards from the deck until player hands are filled
-	for i := 0; i < game.Settings.HandSize; i++ {
-		for playerIndex := 0; playerIndex < len(game.Players); playerIndex++ {
+	for playerIndex := 0; playerIndex < len(game.Players); playerIndex++ {
+
+		//Check if player is removed
+		playerIsRemoved := false
+		for _, removedPlayer := range removedPlayers {
+			if playerIndex == removedPlayer {
+				playerIsRemoved = true
+			}
+		}
+		if playerIsRemoved {
+			continue
+		}
+
+		for i := 0; i < game.Settings.HandSize; i++ {
+
 			// Reshuffling deck if it is empty
 			if len(game.Deck) == 0 {
 				game = reshuffleDiscard(game)
@@ -345,6 +353,7 @@ func main() {
 			} else {
 				removedPlayers = append(removedPlayers, removedPlayer)
 				logInfo("main", "Updated removed players in app : "+strconv.Itoa(removedPlayers[len(removedPlayers)-1]))
+				game = renewPlayerHands(game)
 			}
 			messageReceived = ""
 			continue

@@ -207,6 +207,14 @@ header {
     border-radius: 10%;
 }
 
+#playerInput {
+    text-align: center;
+    font-size: 1 rem;
+    font-weight: 600;
+    /* width: 57%; */
+    color: var(--primary-color);
+}
+
 .button {
     background-color: green;
     color: #fff;
