@@ -352,6 +352,7 @@ func main() {
 			} else {
 				removedPlayers = append(removedPlayers, removedPlayer)
 				logInfo("main", "Updated removed players in app : "+strconv.Itoa(removedPlayers[len(removedPlayers)-1]))
+				game = renewPlayerHands(game)
 			}
 			messageReceived = ""
 			continue
