@@ -84,7 +84,7 @@ func do_websocket(w http.ResponseWriter, r *http.Request) {
 
 			handCardIndex := -1
 			drawCardIndex := -1
-			for i, card := range state.Players[playerId-1].Hand {
+			for i, card := range state.Players[playerId].Hand {
 				if card.Value == handCardValue && card.Suit == handCardSuit {
 					handCardIndex = i
 				}
@@ -102,7 +102,7 @@ func do_websocket(w http.ResponseWriter, r *http.Request) {
 			for otherPlayerId == -1 {
 				otherPlayerId = checkIfKems(state)
 			}
-			otherPlayerId++
+			// otherPlayerId++
 
 			sendAction("ContreKems", []string{"playerIndex"}, []string{strconv.Itoa(otherPlayerId)})
 		case "ResetGame":
@@ -158,7 +158,7 @@ func sendGameStateToWeb(newState GameState, playerId int) {
 		numberRound += newState.Players[i].Score
 	}
 
-	jsonGameState := "{\"playerId\":" + name + ", \"hand\": " + cardsToJSON(newState.Players[playerId-1].Hand) + ", \"drawPile\": " + cardsToJSON(newState.DrawPile) + ", \"scores\": " + scoresToJSON(newState.Players) + ", \"round\": " + strconv.Itoa(numberRound)
+	jsonGameState := "{\"playerId\":" + name + ", \"hand\": " + cardsToJSON(newState.Players[playerId].Hand) + ", \"drawPile\": " + cardsToJSON(newState.DrawPile) + ", \"scores\": " + scoresToJSON(newState.Players) + ", \"round\": " + strconv.Itoa(numberRound)
 
 	//Discard can be empty at the beginning of the game
 	if len(newState.DiscardPile) > 0 {
@@ -169,7 +169,7 @@ func sendGameStateToWeb(newState GameState, playerId int) {
 
 	potentialWinner := checkIfKems(newState)
 	if potentialWinner != -1 {
-		jsonGameState += ", \"potentialWinner\": " + strconv.Itoa(potentialWinner+1)
+		jsonGameState += ", \"potentialWinner\": " + strconv.Itoa(potentialWinner)
 	}
 
 	if len(state.Players) > 0 {
