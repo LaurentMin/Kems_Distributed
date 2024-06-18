@@ -298,7 +298,6 @@ func hasKems(game GameState, playerIndex int) bool {
 	player := game.Players[playerIndex]
 	handSize := game.Settings.HandSize
 	if len(player.Hand) < handSize {
-		logError("hasKems", "Player has insufficient cards in hand. (FATAL ERROR)")
 		return false
 	}
 	// Getting first card
