@@ -7,7 +7,6 @@ func sendAction(actionType string, actionParamsNames []string, actionParamsValue
 	action := encodeMessage([]string{"typ", "prm"}, []string{actionType, params})
 
 	logInfo("sendAction", "Sending action "+action)
-	// outChan <- encodeMessage([]string{"snd", "msg"}, []string{"P" + name, action}) + "\n"
 	fmt.Printf(encodeMessage([]string{"snd", "msg"}, []string{"P" + name, action}) + "\n")
 }
 
